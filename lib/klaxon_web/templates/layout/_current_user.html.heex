@@ -1,0 +1,10 @@
+<%= if assigns[:current_user] do %>
+    || Signed in: <%= @current_user.email %>
+    <%= if (not is_nil(assigns[:current_profile])) and Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+        | <a {[href: Routes.profile_path(@conn, :edit)]}>Edit profile</a>
+    <% end %>
+    | <%= link "Sign out", to: Routes.user_session_path(@conn, :delete), method: :delete %>
+<% else %>
+    || <%= link "Register", to: Routes.user_registration_path(@conn, :new) %>
+    | <%= link "Sign in", to: Routes.user_session_path(@conn, :new) %>
+<% end %>

@@ -1,0 +1,23 @@
+<article class="h-entry">
+  <h1 class="p-name"><%= @title %></h1>
+  <div class="e-content">
+    <%= raw @post.content_html %>
+  </div>
+  <div class="mt-4 border-t">
+    <p>
+      <span>
+        <a {[href: Routes.profile_path(@conn, :index), class: "p-author h-card"]}><%= @post.profile.display_name %></a>
+      </span>
+      <span>
+        <%= status_action(@post) %>: <time class="dt-published" {[datetime: htmlify_date(status_date(@post))]}><%= prettify_date(status_date(@post)) %></time>.
+        <%= if @post.updated_at > status_date(@post) do %>
+          Updated: <%=  prettify_date(@post.updated_at) %>.
+        <% end %>
+        <%= if length(@post.tags) > 0 do %>Tags:
+          <%= Enum.map_intersperse(Enum.sort(@post.tags, fn t1, t2 -> t1.label <= t2.label end), ", ", fn t -> %>
+            <a {[href: Routes.labels_path(@conn, :show, t.label.slug)]}><%= t.label.title %></a><% end) %>.
+        <% end %>
+      </span>
+    </p>
+  </div>
+</article>

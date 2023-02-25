@@ -1,0 +1,13 @@
+<main class="content p-4">
+  <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+  <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+  <%= @inner_content %>
+  <footer class="mt-4 border-t text-sm">
+    <p>
+        <a {[href: Routes.profile_path(@conn, :index)]}>Home</a>
+        | <a {[href: Routes.posts_path(@conn, :index)]}>Posts</a>
+        <%= render "_current_user.html", assigns %>
+        || Klaxon: <%= String.slice(git_revision(), 0, 7) %>
+    </p>
+  </footer>
+</main>
