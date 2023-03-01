@@ -1,4 +1,5 @@
 defmodule Klaxon.Profiles do
+  require Logger
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles.Principal
@@ -33,11 +34,31 @@ defmodule Klaxon.Profiles do
   end
 
   def get_local_profile_by_uri(uri) do
+    case Cachex.fetch(:local_profile_cache, uri, &get_local_profile_by_uri_cache_miss/1) do
+      {:ok, %Profile{} = profile} ->
+        Logger.info("Cache hit for local profile: #{uri}")
+        {:ok, profile}
+
+      {:commit, %Profile{} = profile, _} ->
+        Logger.info("Cache miss for local profile: #{uri}")
+        {:ok, profile}
+
+      _ ->
+        Logger.info("Cache ignore for local profile: #{uri}")
+        {:error, :not_found}
+    end
+  end
+
+  defp get_local_profile_by_uri_cache_miss(uri) do
     with {:ok, profile} <- get_profile_by_uri(uri) do
       case profile.principals do
-        [_ | _] -> {:ok, profile}
-        _ -> {:error, :not_found}
+        # TODO: Make cache TTL configurable.
+        [_ | _] -> {:commit, profile, ttl: :timer.seconds(300)}
+        _ -> {:ignore, nil}
       end
+    else
+      _ ->
+        {:ignore, nil}
     end
   end
 
@@ -62,10 +83,6 @@ defmodule Klaxon.Profiles do
   end
 
   def is_principal_owned_by_user?(_, _), do: false
-
-  # def get_profile_principal_by_uri(uri) do
-  #   with {:ok, profile} <-
-  # end
 
   def get_profile!(user_id, name) do
     query =
@@ -94,12 +111,17 @@ defmodule Klaxon.Profiles do
       |> Map.merge(%{public_key: public_key, private_key: private_key})
       |> Profile.insert_changeset()
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:profile, changeset)
-    |> Ecto.Multi.insert(:principal, fn %{profile: profile} ->
-      %Principal{user_id: user_id, profile: profile}
-    end)
-    |> Repo.transaction()
+    with {:ok, %{principal: _, profile: profile}} = results <-
+           Ecto.Multi.new()
+           |> Ecto.Multi.insert(:profile, changeset)
+           |> Ecto.Multi.insert(:principal, fn %{profile: profile} ->
+             %Principal{user_id: user_id, profile: profile}
+           end)
+           |> Repo.transaction() do
+      {:ok, true} = Cachex.del(:local_profile_cache, profile.uri)
+      Logger.info("Cache delete for local profile: #{profile.uri}")
+      results
+    end
   end
 
   def change_profile(%Profile{} = profile, attrs \\ %{}) do
@@ -107,8 +129,13 @@ defmodule Klaxon.Profiles do
   end
 
   def update_profile(%Profile{} = profile, attrs) do
-    change_profile(profile, attrs)
-    |> Repo.update()
+    with {:ok, %Profile{} = profile} = results <-
+           change_profile(profile, attrs)
+           |> Repo.update() do
+      {:ok, true} = Cachex.del(:local_profile_cache, profile.uri)
+      Logger.info("Cache delete for profile: #{profile.uri}")
+      results
+    end
   end
 
   def create_rsa_pair() do

@@ -4,6 +4,7 @@ defmodule KlaxonWeb.Plugs do
 
   See `Phoenix.Plug` for more information on function plugs.
   """
+  require Logger
   import Plug.Conn
   import Phoenix.Controller
   alias Klaxon.Auth.User
@@ -29,6 +30,8 @@ defmodule KlaxonWeb.Plugs do
     uri =
       %URI{host: conn.host, scheme: Atom.to_string(conn.scheme), port: conn.port, path: "/"}
       |> URI.to_string()
+
+    Logger.info("Fetching profile: #{uri}")
 
     case Profiles.get_local_profile_by_uri(uri) do
       {:ok, %Profile{} = profile} -> assign(conn, :current_profile, profile)

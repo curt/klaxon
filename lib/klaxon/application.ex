@@ -15,9 +15,12 @@ defmodule Klaxon.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Klaxon.PubSub},
       # Start the Endpoint (http/https)
-      KlaxonWeb.Endpoint
+      KlaxonWeb.Endpoint,
       # Start a worker by calling: Klaxon.Worker.start_link(arg)
       # {Klaxon.Worker, arg}
+      #
+      # Start the Cachex caches
+      {Cachex, name: :local_profile_cache, limit: 20}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
