@@ -1,5 +1,4 @@
 defmodule KlaxonWeb.Router do
-  # alias KlaxonWeb.InboxController
   use KlaxonWeb, :router
 
   import KlaxonWeb.UserAuth
@@ -7,6 +6,7 @@ defmodule KlaxonWeb.Router do
 
   pipeline :browser do
     plug :accepts, ["html", "json", "activity+json"]
+    plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {KlaxonWeb.LayoutView, :root}
@@ -18,6 +18,7 @@ defmodule KlaxonWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json", "activity+json"]
+    plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_current_profile
   end
 
