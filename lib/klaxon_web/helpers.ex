@@ -57,6 +57,11 @@ defmodule KlaxonWeb.Helpers do
     end
   end
 
+  def endpointify(uri) do
+    uri = URI.parse(uri)
+    %URI{host: uri.host, scheme: uri.scheme, port: uri.port}
+  end
+
   def json_status_response(conn, status, msg) do
     conn |> Plug.Conn.put_status(status) |> Phoenix.Controller.json(msg)
   end

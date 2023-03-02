@@ -1,11 +1,11 @@
 defmodule KlaxonWeb.NodeInfoView do
   use KlaxonWeb, :view
 
-  def render("well_known.json", _assigns) do
+  def render("well_known.json", assigns) do
     %{
       links: [
         %{
-          href: Routes.node_info_url(KlaxonWeb.Endpoint, :version, "2.0"),
+          href: Routes.node_info_url(endpointify(assigns.current_profile.uri), :version, "2.0"),
           rel: "http://nodeinfo.diaspora.software/ns/schema/2.0"
         }
       ]
