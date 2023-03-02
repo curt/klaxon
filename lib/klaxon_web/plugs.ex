@@ -27,8 +27,12 @@ defmodule KlaxonWeb.Plugs do
   """
   @spec fetch_current_profile(Plug.Conn.t(), any) :: Plug.Conn.t()
   def fetch_current_profile(conn, _opts) do
+    scheme =
+      List.first(Plug.Conn.get_req_header(conn, "x-forwarded-proto")) ||
+        Atom.to_string(conn.scheme)
+
     uri =
-      %URI{host: conn.host, scheme: Atom.to_string(conn.scheme), port: conn.port, path: "/"}
+      %URI{host: conn.host, scheme: scheme, port: conn.port, path: "/"}
       |> URI.to_string()
 
     Logger.info("Fetching profile: #{uri}")
