@@ -11,6 +11,7 @@ defmodule Klaxon.Profiles.Profile do
     field :display_name, :string
     field :name, :string
     field :uri, :string
+    field :inbox, :string
     field :private_key, :string, redact: true
     field :public_key, :string
     field :summary, :string
@@ -28,13 +29,13 @@ defmodule Klaxon.Profiles.Profile do
 
   def insert_changeset(attrs) do
     %Profile{}
-    |> cast(attrs, [:name, :uri, :display_name, :summary, :public_key, :private_key])
+    |> cast(attrs, [:name, :uri, :display_name, :summary, :inbox, :public_key, :private_key])
     |> validate_required([:name, :uri])
   end
 
   def update_changeset(profile, attrs) do
     profile
-    |> cast(attrs, [:display_name, :summary, :public_key, :private_key])
+    |> cast(attrs, [:display_name, :summary, :inbox, :public_key, :private_key])
   end
 
   def uri_query(uri) do
