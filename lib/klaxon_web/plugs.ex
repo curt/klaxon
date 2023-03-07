@@ -27,15 +27,17 @@ defmodule KlaxonWeb.Plugs do
   """
   @spec fetch_current_profile(Plug.Conn.t(), any) :: Plug.Conn.t()
   def fetch_current_profile(conn, _opts) do
-    uri =
-      %URI{host: conn.host, scheme: Atom.to_string(conn.scheme), port: conn.port, path: "/"}
-      |> URI.to_string()
+    endpoint = %URI{host: conn.host, scheme: Atom.to_string(conn.scheme), port: conn.port}
+    uri = endpoint |> Map.put(:path, "/") |> URI.to_string()
 
     Logger.info("Fetching profile: #{uri}")
 
     case Profiles.get_local_profile_by_uri(uri) do
-      {:ok, %Profile{} = profile} -> assign(conn, :current_profile, profile)
-      _ -> conn
+      {:ok, %Profile{} = profile} ->
+        conn |> assign(:current_profile, profile) |> assign(:current_endpoint, endpoint)
+
+      _ ->
+        conn
     end
   end
 
