@@ -18,7 +18,10 @@ defmodule Klaxon.Application do
       KlaxonWeb.Endpoint,
       # Start a worker by calling: Klaxon.Worker.start_link(arg)
       # {Klaxon.Worker, arg}
-      #
+
+      # Not included with Phoenix:
+      # Start the Oban child
+      {Oban, Application.fetch_env!(:klaxon, Oban)},
       # Start the Cachex caches
       {Cachex, name: :local_profile_cache, limit: 20}
     ]
