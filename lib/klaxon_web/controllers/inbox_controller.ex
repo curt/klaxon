@@ -28,6 +28,15 @@ defmodule KlaxonWeb.InboxController do
             "req_headers: #{inspect(conn.req_headers)}"
         )
 
+        args = Inbound.worker_args(params, conn, NaiveDateTime.utc_now())
+
+        Logger.debug("worker args: #{inspect(args)}")
+
+        {:ok, _} =
+          args
+          |> Klaxon.Activities.Workers.Inbound.new()
+          |> Oban.insert()
+
         {:accepted}
       else
         {:error, :bad_request}
