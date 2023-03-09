@@ -12,7 +12,7 @@ defmodule Klaxon.Activities.Inbox.Async do
     try do
       activity =
         activity
-        |> maybe_reference_id("actor")
+        |> maybe_normalize_id("actor")
         |> check_against_actor_blocklist("actor")
         |> dereference_actor()
         |> verify_signature(args)
@@ -39,7 +39,7 @@ defmodule Klaxon.Activities.Inbox.Async do
   def process(%{"type" => "Create", "object" => _object} = activity, _args) do
     activity =
       activity
-      |> maybe_reference_id("object")
+      |> maybe_normalize_id("object")
       |> check_against_object_blocklist("object")
       |> dereference_object("object")
       |> check_object_attribute_against_actor_uri("object", "attributedTo")
@@ -52,7 +52,7 @@ defmodule Klaxon.Activities.Inbox.Async do
     throw(:reject)
   end
 
-  defp maybe_reference_id(%{} = object, key) do
+  defp maybe_normalize_id(%{} = object, key) do
     case Map.fetch(object, key) do
       {:ok, attr} ->
         id = validate_publicly_dereferencable_uri(attr)
@@ -64,7 +64,7 @@ defmodule Klaxon.Activities.Inbox.Async do
         end
 
       _ ->
-        Logger.debug("unable to reference #{inspect(key)} from: #{inspect(object)}")
+        Logger.debug("unable to normalize id of #{key} from: #{inspect(object)}")
         throw(:reject)
     end
   end
@@ -119,7 +119,7 @@ defmodule Klaxon.Activities.Inbox.Async do
        ) do
     check_uri =
       Map.fetch!(activity, attribute)
-      |> maybe_reference_id(object_attribute)
+      |> maybe_normalize_id(object_attribute)
 
     if check_uri == actor_uri do
       activity
