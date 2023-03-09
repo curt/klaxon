@@ -1,6 +1,7 @@
-defmodule Klaxon.Activities.Workers.Inbound do
+defmodule Klaxon.Activities.Inbox.Worker do
   require Logger
   use Oban.Worker
+  alias Klaxon.Activities.Inbox.Async
 
   @impl Oban.Worker
   def perform(%Oban.Job{
@@ -11,7 +12,7 @@ defmodule Klaxon.Activities.Workers.Inbound do
             "activity" => _activity
           } = args
       }) do
-    Klaxon.Activities.Inbound.process(args)
+    Async.process(args)
   end
 
   @impl Oban.Worker

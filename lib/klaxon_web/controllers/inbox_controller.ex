@@ -7,7 +7,8 @@ defmodule KlaxonWeb.InboxController do
   use KlaxonWeb, :controller
   import KlaxonWeb.Plugs
   alias Klaxon.Profiles.Profile
-  alias Klaxon.Activities.Inbound
+  alias Klaxon.Activities.Inbox.Sync
+  alias Klaxon.Activities.Inbox.Worker
 
   action_fallback KlaxonWeb.FallbackController
   plug :activity_json_response
@@ -22,19 +23,19 @@ defmodule KlaxonWeb.InboxController do
 
   def create(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, params) do
     with {:ok, _profile} <- get_profile(conn) do
-      if Inbound.request_well_formed?(params, conn.req_headers) do
+      if Sync.request_well_formed?(params, conn.req_headers) do
         Logger.info(
           "accepted inbox request\n params: #{inspect(params)}\n" <>
             "req_headers: #{inspect(conn.req_headers)}"
         )
 
-        args = Inbound.worker_args(params, conn, NaiveDateTime.utc_now())
+        args = Sync.worker_args(params, conn, NaiveDateTime.utc_now())
 
         Logger.debug("worker args: #{inspect(args)}")
 
         {:ok, _} =
           args
-          |> Klaxon.Activities.Workers.Inbound.new()
+          |> Worker.new()
           |> Oban.insert()
 
         {:accepted}
