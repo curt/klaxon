@@ -3,7 +3,6 @@ defmodule Klaxon.Activities.Inbox.Async do
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents
-  alias Klaxon.Contents.Post
   alias Klaxon.Blocks
 
   @doc """
@@ -17,8 +16,8 @@ defmodule Klaxon.Activities.Inbox.Async do
       activity =
         activity
         |> maybe_normalize_id("actor")
-        |> check_against_actor_blocklist("actor", args)
-        |> dereference_actor("actor")
+        |> maybe_block_actor(args)
+        |> dereference_actor()
         |> verify_signature(args)
         |> process(args)
 
@@ -48,8 +47,8 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity =
       activity
       |> maybe_normalize_id("object")
-      |> check_against_object_blocklist("object")
-      |> dereference_object("object")
+      |> maybe_block_object()
+      |> dereference_object()
       |> check_object_attribute_against_actor_uri("object", "attributedTo")
       |> check_acceptability("object")
 
@@ -108,12 +107,11 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   # Note: Actor should be normalized to a URI string.
-  defp check_against_actor_blocklist(
+  defp maybe_block_actor(
          %{} = activity,
-         attribute,
          %{"profile_id" => profile_id} = _args
        ) do
-    actor_uri = Map.fetch!(activity, attribute)
+    actor_uri = Map.fetch!(activity, "actor")
 
     if Blocks.actor_blocked?(actor_uri, profile_id) do
       Logger.debug("actor blocked #{actor_uri}")
@@ -124,16 +122,16 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   # TODO: implement
-  defp check_against_object_blocklist(%{} = activity, attribute) do
-    _object = Map.fetch!(activity, attribute)
+  defp maybe_block_object(%{} = activity) do
+    _object = Map.fetch!(activity, "object")
     activity
   end
 
   # TODO: rewrite this against dereferenced types
   defp check_object_attribute_against_actor_uri(
-         %{"actor" => %Profile{uri: actor_uri}} = activity,
+         %{"actor" => %Profile{uri: _actor_uri}} = activity,
          attribute,
-         object_attribute
+         _object_attribute
        ) do
     check_uri = Map.get(activity, attribute)
 
@@ -161,8 +159,8 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity
   end
 
-  defp dereference_actor(activity, attribute) do
-    actor_uri = Map.fetch!(activity, attribute)
+  defp dereference_actor(activity) do
+    actor_uri = Map.fetch!(activity, "actor")
     profile = Profiles.get_or_fetch_public_profile_by_uri(actor_uri)
 
     if !profile do
@@ -172,11 +170,11 @@ defmodule Klaxon.Activities.Inbox.Async do
       Logger.debug("dereferenced actor #{actor_uri} to #{inspect(profile)}")
     end
 
-    Map.put(activity, attribute, profile)
+    Map.put(activity, "actor", profile)
   end
 
-  defp dereference_object(activity, attribute) do
-    object_uri = Map.fetch!(activity, attribute)
+  defp dereference_object(activity) do
+    object_uri = Map.fetch!(activity, "object")
     post = Contents.get_or_fetch_public_post_by_uri(object_uri)
 
     if !post do
@@ -186,6 +184,6 @@ defmodule Klaxon.Activities.Inbox.Async do
       Logger.debug("dereferenced object #{object_uri} to #{inspect(post)}")
     end
 
-    Map.put(activity, attribute, post)
+    Map.put(activity, "object", post)
   end
 end
