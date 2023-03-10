@@ -2,6 +2,8 @@ defmodule Klaxon.Contents do
   @moduledoc """
   Interactions between `Klaxon.Contents` schemas and repo.
   """
+  require Logger
+  alias Klaxon.HttpClient
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
@@ -119,5 +121,45 @@ defmodule Klaxon.Contents do
       {:ok, profile} -> Enum.any?(profile.principals, fn x -> x.user_id == user_id end)
       _ -> false
     end
+  end
+
+  @spec get_or_fetch_public_post_by_uri(binary) :: %Post{} | nil
+  def get_or_fetch_public_post_by_uri(profile_uri) do
+    Repo.one(Post.uri_query(profile_uri)) ||
+      fetch_public_post_by_uri(profile_uri)
+  end
+
+  @spec fetch_public_post_by_uri(binary) :: %Post{} | nil
+  def fetch_public_post_by_uri(profile_uri) do
+    case HttpClient.activity_get(profile_uri) do
+      {:ok, %{body: body}} -> new_public_post_from_response(body)
+      _ -> nil
+    end
+  end
+
+  @spec new_public_post_from_response(map) :: %Post{} | nil
+  def new_public_post_from_response(%{"id" => uri} = body) do
+    profile_id = Map.get(body, "attributedTo")
+    content_html = Map.get(body, "content")
+    # TODO: Fake a tag if missing
+    context_uri = Map.get(body, "conversation") || Map.get(body, "context")
+    in_reply_to_uri = Map.get(body, "inReplyTo")
+
+    # TODO: Missing published_at
+    %Post{
+      uri: uri,
+      profile_id: profile_id,
+      origin: :remote,
+      status: :published,
+      visibility: :unlisted,
+      content_html: content_html,
+      context_uri: context_uri,
+      in_reply_to_uri: in_reply_to_uri
+    }
+  end
+
+  def new_public_post_from_response(_body) do
+    Logger.info("public post does not have required attributes")
+    nil
   end
 end

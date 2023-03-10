@@ -74,6 +74,10 @@ defmodule Klaxon.Contents.Post do
     |> preload([profile: r, tags: t, labels: l], profile: r, tags: {t, label: l})
   end
 
+  def uri_query(uri) do
+    from p in __MODULE__, where: p.uri == ^uri
+  end
+
   def where_post_id(query, post_id) do
     where(query, [posts: p], p.id == ^post_id)
   end

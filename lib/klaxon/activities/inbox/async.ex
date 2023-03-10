@@ -2,6 +2,8 @@ defmodule Klaxon.Activities.Inbox.Async do
   require Logger
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
+  alias Klaxon.Contents
+  alias Klaxon.Contents.Post
   alias Klaxon.Blocks
 
   @doc """
@@ -173,9 +175,17 @@ defmodule Klaxon.Activities.Inbox.Async do
     Map.put(activity, attribute, profile)
   end
 
-  # TODO: implement
   defp dereference_object(activity, attribute) do
-    _object = Map.fetch!(activity, attribute)
-    activity
+    object_uri = Map.fetch!(activity, attribute)
+    post = Contents.get_or_fetch_public_post_by_uri(object_uri)
+
+    if !post do
+      Logger.debug("unable to dereference object #{object_uri}")
+      throw(:reject)
+    else
+      Logger.debug("dereferenced object #{object_uri} to #{inspect(post)}")
+    end
+
+    Map.put(activity, attribute, post)
   end
 end
