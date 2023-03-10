@@ -4,7 +4,9 @@ defmodule Klaxon.Profiles do
   alias Klaxon.Auth.User
   alias Klaxon.Profiles.Principal
   alias Klaxon.Profiles.Profile
+  alias Klaxon.HttpClient
   import Ecto.Query
+  import Ecto.Changeset
 
   def list_principals(user_id) do
     query =
@@ -101,6 +103,47 @@ defmodule Klaxon.Profiles do
       |> join(:inner, [profile], principal in assoc(profile, :principals))
 
     Repo.one!(query)
+  end
+
+  @spec get_or_fetch_public_profile_by_uri(binary) :: %Profile{} | nil
+  def get_or_fetch_public_profile_by_uri(profile_uri) do
+    Repo.one(Profile.uri_query(profile_uri)) || fetch_public_profile_by_uri(profile_uri)
+  end
+
+  @spec fetch_public_profile_by_uri(binary) :: %Profile{} | nil
+  def fetch_public_profile_by_uri(profile_uri) do
+    case HttpClient.activity_get(profile_uri) do
+      {:ok, %{body: body}} -> new_public_profile_from_response(body)
+      _ -> nil
+    end
+  end
+
+  @spec new_public_profile_from_response(map) :: %Profile{} | nil
+  def new_public_profile_from_response(
+        %{"id" => uri, "preferredUsername" => name, "inbox" => inbox} = body
+      ) do
+    public_key = Map.get(body, "publicKey")
+    public_key_pem = public_key && Map.get(public_key, "publicKeyPem")
+
+    %Profile{
+      uri: uri,
+      name: name,
+      inbox: inbox,
+      summary: Map.get(body, "summary"),
+      display_name: Map.get(body, "name"),
+      public_key: public_key_pem
+    }
+  end
+
+  def new_public_profile_from_response(_body) do
+    Logger.info("public profile does not have required attributes")
+    nil
+  end
+
+  def insert_or_update_profile(profile) do
+    profile
+    |> change()
+    |> Repo.insert_or_update()
   end
 
   def create_local_profile(params, user_id) do

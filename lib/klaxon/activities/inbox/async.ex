@@ -1,6 +1,8 @@
 defmodule Klaxon.Activities.Inbox.Async do
   require Logger
+  alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
+  alias Klaxon.Blocks
 
   @doc """
   Processes an inbound activity. The activity should have already been checked for well-formedness.
@@ -13,13 +15,17 @@ defmodule Klaxon.Activities.Inbox.Async do
       activity =
         activity
         |> maybe_normalize_id("actor")
-        |> check_against_actor_blocklist("actor")
-        |> dereference_actor()
+        |> check_against_actor_blocklist("actor", args)
+        |> dereference_actor("actor")
         |> verify_signature(args)
         |> process(args)
 
       Logger.info("good inbound activity: #{inspect(activity)}")
       :ok
+    rescue
+      ex ->
+        Logger.error("failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}")
+        {:cancel, inspect(ex)}
     catch
       :reject ->
         Logger.info("rejected inbound activity: #{inspect(activity)}")
@@ -99,9 +105,19 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity
   end
 
-  # TODO: implement
-  defp check_against_actor_blocklist(%{} = activity, attribute) do
-    _actor = Map.fetch!(activity, attribute)
+  # Note: Actor should be normalized to a URI string.
+  defp check_against_actor_blocklist(
+         %{} = activity,
+         attribute,
+         %{"profile_id" => profile_id} = _args
+       ) do
+    actor_uri = Map.fetch!(activity, attribute)
+
+    if Blocks.actor_blocked?(actor_uri, profile_id) do
+      Logger.debug("actor blocked #{actor_uri}")
+      throw(:reject)
+    end
+
     activity
   end
 
@@ -117,16 +133,25 @@ defmodule Klaxon.Activities.Inbox.Async do
          attribute,
          object_attribute
        ) do
-    check_uri =
-      Map.fetch!(activity, attribute)
-      |> maybe_normalize_id(object_attribute)
+    check_uri = Map.get(activity, attribute)
 
-    if check_uri == actor_uri do
-      activity
-    else
-      Logger.debug("#{object_attribute} URI does not equal actor URI #{actor_uri}")
+    if !check_uri do
+      Logger.debug("attribute #{attribute} not found on activity #{inspect(activity)}")
       throw(:reject)
     end
+
+    # FIXME!
+    # check_uri =
+    #   check_uri
+    #   |> maybe_normalize_id(object_attribute)
+
+    # if check_uri == actor_uri do
+    #   activity
+    # else
+    #   Logger.debug("#{object_attribute} URI does not equal actor URI #{actor_uri}")
+    #   throw(:reject)
+    # end
+    activity
   end
 
   # TODO: implement
@@ -134,10 +159,21 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity
   end
 
-  defp dereference_actor(activity) do
-    activity
+  defp dereference_actor(activity, attribute) do
+    actor_uri = Map.fetch!(activity, attribute)
+    profile = Profiles.get_or_fetch_public_profile_by_uri(actor_uri)
+
+    if !profile do
+      Logger.debug("unable to dereference actor #{actor_uri}")
+      throw(:reject)
+    else
+      Logger.debug("dereferenced actor #{actor_uri} to #{inspect(profile)}")
+    end
+
+    Map.put(activity, attribute, profile)
   end
 
+  # TODO: implement
   defp dereference_object(activity, attribute) do
     _object = Map.fetch!(activity, attribute)
     activity
