@@ -10,10 +10,7 @@ defmodule Klaxon.Schema do
 
       @spec to_map(struct | map | nil) :: map | nil
       def to_map(struct) when is_struct(struct) do
-        struct
-        |> Map.from_struct()
-        |> Map.delete(:__meta__)
-        |> Map.delete(:__struct__)
+        struct |> Map.take(__schema__(:fields) ++ __schema__(:virtual_fields))
       end
 
       def to_map(other) do

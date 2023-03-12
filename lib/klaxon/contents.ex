@@ -126,7 +126,14 @@ defmodule Klaxon.Contents do
 
   @spec get_public_post_by_uri(binary) :: struct | nil
   def get_public_post_by_uri(post_uri) do
-    Repo.one(Post.uri_query(post_uri))
+    Repo.one(Post.uri_query(post_uri) |> preload(:profile))
+    |> then(fn post ->
+      if post do
+        if profile = post.profile do
+          Map.put(post, :attributed_to, profile.uri)
+        end
+      end || post
+    end)
   end
 
   @spec get_or_fetch_public_post_by_uri(binary, map) :: map | nil
@@ -149,6 +156,12 @@ defmodule Klaxon.Contents do
         %{"uri" => profile_uri} = _current_profile
       ) do
     profile_id = Map.get(body, "attributedTo")
+
+    unless profile_id do
+      Logger.info("attributedTo not found in #{inspect(body)}")
+      throw(:reject)
+    end
+
     content_html = Map.get(body, "content")
     in_reply_to_uri = Map.get(body, "inReplyTo")
 
@@ -184,7 +197,7 @@ defmodule Klaxon.Contents do
       in_reply_to_uri: in_reply_to_uri,
       published_at: published
     }
-    |> Map.put(:__attributed_to, profile_id)
+    |> Map.put(:attributed_to, profile_id)
   end
 
   def new_public_post_from_response(body, current_profile) do
@@ -195,18 +208,29 @@ defmodule Klaxon.Contents do
     nil
   end
 
-  def insert_or_update_public_post(_post, attrs) do
-    post_uri = Map.get(attrs, :uri)
+  def insert_or_update_public_post_profile(attrs) do
+    {profile_attrs, post_attrs} = Map.pop(attrs, :profile)
+
+    profile_uri = Map.get(profile_attrs, :uri)
+
+    profile_changeset =
+      (Profiles.get_public_profile_by_uri(profile_uri) || %Profile{})
+      |> Profile.changeset(profile_attrs)
+
+    post_uri = Map.get(post_attrs, :uri)
+
+    post_changeset =
+      get_public_post_by_uri(post_uri) ||
+        %Post{}
+        |> Post.changeset(post_attrs)
 
     result =
-      case get_public_post_by_uri(post_uri) do
-        nil -> %Post{}
-        post -> post
-      end
-      |> Repo.preload(:profile)
-      |> Post.changeset(attrs)
-      |> Ecto.Changeset.cast_assoc(:profile, with: &Profile.changeset/2)
-      |> Repo.insert_or_update()
+      Ecto.Multi.new()
+      |> Ecto.Multi.insert_or_update(:profile, profile_changeset)
+      |> Ecto.Multi.insert_or_update(:post, fn %{profile: profile} ->
+        post_changeset |> Ecto.Changeset.change(%{profile: profile})
+      end)
+      |> Repo.transaction()
 
     result
   end

@@ -13,6 +13,7 @@ defmodule Klaxon.Contents.Post do
     field :title, :string
     field :uri, :string
     field :visibility, Ecto.Enum, values: [:private, :unlisted, :public], default: :public
+    field :attributed_to, :string, virtual: true
 
     belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
     has_many :tags, Klaxon.Contents.Tag
