@@ -122,7 +122,10 @@ defmodule Klaxon.Activities.Inbox.Sync do
       method: String.downcase(conn.method),
       path: conn.request_path,
       requested_at: requested_at,
-      profile_id: conn.assigns[:current_profile].id
+      profile:
+        conn.assigns[:current_profile]
+        |> Map.from_struct()
+        |> Map.take([:id, :uri, :name])
     }
   end
 end

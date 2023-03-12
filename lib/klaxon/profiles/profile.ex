@@ -1,12 +1,6 @@
 defmodule Klaxon.Profiles.Profile do
-  use Ecto.Schema
-  alias Klaxon.Profiles.Profile
-  import Ecto.Query
-  import Ecto.Changeset
-  @timestamps_opts [type: :utc_datetime_usec]
+  use Klaxon.Schema
 
-  @primary_key {:id, EctoBase58, autogenerate: true}
-  @foreign_key_type EctoBase58
   schema "profiles" do
     field :display_name, :string
     field :name, :string
@@ -21,14 +15,15 @@ defmodule Klaxon.Profiles.Profile do
     timestamps()
   end
 
-  # def changeset(profile, attrs) do
-  #   profile
-  #   |> cast(attrs, [:name, :display_name, :summary, :public_key, :private_key])
-  #   |> validate_required([:name, :uri])
-  # end
+  def changeset(profile, attrs) do
+    profile
+    |> cast(attrs, [:name, :uri, :display_name, :summary, :inbox, :public_key, :private_key])
+    |> validate_required([:name, :uri])
+    |> unique_constraint(:uri)
+  end
 
   def insert_changeset(attrs) do
-    %Profile{}
+    %__MODULE__{}
     |> cast(attrs, [:name, :uri, :display_name, :summary, :inbox, :public_key, :private_key])
     |> validate_required([:name, :uri])
   end
@@ -39,6 +34,6 @@ defmodule Klaxon.Profiles.Profile do
   end
 
   def uri_query(uri) do
-    from p in Profile, where: p.uri == ^uri
+    from p in __MODULE__, where: p.uri == ^uri
   end
 end

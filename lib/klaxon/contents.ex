@@ -7,6 +7,7 @@ defmodule Klaxon.Contents do
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
+  alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   import Ecto.Query
 
@@ -123,43 +124,90 @@ defmodule Klaxon.Contents do
     end
   end
 
-  @spec get_or_fetch_public_post_by_uri(binary) :: %Post{} | nil
-  def get_or_fetch_public_post_by_uri(profile_uri) do
-    Repo.one(Post.uri_query(profile_uri)) ||
-      fetch_public_post_by_uri(profile_uri)
+  @spec get_public_post_by_uri(binary) :: struct | nil
+  def get_public_post_by_uri(post_uri) do
+    Repo.one(Post.uri_query(post_uri))
   end
 
-  @spec fetch_public_post_by_uri(binary) :: %Post{} | nil
-  def fetch_public_post_by_uri(profile_uri) do
-    case HttpClient.activity_get(profile_uri) do
-      {:ok, %{body: body}} -> new_public_post_from_response(body)
+  @spec get_or_fetch_public_post_by_uri(binary, map) :: map | nil
+  def get_or_fetch_public_post_by_uri(post_uri, %{} = current_profile) do
+    get_public_post_by_uri(post_uri) ||
+      fetch_public_post_by_uri(post_uri, %{} = current_profile)
+  end
+
+  @spec fetch_public_post_by_uri(binary, map) :: map | nil
+  def fetch_public_post_by_uri(post_uri, %{} = current_profile) do
+    case HttpClient.activity_get(post_uri) do
+      {:ok, %{body: body}} -> new_public_post_from_response(body, current_profile)
       _ -> nil
     end
   end
 
-  @spec new_public_post_from_response(map) :: %Post{} | nil
-  def new_public_post_from_response(%{"id" => uri} = body) do
+  @spec new_public_post_from_response(map, map) :: map
+  def new_public_post_from_response(
+        %{"id" => post_uri} = body,
+        %{"uri" => profile_uri} = _current_profile
+      ) do
     profile_id = Map.get(body, "attributedTo")
     content_html = Map.get(body, "content")
-    # TODO: Fake a tag if missing
-    context_uri = Map.get(body, "conversation") || Map.get(body, "context")
     in_reply_to_uri = Map.get(body, "inReplyTo")
 
-    # TODO: Missing published_at
-    %Post{
-      uri: uri,
-      profile_id: profile_id,
+    published =
+      case Timex.parse(Map.get(body, "published"), "{RFC3339}") do
+        {:ok, datetime} -> datetime
+        _ -> Timex.now()
+      end
+
+    context_uri =
+      cond do
+        context = Map.get(body, "context") ->
+          context
+
+        conversation = Map.get(body, "conversation") ->
+          conversation
+
+        true ->
+          # Generate a new tag URI if context is missing.
+          %{host: domain} = URI.new!(profile_uri)
+          random = Base58Check.Base58.encode(:crypto.strong_rand_bytes(16))
+          specific = "context/#{random}"
+          TagUri.generate(domain, specific)
+      end
+
+    %{
+      uri: post_uri,
       origin: :remote,
       status: :published,
       visibility: :unlisted,
       content_html: content_html,
       context_uri: context_uri,
-      in_reply_to_uri: in_reply_to_uri
+      in_reply_to_uri: in_reply_to_uri,
+      published_at: published
     }
+    |> Map.put(:__attributed_to, profile_id)
   end
 
-  def new_public_post_from_response(_body) do
-    Logger.info("public post does not have required attributes")
+  def new_public_post_from_response(body, current_profile) do
+    Logger.info(
+      "public post #{inspect(body)} does not have required attributes for current profile #{inspect(current_profile)}"
+    )
+
     nil
+  end
+
+  def insert_or_update_public_post(_post, attrs) do
+    post_uri = Map.get(attrs, :uri)
+
+    result =
+      case get_public_post_by_uri(post_uri) do
+        nil -> %Post{}
+        post -> post
+      end
+      |> Repo.preload(:profile)
+      |> Post.changeset(attrs)
+      |> Ecto.Changeset.cast_assoc(:profile, with: &Profile.changeset/2)
+      |> Repo.insert_or_update()
+
+    result
   end
 end

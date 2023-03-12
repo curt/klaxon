@@ -105,12 +105,17 @@ defmodule Klaxon.Profiles do
     Repo.one!(query)
   end
 
-  @spec get_or_fetch_public_profile_by_uri(binary) :: %Profile{} | nil
-  def get_or_fetch_public_profile_by_uri(profile_uri) do
-    Repo.one(Profile.uri_query(profile_uri)) || fetch_public_profile_by_uri(profile_uri)
+  @spec get_public_profile_by_uri(binary) :: struct | nil
+  def get_public_profile_by_uri(profile_uri) do
+    Repo.one(Profile.uri_query(profile_uri))
   end
 
-  @spec fetch_public_profile_by_uri(binary) :: %Profile{} | nil
+  @spec get_or_fetch_public_profile_by_uri(binary) :: struct | map | nil
+  def get_or_fetch_public_profile_by_uri(profile_uri) do
+    get_public_profile_by_uri(profile_uri) || fetch_public_profile_by_uri(profile_uri)
+  end
+
+  @spec fetch_public_profile_by_uri(binary) :: map | nil
   def fetch_public_profile_by_uri(profile_uri) do
     case HttpClient.activity_get(profile_uri) do
       {:ok, %{body: body}} -> new_public_profile_from_response(body)
@@ -118,14 +123,14 @@ defmodule Klaxon.Profiles do
     end
   end
 
-  @spec new_public_profile_from_response(map) :: %Profile{} | nil
+  @spec new_public_profile_from_response(map) :: map | nil
   def new_public_profile_from_response(
         %{"id" => uri, "preferredUsername" => name, "inbox" => inbox} = body
       ) do
     public_key = Map.get(body, "publicKey")
     public_key_pem = public_key && Map.get(public_key, "publicKeyPem")
 
-    %Profile{
+    %{
       uri: uri,
       name: name,
       inbox: inbox,

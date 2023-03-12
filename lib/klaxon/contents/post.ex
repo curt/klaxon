@@ -1,11 +1,6 @@
 defmodule Klaxon.Contents.Post do
-  use Ecto.Schema
-  import Ecto.Query
-  import Ecto.Changeset
-  @timestamps_opts [type: :utc_datetime_usec]
+  use Klaxon.Schema
 
-  @primary_key {:id, EctoBase58, autogenerate: true}
-  @foreign_key_type EctoBase58
   schema "posts" do
     field :content_html, :string
     field :context_uri, :string
@@ -74,12 +69,17 @@ defmodule Klaxon.Contents.Post do
     |> preload([profile: r, tags: t, labels: l], profile: r, tags: {t, label: l})
   end
 
-  def uri_query(uri) do
-    from p in __MODULE__, where: p.uri == ^uri
+  # TODO: Rename this.
+  def uri_query(post_uri) do
+    from_named() |> where_post_uri(post_uri)
   end
 
   def where_post_id(query, post_id) do
     where(query, [posts: p], p.id == ^post_id)
+  end
+
+  def where_post_uri(query, post_uri) do
+    where(query, [posts: p], p.uri == ^post_uri)
   end
 
   def where_status(query, statuses) do

@@ -1,9 +1,10 @@
 defmodule Klaxon.Activities.Inbox.Async do
   require Logger
-  alias Klaxon.Profiles
-  alias Klaxon.Profiles.Profile
-  alias Klaxon.Contents
   alias Klaxon.Blocks
+  alias Klaxon.Contents
+  alias Klaxon.Profiles
+  alias Klaxon.Contents.Post
+  alias Klaxon.Profiles.Profile
 
   @doc """
   Processes an inbound activity. The activity should have already been checked for well-formedness.
@@ -21,21 +22,17 @@ defmodule Klaxon.Activities.Inbox.Async do
         |> verify_signature(args)
         |> process(args)
 
-      Logger.info("good inbound activity: #{inspect(activity)}")
+      Logger.info("processed good inbound activity: #{inspect(activity)}")
       :ok
     rescue
       ex ->
         Logger.error("failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}")
+        Logger.error(Exception.format_stacktrace())
         {:cancel, inspect(ex)}
     catch
       :reject ->
         Logger.info("rejected inbound activity: #{inspect(activity)}")
         :ok
-
-      _ ->
-        msg = "invalid response for inbound activity: #{inspect(activity)}"
-        Logger.error(msg)
-        {:cancel, msg}
     end
   end
 
@@ -43,16 +40,26 @@ defmodule Klaxon.Activities.Inbox.Async do
     {:cancel}
   end
 
-  def process(%{"type" => "Create", "object" => _object} = activity, _args) do
+  def process(%{"type" => "Create", "object" => _object} = activity, args) do
     activity =
       activity
       |> maybe_normalize_id("object")
-      |> maybe_block_object()
-      |> dereference_object()
-      |> check_object_attribute_against_actor_uri("object", "attributedTo")
+      |> dereference_object(args)
+      |> maybe_block_object(args)
+      |> verify_attributed_to_against_actor()
       |> check_acceptability("object")
 
-    activity
+    actor_profile =
+      activity
+      |> Map.fetch!("actor")
+
+    object_post =
+      activity
+      |> Map.fetch!("object")
+      |> Map.put(:profile, actor_profile)
+
+    Logger.debug("attempting to insert or update post: #{inspect(object_post)}")
+    Contents.insert_or_update_public_post(%Post{}, object_post)
   end
 
   def process(_activity, _args) do
@@ -82,7 +89,7 @@ defmodule Klaxon.Activities.Inbox.Async do
         if uri.scheme in ["http", "https"] and uri.host do
           id
         else
-          Logger.debug("not a publicly dereferencable URI: #{id}")
+          Logger.debug("scheme #{uri.scheme} not a publicly dereferencable URI: #{id}")
           throw(:reject)
         end
 
@@ -106,13 +113,10 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity
   end
 
-  # Note: Actor should be normalized to a URI string.
   defp maybe_block_actor(
-         %{} = activity,
-         %{"profile_id" => profile_id} = _args
+         %{"actor" => actor_uri} = activity,
+         %{"profile" => %{"id" => profile_id}} = _args
        ) do
-    actor_uri = Map.fetch!(activity, "actor")
-
     if Blocks.actor_blocked?(actor_uri, profile_id) do
       Logger.debug("actor blocked #{actor_uri}")
       throw(:reject)
@@ -121,69 +125,103 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity
   end
 
-  # TODO: implement
-  defp maybe_block_object(%{} = activity) do
-    _object = Map.fetch!(activity, "object")
-    activity
-  end
-
-  # TODO: rewrite this against dereferenced types
-  defp check_object_attribute_against_actor_uri(
-         %{"actor" => %Profile{uri: _actor_uri}} = activity,
-         attribute,
-         _object_attribute
+  defp maybe_block_object(
+         %{"object" => object} = activity,
+         %{"profile" => %{"id" => profile_id}} = _args
        ) do
-    check_uri = Map.get(activity, attribute)
-
-    if !check_uri do
-      Logger.debug("attribute #{attribute} not found on activity #{inspect(activity)}")
+    if Blocks.object_blocked?(object, profile_id) do
+      Logger.debug("object blocked #{inspect(object)}")
       throw(:reject)
     end
 
-    # FIXME!
-    # check_uri =
-    #   check_uri
-    #   |> maybe_normalize_id(object_attribute)
-
-    # if check_uri == actor_uri do
-    #   activity
-    # else
-    #   Logger.debug("#{object_attribute} URI does not equal actor URI #{actor_uri}")
-    #   throw(:reject)
-    # end
     activity
   end
 
-  # TODO: implement
+  defp verify_attributed_to_against_actor(
+         %{"actor" => %{uri: actor_uri}, "object" => %{__attributed_to: attributed_to}} = activity
+       ) do
+    unless actor_uri == attributed_to do
+      Logger.debug("failed verify attributed_to against actor #{activity}")
+      throw(:reject)
+    end
+
+    activity
+  end
+
+  defp verify_attributed_to_against_actor(activity) do
+    Logger.debug("unable to verify attributed_to against actor #{activity}")
+    throw(:reject)
+  end
+
+  # TODO: This is a stub.
+  # Implementing this depends on items not yet created.
   defp check_acceptability(activity, _attribute) do
     activity
   end
 
   defp dereference_actor(activity) do
     actor_uri = Map.fetch!(activity, "actor")
-    profile = Profiles.get_or_fetch_public_profile_by_uri(actor_uri)
+
+    profile =
+      actor_uri
+      |> Profiles.get_or_fetch_public_profile_by_uri()
+      |> Profile.to_map()
 
     if !profile do
       Logger.debug("unable to dereference actor #{actor_uri}")
       throw(:reject)
-    else
-      Logger.debug("dereferenced actor #{actor_uri} to #{inspect(profile)}")
     end
 
+    profile =
+      unless Map.has_key?(profile, :id) do
+        # Because we may have fetched a public actor with a different
+        # canonical `id` due to an HTTP redirect, attempt to re-get the profile
+        # from the repository.
+        canonical_uri = Map.get(profile, :uri)
+
+        unless actor_uri == canonical_uri do
+          re_get_profile = Profiles.get_public_profile_by_uri(canonical_uri)
+
+          if re_get_profile && !Map.has_key?(profile, :id) do
+            Map.put(profile, :id, Map.get(re_get_profile, :id))
+          end
+        end
+      end || profile
+
+    Logger.debug("dereferenced actor #{actor_uri} to #{inspect(profile)}")
     Map.put(activity, "actor", profile)
   end
 
-  defp dereference_object(activity) do
+  defp dereference_object(activity, %{"profile" => profile} = _args) do
     object_uri = Map.fetch!(activity, "object")
-    post = Contents.get_or_fetch_public_post_by_uri(object_uri)
+
+    post =
+      object_uri
+      |> Contents.get_or_fetch_public_post_by_uri(profile)
+      |> Post.to_map()
 
     if !post do
       Logger.debug("unable to dereference object #{object_uri}")
       throw(:reject)
-    else
-      Logger.debug("dereferenced object #{object_uri} to #{inspect(post)}")
     end
 
+    post =
+      unless Map.has_key?(post, :id) do
+        # Because we may have fetched a public object with a different
+        # canonical `id` due to an HTTP redirect, attempt to re-get the post
+        # from the repository.
+        canonical_uri = Map.get(post, :uri)
+
+        unless object_uri == canonical_uri do
+          re_get_post = Contents.get_public_post_by_uri(canonical_uri)
+
+          if re_get_post && !Map.has_key?(post, :id) do
+            Map.put(post, :id, Map.get(re_get_post, :id))
+          end
+        end
+      end || post
+
+    Logger.debug("dereferenced object #{object_uri} to #{inspect(post)}")
     Map.put(activity, "object", post)
   end
 end
