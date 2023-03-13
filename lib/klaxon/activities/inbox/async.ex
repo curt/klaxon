@@ -6,6 +6,8 @@ defmodule Klaxon.Activities.Inbox.Async do
   alias Klaxon.Contents.Post
   alias Klaxon.Profiles.Profile
 
+  # TODO: Replace :reject with {:reject, reason} tuple throughout module.
+
   @doc """
   Processes an inbound activity. The activity should have already been checked for well-formedness.
   """
@@ -17,33 +19,34 @@ defmodule Klaxon.Activities.Inbox.Async do
       args =
         args
         |> normalize_args()
-        |> tap(fn x -> Logger.debug("processed args: #{inspect(x)}") end)
+        |> tap_debug("Processed args")
 
       activity =
         activity
         |> maybe_normalize_id("actor")
         |> maybe_block_actor(args)
         |> dereference_actor()
-        |> verify_timestamps(args)
-        |> verify_signature(args)
+        |> validate_timestamps(args)
+        |> validate_signature(args)
         |> process(args)
-        |> tap(fn x -> Logger.debug("processed activity: #{inspect(x)}") end)
+        |> tap_debug("Processed activity")
 
-      Logger.info("processed good inbound activity: #{inspect(activity)}")
+      Logger.info("Processed good inbound activity: #{inspect(activity)}")
       :ok
     rescue
       ex ->
-        Logger.error("failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}")
+        Logger.error("Failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}")
         Logger.error(Exception.format_stacktrace())
         {:cancel, inspect(ex)}
     catch
       :reject ->
-        Logger.info("rejected inbound activity: #{inspect(activity)}")
+        Logger.info("Rejected inbound activity: #{inspect(activity)}")
         :ok
     end
   end
 
-  def process(_args) do
+  def process(args) do
+    Logger.info("Unprocessable activity: #{inspect(args)}")
     {:cancel}
   end
 
@@ -53,26 +56,26 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> maybe_normalize_id("object")
       |> dereference_object(args)
       |> maybe_block_object(args)
-      |> verify_attributed_to_against_actor()
-      |> check_acceptability("object")
-      |> tap(fn x -> Logger.debug("processed object: #{inspect(x)}") end)
+      |> validate_attributed_to_against_actor()
+      |> validate_acceptability("object")
+      |> tap(fn x -> Logger.debug("Processed object: #{inspect(x)}") end)
 
     actor_profile =
       activity
       |> Map.fetch!("actor")
-      |> tap(fn x -> Logger.debug("processed profile: #{inspect(x)}") end)
+      |> tap(fn x -> Logger.debug("Processed profile: #{inspect(x)}") end)
 
     object_post =
       activity
       |> Map.fetch!("object")
       |> Map.put(:profile, actor_profile)
-      |> tap(fn x -> Logger.debug("processed post: #{inspect(x)}") end)
+      |> tap(fn x -> Logger.debug("Processed post: #{inspect(x)}") end)
 
-    Logger.debug("attempting to insert or update post: #{inspect(object_post)}")
     Contents.insert_or_update_public_post_profile(object_post)
   end
 
-  def process(_activity, _args) do
+  def process(activity, args) do
+    Logger.info("Unprocessable\n  activity: #{inspect(activity)}\n  args: #{inspect(args)}")
     throw(:reject)
   end
 
@@ -87,34 +90,28 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   defp maybe_normalize_id(%{} = object, key) do
-    case Map.fetch(object, key) do
-      {:ok, attr} ->
-        id = validate_publicly_dereferencable_uri(attr)
+    if attr = Map.get(object, key) do
+      id = validate_publicly_dereferencable_uri(attr)
 
-        if id != attr do
-          object |> Map.put(key, id)
-        else
-          object
-        end
-
-      _ ->
-        Logger.debug("unable to normalize id of #{key} from: #{inspect(object)}")
-        throw(:reject)
+      unless id == attr do
+        object |> Map.put(key, id)
+      end || object
+    else
+      Logger.debug("Unable to normalize `id` of #{key} from: #{inspect(object)}")
+      throw(:reject)
     end
   end
 
   defp validate_publicly_dereferencable_uri(id) when is_binary(id) do
     case URI.new(id) do
       {:ok, uri} ->
-        if uri.scheme in ["http", "https"] and uri.host do
-          id
-        else
-          Logger.debug("scheme #{uri.scheme} not a publicly dereferencable URI: #{id}")
+        unless uri.scheme in ["http", "https"] and uri.host do
+          Logger.debug("Scheme '#{uri.scheme}' not a publicly dereferencable URI: #{id}")
           throw(:reject)
-        end
+        end || id
 
       _ ->
-        Logger.debug("not a valid URI: #{id}")
+        Logger.debug("Not a valid URI: #{id}")
         throw(:reject)
     end
   end
@@ -124,26 +121,29 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   defp validate_publicly_dereferencable_uri(%{} = obj) do
-    Logger.debug("unable to validate identifier: #{inspect(obj)}")
+    Logger.debug("Unable to validate as publicly dereferencable: #{inspect(obj)}")
     throw(:reject)
   end
 
-  defp verify_timestamps(activity, %{"headers" => headers, "requested_at" => requested_at} = args)
+  defp validate_timestamps(
+         activity,
+         %{"headers" => headers, "requested_at" => requested_at} = args
+       )
        when is_list(headers) do
-    Logger.debug("verifying timestamps in args #{inspect(args)}")
+    Logger.debug("Verifying timestamps in args: #{inspect(args)}")
 
     requested_at = NaiveDateTime.from_iso8601!(requested_at)
     {_, signed_at} = List.keyfind(headers, "date", 0)
     {:ok, signed_at} = Timex.parse(signed_at, "{RFC1123}")
     diff = Timex.diff(signed_at, requested_at, :seconds)
 
-    Logger.debug("message requested at #{requested_at}")
-    Logger.debug("message signed at #{signed_at}")
-    Logger.debug("timestamps different by #{diff} seconds")
+    Logger.debug("Message requested at: #{requested_at}")
+    Logger.debug("Message signed at: #{signed_at}")
+    Logger.debug("Timestamps different by: #{diff} seconds")
 
     # TODO: Make this configurable.
     if abs(diff) > 30 do
-      Logger.debug("timestamps difference outside tolerance")
+      Logger.debug("Timestamps different by greater than allowed tolerance")
       throw(:reject)
     end
 
@@ -151,7 +151,7 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   # TODO: implement
-  defp verify_signature(activity, %{"headers" => headers} = args) do
+  defp validate_signature(activity, %{"headers" => headers} = args) do
     Logger.debug("verifying signature in args #{inspect(args)}")
 
     {_, signature} = List.keyfind(headers, "signature", 0)
@@ -179,13 +179,14 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> List.first()
       |> :public_key.pem_entry_decode()
 
-    Logger.debug("verify signature headers #{inspect(headers_map)}")
-    Logger.debug("verify signature signature #{inspect(signature)}")
-    Logger.debug("verify signature public_key #{inspect(public_key)}")
+    Logger.debug("Verify signature headers: #{inspect(headers_map)}")
+    Logger.debug("Verify signature signature: #{inspect(signature)}")
+    Logger.debug("Verify signature public key: #{inspect(public_key)}")
 
     valid? = HTTPSignatures.validate(headers_map, signature, public_key_decoded)
 
-    Logger.debug("verify signature pass? #{valid?}")
+    # TODO: Should reject if signature validation fails.
+    Logger.debug("Verify signature pass? #{valid?}")
 
     activity
   end
@@ -195,12 +196,9 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"id" => profile_id}} = _args
        ) do
     if Blocks.actor_blocked?(actor_uri, profile_id) do
-      Logger.debug("actor blocked #{actor_uri}")
+      Logger.debug("Actor blocked: #{actor_uri}")
       throw(:reject)
-    end
-
-    Logger.debug("actor not blocked #{actor_uri}")
-    activity
+    end || activity
   end
 
   defp maybe_block_object(
@@ -208,35 +206,28 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"id" => profile_id}} = _args
        ) do
     if Blocks.object_blocked?(object, profile_id) do
-      Logger.debug("object blocked #{inspect(object)}")
+      Logger.debug("Object blocked: #{inspect(object)}")
       throw(:reject)
-    end
-
-    Logger.debug("object not blocked #{inspect(object)}")
-    activity
+    end || activity
   end
 
-  defp verify_attributed_to_against_actor(
+  defp validate_attributed_to_against_actor(
          %{"actor" => %{uri: actor_uri}, "object" => %{attributed_to: attributed_to}} = activity
        ) do
-    Logger.debug("object attributed_to #{attributed_to}")
-
     unless actor_uri == attributed_to do
-      Logger.debug("failed verify attributed_to against actor #{activity}")
+      Logger.debug("Failed to verify `attributed_to` against `actor`: #{activity}")
       throw(:reject)
-    end
-
-    activity
+    end || activity
   end
 
-  defp verify_attributed_to_against_actor(activity) do
-    Logger.debug("unable to verify attributed_to against actor #{activity}")
+  defp validate_attributed_to_against_actor(activity) do
+    Logger.debug("Unable to verify `attributed_to` against `actor`: #{activity}")
     throw(:reject)
   end
 
   # TODO: This is a stub.
   # Implementing this depends on items not yet created.
-  defp check_acceptability(activity, _attribute) do
+  defp validate_acceptability(activity, _attribute) do
     activity
   end
 
@@ -250,13 +241,12 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> throw_reject_if_false()
       |> maybe_re_dereference(actor_uri, &Profiles.get_public_profile_by_uri/1)
 
-    Logger.debug("dereferenced actor #{actor_uri} to #{inspect(profile)}")
+    Logger.debug("Dereferenced actor: #{actor_uri}\n  profile: #{inspect(profile)}")
     Map.put(activity, "actor", profile)
   end
 
-  defp dereference_object(activity, %{"profile" => profile} = _args) do
-    object_uri = Map.fetch!(activity, "object")
-
+  defp dereference_object(%{"object" => object_uri} = activity, %{"profile" => profile} = _args)
+       when is_binary(object_uri) do
     post =
       object_uri
       |> Contents.get_or_fetch_public_post_by_uri(profile)
@@ -264,33 +254,35 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> throw_reject_if_false()
       |> maybe_re_dereference(object_uri, &Contents.get_public_post_by_uri/1)
 
-    Logger.debug("dereferenced object #{object_uri} to #{inspect(post)}")
+    Logger.debug("Dereferenced object: #{object_uri}\n  post: #{inspect(post)}")
     Map.put(activity, "object", post)
   end
 
-  defp maybe_re_dereference(entity, entity_uri, fun) do
-    unless Map.has_key?(entity, :id) do
-      # Because we may have fetched a public entity with a different
-      # canonical `id` due to an HTTP redirect, attempt to re-get the entity
-      # from the repository.
-      canonical_uri = Map.get(entity, :uri)
+  defp maybe_re_dereference(%{id: _id} = entity, _entity_uri, _fun) do
+    entity
+  end
 
-      unless entity_uri == canonical_uri do
-        re_get_entity = fun.(canonical_uri)
-
-        if re_get_entity && !Map.has_key?(entity, :id) do
-          Map.put(entity, :id, Map.get(re_get_entity, :id))
-        end
+  defp maybe_re_dereference(%{uri: canonical_uri} = entity, entity_uri, fun) do
+    # Because we may have fetched a public entity with a different
+    # canonical `id` due to an HTTP redirect, attempt to re-get the entity
+    # from the repository.
+    unless canonical_uri == entity_uri do
+      if re_get_entity = fun.(canonical_uri) do
+        Map.put(entity, :id, Map.get(re_get_entity, :id))
       end
     end || entity
   end
 
   defp throw_reject_if_false(arg) do
-    if !arg do
+    unless arg do
       Logger.debug("false object rejected")
       throw(:reject)
-    else
-      arg
-    end
+    end || arg
+  end
+
+  # TODO: Should probably be a helper.
+  defp tap_debug(arg, msg) do
+    Logger.debug("#{msg}: #{inspect(arg)}")
+    arg
   end
 end
