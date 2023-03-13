@@ -21,7 +21,8 @@ defmodule Klaxon.Contents do
   """
   @spec get_posts(String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
           {:error, :not_found} | {:ok, maybe_improper_list}
-  def get_posts(endpoint, %User{id: user_id} = _user) do
+  def get_posts(endpoint, %User{id: user_id, email: email} = _user) do
+    Logger.debug("Getting posts authenticated as user: #{email}")
     get_posts_authenticated(endpoint, user_id)
   end
 
@@ -34,7 +35,8 @@ defmodule Klaxon.Contents do
   """
   @spec get_post(String.t(), String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
           {:error, :not_found} | {:ok, %Klaxon.Contents.Post{id: String.t()}}
-  def get_post(endpoint, post_id, %User{id: user_id} = _user) do
+  def get_post(endpoint, post_id, %User{id: user_id, email: email} = _user) do
+    Logger.debug("Getting post authenticated as user: #{email}")
     get_post_authenticated(endpoint, post_id, user_id)
   end
 
@@ -44,6 +46,7 @@ defmodule Klaxon.Contents do
 
   defp get_posts_authenticated(endpoint, user_id) do
     if is_user_id_endpoint_principal?(endpoint, user_id) do
+      Logger.debug("Getting posts as principal of endpoint: #{endpoint}")
       get_posts_authorized(endpoint)
     else
       get_posts_unauthenticated(endpoint)
