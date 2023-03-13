@@ -14,13 +14,20 @@ defmodule Klaxon.Activities.Inbox.Async do
     {activity, args} = Map.pop!(args, "activity")
 
     try do
+      args =
+        args
+        |> normalize_args()
+        |> tap(fn x -> Logger.debug("processed args: #{inspect(x)}") end)
+
       activity =
         activity
         |> maybe_normalize_id("actor")
         |> maybe_block_actor(args)
         |> dereference_actor()
+        |> verify_timestamps(args)
         |> verify_signature(args)
         |> process(args)
+        |> tap(fn x -> Logger.debug("processed activity: #{inspect(x)}") end)
 
       Logger.info("processed good inbound activity: #{inspect(activity)}")
       :ok
@@ -48,15 +55,18 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> maybe_block_object(args)
       |> verify_attributed_to_against_actor()
       |> check_acceptability("object")
+      |> tap(fn x -> Logger.debug("processed object: #{inspect(x)}") end)
 
     actor_profile =
       activity
       |> Map.fetch!("actor")
+      |> tap(fn x -> Logger.debug("processed profile: #{inspect(x)}") end)
 
     object_post =
       activity
       |> Map.fetch!("object")
       |> Map.put(:profile, actor_profile)
+      |> tap(fn x -> Logger.debug("processed post: #{inspect(x)}") end)
 
     Logger.debug("attempting to insert or update post: #{inspect(object_post)}")
     Contents.insert_or_update_public_post_profile(object_post)
@@ -64,6 +74,16 @@ defmodule Klaxon.Activities.Inbox.Async do
 
   def process(_activity, _args) do
     throw(:reject)
+  end
+
+  # TODO: Make this unnecessary by preprocessing headers
+  # into a map in `Klaxon.Activities.Inbox.Sync` (or earlier).
+  defp normalize_args(args) do
+    args
+    |> Map.put(
+      "headers",
+      Enum.map(Map.get(args, "headers", []), fn x -> List.to_tuple(x) end)
+    )
   end
 
   defp maybe_normalize_id(%{} = object, key) do
@@ -108,8 +128,65 @@ defmodule Klaxon.Activities.Inbox.Async do
     throw(:reject)
   end
 
+  defp verify_timestamps(activity, %{"headers" => headers, "requested_at" => requested_at} = args)
+       when is_list(headers) do
+    Logger.debug("verifying timestamps in args #{inspect(args)}")
+
+    requested_at = NaiveDateTime.from_iso8601!(requested_at)
+    {_, signed_at} = List.keyfind(headers, "date", 0)
+    {:ok, signed_at} = Timex.parse(signed_at, "{RFC1123}")
+    diff = Timex.diff(signed_at, requested_at, :seconds)
+
+    Logger.debug("message requested at #{requested_at}")
+    Logger.debug("message signed at #{signed_at}")
+    Logger.debug("timestamps different by #{diff} seconds")
+
+    # TODO: Make this configurable.
+    if abs(diff) > 30 do
+      Logger.debug("timestamps difference outside tolerance")
+      throw(:reject)
+    end
+
+    activity
+  end
+
   # TODO: implement
-  defp verify_signature(activity, _args) do
+  defp verify_signature(activity, %{"headers" => headers} = args) do
+    Logger.debug("verifying signature in args #{inspect(args)}")
+
+    {_, signature} = List.keyfind(headers, "signature", 0)
+    signature = HTTPSignatures.split_signature(signature)
+
+    sig_headers = signature["headers"] -- ["(request-target)"]
+
+    headers_map =
+      Enum.reduce(sig_headers, %{}, fn x, acc ->
+        {_, val} = List.keyfind(headers, x, 0)
+        Map.put(acc, x, val)
+      end)
+      |> Map.put("(request-target)", "#{args["method"]} #{args["path"]}")
+
+    # headers = headers ++ {"(request-target)", "#{args["method"]} #{args["path"]}"}
+
+    public_key =
+      activity
+      |> Map.get("actor", %{})
+      |> Map.get(:public_key)
+
+    # TODO: Check against multiple keys, not just first.
+    public_key_decoded =
+      :public_key.pem_decode(public_key)
+      |> List.first()
+      |> :public_key.pem_entry_decode()
+
+    Logger.debug("verify signature headers #{inspect(headers_map)}")
+    Logger.debug("verify signature signature #{inspect(signature)}")
+    Logger.debug("verify signature public_key #{inspect(public_key)}")
+
+    valid? = HTTPSignatures.validate(headers_map, signature, public_key_decoded)
+
+    Logger.debug("verify signature pass? #{valid?}")
+
     activity
   end
 
