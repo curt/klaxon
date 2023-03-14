@@ -6,11 +6,11 @@
   <div class="mt-4 border-t">
     <p>
       <span>
-        <a {[href: Routes.profile_path(@conn, :index), class: "p-author h-card"]}><%= @post.profile.display_name %></a>
+        <a {[href: @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a>
       </span>
       <span>
-        <%= status_action(@post) %>: <time class="dt-published" {[datetime: htmlify_date(status_date(@post))]}><%= prettify_date(status_date(@post)) %></time>.
-        <%= if @post.updated_at > status_date(@post) do %>
+        <%= status_action(@post) %>: <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>.
+        <%= if @post.origin == :local and @post.updated_at > status_date(@post) do %>
           Updated: <%=  prettify_date(@post.updated_at) %>.
         <% end %>
         <%= if length(@post.tags) > 0 do %>Tags:

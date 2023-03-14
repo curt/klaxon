@@ -56,6 +56,7 @@ defmodule Klaxon.Contents do
   defp get_posts_authorized(endpoint) do
     case Post.from_preloaded()
          |> where_authorized(endpoint)
+         |> Post.order_by_default()
          |> Repo.all() do
       posts when is_list(posts) -> {:ok, posts}
       _ -> {:error, :not_found}

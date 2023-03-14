@@ -2,6 +2,10 @@ defmodule KlaxonWeb.Titles do
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
 
+  def title(%Post{title: nil, origin: :remote} = post) do
+    "Note from #{post.profile.display_name}"
+  end
+
   def title(%Post{title: nil} = post) do
     id = String.slice(post.id, -7, 7)
 

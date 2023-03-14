@@ -98,4 +98,8 @@ defmodule Klaxon.Contents.Post do
   def where_profile_uri(query, profile_uri) do
     where(query, [profile: r], r.uri == ^profile_uri)
   end
+
+  def order_by_default(query) do
+    order_by(query, [posts: p], desc: p.published_at)
+  end
 end
