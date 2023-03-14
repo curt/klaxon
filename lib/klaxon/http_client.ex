@@ -5,7 +5,7 @@ defmodule Klaxon.HttpClient do
       {Tesla.Middleware.JSON,
        decode_content_types: ["application/activity+json", "application/ld+json"]},
       {Tesla.Middleware.FollowRedirects, max_redirects: 2},
-      {Tesla.Middleware.Logger}
+      {Tesla.Middleware.Logger, debug: false}
     ])
   end
 
