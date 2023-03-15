@@ -157,7 +157,7 @@ defmodule Klaxon.Contents do
   @spec new_public_post_from_response(map, map) :: map
   def new_public_post_from_response(
         %{"id" => post_uri} = body,
-        %{"uri" => profile_uri} = _current_profile
+        _current_profile
       ) do
     profile_id = Map.get(body, "attributedTo")
 
@@ -166,40 +166,15 @@ defmodule Klaxon.Contents do
       throw(:reject)
     end
 
-    content_html = Map.get(body, "content")
-    in_reply_to_uri = Map.get(body, "inReplyTo")
-
-    published =
-      case Timex.parse(Map.get(body, "published"), "{RFC3339}") do
-        {:ok, datetime} -> datetime
-        _ -> Timex.now()
-      end
-
-    context_uri =
-      cond do
-        context = Map.get(body, "context") ->
-          context
-
-        conversation = Map.get(body, "conversation") ->
-          conversation
-
-        true ->
-          # Generate a new tag URI if context is missing.
-          %{host: domain} = URI.new!(profile_uri)
-          random = Base58Check.Base58.encode(:crypto.strong_rand_bytes(16))
-          specific = "context/#{random}"
-          TagUri.generate(domain, specific)
-      end
-
     %{
       uri: post_uri,
       origin: :remote,
       status: :published,
       visibility: :unlisted,
-      content_html: content_html,
-      context_uri: context_uri,
-      in_reply_to_uri: in_reply_to_uri,
-      published_at: published
+      content_html: body["content"],
+      context_uri: body["context"] || body["conversation"],
+      in_reply_to_uri: body["inReplyTo"],
+      published_at: time_parse_rfc3339_or_now(body["published"])
     }
     |> Map.put(:attributed_to, profile_id)
   end
@@ -237,5 +212,13 @@ defmodule Klaxon.Contents do
       |> Repo.transaction()
 
     result
+  end
+
+  defp time_parse_rfc3339_or_now(nil) do
+    Timex.now()
+  end
+
+  defp time_parse_rfc3339_or_now(rfc3339_datetime_string) do
+    Timex.parse!(rfc3339_datetime_string, "{RFC3339}")
   end
 end
