@@ -50,7 +50,7 @@ defmodule Klaxon.Activities.Inbox.Async do
     {:cancel}
   end
 
-  def process(%{"type" => "Create", "object" => _object} = activity, args) do
+  def process(%{"type" => "Create", "object" => _object} = activity, %{"profile" => %{"uri" => endpoint}} = args) do
     activity =
       activity
       |> maybe_normalize_id("object")
@@ -71,7 +71,7 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> Map.put(:profile, actor_profile)
       |> tap(fn x -> Logger.debug("Processed post: #{inspect(x)}") end)
 
-    Contents.insert_or_update_public_post_profile(object_post)
+    Contents.insert_or_update_public_post_profile(object_post, endpoint)
   end
 
   def process(activity, args) do

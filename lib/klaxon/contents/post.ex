@@ -1,5 +1,7 @@
 defmodule Klaxon.Contents.Post do
   use Klaxon.Schema
+  alias Ecto.Changeset
+  alias TagUri
 
   schema "posts" do
     field :content_html, :string
@@ -22,7 +24,7 @@ defmodule Klaxon.Contents.Post do
   end
 
   @doc false
-  def changeset(post, attrs) do
+  def changeset(post, attrs, endpoint) do
     post
     |> cast(attrs, [
       :uri,
@@ -37,8 +39,20 @@ defmodule Klaxon.Contents.Post do
       :origin,
       :published_at
     ])
-    |> validate_required([:uri, :context_uri, :status, :visibility, :origin])
+    |> validate_required([:uri, :status, :visibility, :origin])
     |> unique_constraint(:uri)
+    |> apply_context_uri(endpoint)
+  end
+
+  @spec apply_context_uri(Changeset.t(), URI.t()) :: Changeset.t()
+  def apply_context_uri(changeset, endpoint) do
+    unless get_field(changeset, :context_uri) do
+      Changeset.put_change(
+        changeset,
+        :context_uri,
+        TagUri.generate_random(endpoint.host, "context")
+      )
+    end || changeset
   end
 
   def from_named() do

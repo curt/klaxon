@@ -212,7 +212,7 @@ defmodule Klaxon.Contents do
     nil
   end
 
-  def insert_or_update_public_post_profile(attrs) do
+  def insert_or_update_public_post_profile(attrs, endpoint) do
     {profile_attrs, post_attrs} = Map.pop(attrs, :profile)
 
     profile_uri = Map.get(profile_attrs, :uri)
@@ -226,7 +226,7 @@ defmodule Klaxon.Contents do
     post_changeset =
       get_public_post_by_uri(post_uri) ||
         %Post{}
-        |> Post.changeset(post_attrs)
+        |> Post.changeset(post_attrs, URI.new!(endpoint))
 
     result =
       Ecto.Multi.new()
