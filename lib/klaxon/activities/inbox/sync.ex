@@ -15,7 +15,7 @@ defmodule Klaxon.Activities.Inbox.Sync do
   def request_well_formed?(%{} = payload, [_ | _] = headers) do
     cond do
       !payload_is_well_formed?(payload) ->
-        Logger.debug("payload not well formed\n  headers: #{inspect(payload)}")
+        Logger.debug("payload not well formed\n  payload: #{inspect(payload)}")
         false
 
       !headers_is_well_formed?(headers) ->

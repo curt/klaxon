@@ -23,6 +23,14 @@ defmodule KlaxonWeb.Plugs do
   end
 
   @doc """
+  Ignores incoming `accept` header, sends `application/activity+json` response content type.
+  """
+  @spec force_activity_json_response(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def force_activity_json_response(conn, _opts) do
+    conn |> put_resp_content_type("application/activity+json")
+  end
+
+  @doc """
   Fetches the `Klaxon.Profiles.Profile` associated with the requested host, scheme, and port.
   """
   @spec fetch_current_profile(Plug.Conn.t(), any) :: Plug.Conn.t()

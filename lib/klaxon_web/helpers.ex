@@ -20,13 +20,13 @@ defmodule KlaxonWeb.Helpers do
   #   Map.put(object, "@context", "https://www.w3.org/ns/activitystreams")
   # end
 
-  # def mergify(%{} = object, _key, nil) do
-  #   object
-  # end
+  def mergify(%{} = object, _key, nil) do
+    object
+  end
 
-  # def mergify(%{} = object, key, val) do
-  #   Map.put(object, key, val)
-  # end
+  def mergify(%{} = object, key, val) do
+    Map.put(object, key, val)
+  end
 
   def prettify_date(date) do
     Timex.format!(date, "{YYYY}-{0M}-{0D} {h24}:{m}:{s}")

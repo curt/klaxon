@@ -21,8 +21,10 @@ defmodule KlaxonWeb.InboxController do
     {:error, :not_acceptable}
   end
 
-  def create(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, params) do
+  def create(%Plug.Conn{} = conn, params) do
     with {:ok, _profile} <- get_profile(conn) do
+      Logger.debug("inbox create incoming conn: #{inspect(conn)}")
+      Logger.debug("inbox create incoming params: #{inspect(params)}")
       if Sync.request_well_formed?(params, conn.req_headers) do
         Logger.info(
           "accepted inbox request\n params: #{inspect(params)}\n" <>
