@@ -13,7 +13,7 @@ defmodule KlaxonWeb.PostsView do
     |> Map.put("context", post.context_uri)
     |> Map.put("conversation", post.context_uri)
     |> Map.put("content", post.content_html)
-    |> Map.put("published", Timex.format!(post.published_at, "{RFC3339}"))
+    |> Map.put("published", Timex.format!(post.published_at, "{RFC3339z}"))
     |> Map.put("url", post.uri)
   end
 
