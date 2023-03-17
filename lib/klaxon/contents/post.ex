@@ -20,6 +20,10 @@ defmodule Klaxon.Contents.Post do
     belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
     has_many :tags, Klaxon.Contents.Tag
 
+    has_one :in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri
+    has_many :replies, __MODULE__, references: :uri, foreign_key: :in_reply_to_uri
+    has_many :conversation, __MODULE__, references: :context_uri, foreign_key: :context_uri
+
     timestamps()
   end
 
