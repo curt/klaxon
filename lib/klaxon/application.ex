@@ -23,7 +23,9 @@ defmodule Klaxon.Application do
       # Start the Oban child
       {Oban, Application.fetch_env!(:klaxon, Oban)},
       # Start the Cachex caches
-      {Cachex, name: :local_profile_cache, limit: 20}
+      # TODO: Refactor this:
+      %{id: "cachex_local_profile", start: {Cachex, :start_link, [:local_profile_cache, [limit: 20]]}, type: :worker},
+      %{id: "cachex_get_post", start: {Cachex, :start_link, [:get_post_cache, [limit: 1000]]}, type: :worker}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

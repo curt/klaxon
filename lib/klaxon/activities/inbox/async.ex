@@ -244,11 +244,11 @@ defmodule Klaxon.Activities.Inbox.Async do
     Map.put(activity, "actor", profile)
   end
 
-  defp dereference_object(%{"object" => object_uri} = activity, %{"profile" => profile} = _args)
+  defp dereference_object(%{"object" => object_uri} = activity, _args)
        when is_binary(object_uri) do
     post =
       object_uri
-      |> Contents.get_or_fetch_public_post_by_uri(profile)
+      |> Contents.get_or_fetch_public_post_by_uri()
       |> Post.to_map()
       |> throw_reject_if_false()
       |> maybe_re_dereference(object_uri, &Contents.get_public_post_by_uri/1)

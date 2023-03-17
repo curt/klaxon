@@ -130,35 +130,55 @@ defmodule Klaxon.Contents do
 
   @spec get_public_post_by_uri(binary) :: struct | nil
   def get_public_post_by_uri(post_uri) do
-    Repo.one(Post.uri_query(post_uri) |> preload(:profile))
-    |> then(fn post ->
-      if post do
-        if profile = post.profile do
-          Map.put(post, :attributed_to, profile.uri)
-        end
-      end || post
-    end)
+    # TODO: Cache here
+    case Cachex.fetch(
+           :get_post_cache,
+           post_uri,
+           fn key ->
+             {:commit,
+              Repo.one(
+                Post.uri_query(key)
+                |> Post.where_status([:published])
+                |> Post.where_visibility([:public, :unlisted])
+                |> preload(:profile)
+              )
+              |> then(fn post ->
+                if post do
+                  if profile = post.profile do
+                    Map.put(post, :attributed_to, profile.uri)
+                  end
+                end || post
+              end)}
+           end,
+           ttl: 300
+         ) do
+      {:ok, post} ->
+        Logger.info("Cache hit for public post: #{post_uri}")
+        post
+
+      {:commit, post} ->
+        Logger.info("Cache miss for public post: #{post_uri}")
+        post
+    end
   end
 
-  @spec get_or_fetch_public_post_by_uri(binary, map) :: map | nil
-  def get_or_fetch_public_post_by_uri(post_uri, %{} = current_profile) do
+  @spec get_or_fetch_public_post_by_uri(binary) :: map | nil
+  def get_or_fetch_public_post_by_uri(post_uri) do
     get_public_post_by_uri(post_uri) ||
-      fetch_public_post_by_uri(post_uri, %{} = current_profile)
+      fetch_public_post_by_uri(post_uri)
   end
 
-  @spec fetch_public_post_by_uri(binary, map) :: map | nil
-  def fetch_public_post_by_uri(post_uri, %{} = current_profile) do
+  @spec fetch_public_post_by_uri(binary) :: map | nil
+  defp fetch_public_post_by_uri(post_uri) do
+    # TODO: Cache here
     case HttpClient.activity_get(post_uri) do
-      {:ok, %{body: body}} -> new_public_post_from_response(body, current_profile)
+      {:ok, %{body: body}} -> new_public_post_from_response(body)
       _ -> nil
     end
   end
 
-  @spec new_public_post_from_response(map, map) :: map
-  def new_public_post_from_response(
-        %{"id" => post_uri} = body,
-        _current_profile
-      ) do
+  @spec new_public_post_from_response(map) :: map
+  defp new_public_post_from_response(%{"id" => post_uri} = body) do
     profile_id = Map.get(body, "attributedTo")
 
     unless profile_id do
@@ -179,11 +199,8 @@ defmodule Klaxon.Contents do
     |> Map.put(:attributed_to, profile_id)
   end
 
-  def new_public_post_from_response(body, current_profile) do
-    Logger.info(
-      "public post #{inspect(body)} does not have required attributes for current profile #{inspect(current_profile)}"
-    )
-
+  defp new_public_post_from_response(body) do
+    Logger.info("public post #{inspect(body)} does not have required attributes")
     nil
   end
 
