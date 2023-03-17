@@ -34,10 +34,9 @@ defmodule Klaxon.Activities.Inbox.Async do
       Logger.info("Processed good inbound activity: #{inspect(activity)}")
       :ok
     rescue
-      ex ->
-        Logger.error("Failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}")
-        Logger.error(Exception.format_stacktrace())
-        {:cancel, inspect(ex)}
+      _ex ->
+        Logger.error("Failed inbound activity: #{inspect(activity)}")
+        {:cancel}
     catch
       :reject ->
         Logger.info("Rejected inbound activity: #{inspect(activity)}")
