@@ -19,13 +19,15 @@ defmodule Klaxon.Application do
       # Start a worker by calling: Klaxon.Worker.start_link(arg)
       # {Klaxon.Worker, arg}
 
-      # Not included with Phoenix:
-      # Start the Oban child
+      # Start the Oban instance
       {Oban, Application.fetch_env!(:klaxon, Oban)},
+
       # Start the Cachex caches
-      # TODO: Refactor this:
-      %{id: "cachex_local_profile", start: {Cachex, :start_link, [:local_profile_cache, [limit: 20]]}, type: :worker},
-      %{id: "cachex_get_post", start: {Cachex, :start_link, [:get_post_cache, [limit: 1000]]}, type: :worker}
+      cachex_child("local_profile", limit: 20),
+      cachex_child("local_get_profile", limit: 1000),
+      cachex_child("local_fetch_profile", limit: 1000),
+      cachex_child("local_get_post", limit: 1000),
+      cachex_child("local_fetch_post", limit: 1000)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -40,5 +42,13 @@ defmodule Klaxon.Application do
   def config_change(changed, _new, removed) do
     KlaxonWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp cachex_child(name, opts) do
+    %{
+      id: "cachex_#{name}",
+      start: {Cachex, :start_link, [String.to_atom("#{name}_cache"), opts]},
+      type: :worker
+    }
   end
 end
