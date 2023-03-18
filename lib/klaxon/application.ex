@@ -24,10 +24,10 @@ defmodule Klaxon.Application do
 
       # Start the Cachex caches
       cachex_child("local_profile", limit: 20),
-      cachex_child("local_get_profile", limit: 1000),
-      cachex_child("local_fetch_profile", limit: 1000),
-      cachex_child("local_get_post", limit: 1000),
-      cachex_child("local_fetch_post", limit: 1000)
+      cachex_child("get_profile", limit: 1000),
+      cachex_child("fetch_profile", limit: 1000),
+      cachex_child("get_post", limit: 1000),
+      cachex_child("fetch_post", limit: 1000)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

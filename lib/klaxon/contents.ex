@@ -130,35 +130,39 @@ defmodule Klaxon.Contents do
 
   @spec get_public_post_by_uri(binary) :: struct | nil
   def get_public_post_by_uri(post_uri) do
-    # TODO: Cache here
     case Cachex.fetch(
            :get_post_cache,
            post_uri,
            fn key ->
-             {:commit,
-              Repo.one(
-                Post.uri_query(key)
-                |> Post.where_status([:published])
-                |> Post.where_visibility([:public, :unlisted])
-                |> preload(:profile)
-              )
-              |> then(fn post ->
-                if post do
+             case Repo.one(
+                    Post.uri_query(key)
+                    |> Post.where_status([:published])
+                    |> Post.where_visibility([:public, :unlisted])
+                    |> preload(:profile)
+                  ) do
+               %Post{} = post ->
+                 {:commit,
                   if profile = post.profile do
                     Map.put(post, :attributed_to, profile.uri)
-                  end
-                end || post
-              end)}
+                  end || post}
+
+               _ ->
+                 {:ignore, nil}
+             end
            end,
            ttl: 300
          ) do
-      {:ok, post} ->
-        Logger.info("Cache hit for public post: #{post_uri}")
+      {:ok, %Post{} = post} ->
+        Logger.info("Cache hit for get post: #{post_uri}")
         post
 
-      {:commit, post} ->
-        Logger.info("Cache miss for public post: #{post_uri}")
+      {:commit, %Post{} = post} ->
+        Logger.info("Cache miss for get post: #{post_uri}")
         post
+
+      _ ->
+        Logger.info("Cache ignore for get post: #{post_uri}")
+        nil
     end
   end
 
@@ -170,10 +174,31 @@ defmodule Klaxon.Contents do
 
   @spec fetch_public_post_by_uri(binary) :: map | nil
   defp fetch_public_post_by_uri(post_uri) do
-    # TODO: Cache here
-    case HttpClient.activity_get(post_uri) do
-      {:ok, %{body: body}} -> new_public_post_from_response(body)
-      _ -> nil
+    case Cachex.fetch(
+           :fetch_post_cache,
+           post_uri,
+           fn key ->
+             case HttpClient.activity_get(key) do
+               {:ok, %{body: body}} ->
+                 {:commit, new_public_post_from_response(body)}
+
+               _ ->
+                 {:ignore, nil}
+             end
+           end,
+           ttl: 300
+         ) do
+      {:ok, %{} = post} ->
+        Logger.info("Cache hit for fetch post: #{post_uri}")
+        post
+
+      {:commit, %{} = post} ->
+        Logger.info("Cache miss for fetch post: #{post_uri}")
+        post
+
+      _ ->
+        Logger.info("Cache ignore for fetch post: #{post_uri}")
+        nil
     end
   end
 

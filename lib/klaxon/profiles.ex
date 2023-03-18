@@ -107,7 +107,32 @@ defmodule Klaxon.Profiles do
 
   @spec get_public_profile_by_uri(binary) :: struct | nil
   def get_public_profile_by_uri(profile_uri) do
-    Repo.one(Profile.uri_query(profile_uri))
+    case Cachex.fetch(
+           :get_profile_cache,
+           profile_uri,
+           fn key ->
+             case Repo.one(Profile.uri_query(key)) do
+               %Profile{} = profile ->
+                 {:commit, profile}
+
+               _ ->
+                 {:ignore, nil}
+             end
+           end,
+           ttl: 300
+         ) do
+      {:ok, %Profile{} = profile} ->
+        Logger.info("Cache hit for get profile: #{profile_uri}")
+        profile
+
+      {:commit, %Profile{} = profile} ->
+        Logger.info("Cache miss for get profile: #{profile_uri}")
+        profile
+
+      _ ->
+        Logger.info("Cache ignore for get profile: #{profile_uri}")
+        nil
+    end
   end
 
   @spec get_or_fetch_public_profile_by_uri(binary) :: struct | map | nil
