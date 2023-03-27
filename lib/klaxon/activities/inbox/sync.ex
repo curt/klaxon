@@ -6,7 +6,7 @@ defmodule Klaxon.Activities.Inbox.Sync do
   @valid_types ~w(Accept Add Announce Arrive Block Create Delete Dislike Flag
                   Follow Ignore Invite Join Leave Like Listen Move Offer Question
                   Reject Read Remove TentativeReject TentativeAccept Travel Undo
-                  Update View)
+                  Update View Ping Pong)
 
   @doc """
   Returns whether or not the inbound activity request is well-formed.

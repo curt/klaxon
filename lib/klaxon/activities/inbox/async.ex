@@ -1,5 +1,6 @@
 defmodule Klaxon.Activities.Inbox.Async do
   require Logger
+  alias Klaxon.Activities
   alias Klaxon.Blocks
   alias Klaxon.Contents
   alias Klaxon.Profiles
@@ -34,9 +35,9 @@ defmodule Klaxon.Activities.Inbox.Async do
       Logger.info("Processed good inbound activity: #{inspect(activity)}")
       :ok
     rescue
-      _ex ->
-        Logger.error("Failed inbound activity: #{inspect(activity)}")
-        {:cancel}
+      ex ->
+        Logger.error("Failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}")
+        {:cancel, inspect(ex)}
     catch
       :reject ->
         Logger.info("Rejected inbound activity: #{inspect(activity)}")
@@ -49,7 +50,10 @@ defmodule Klaxon.Activities.Inbox.Async do
     {:cancel}
   end
 
-  def process(%{"type" => "Create", "object" => _object} = activity, %{"profile" => %{"uri" => endpoint}} = args) do
+  def process(
+        %{"type" => "Create", "object" => _object} = activity,
+        %{"profile" => %{"uri" => endpoint}} = args
+      ) do
     activity =
       activity
       |> maybe_normalize_id("object")
@@ -71,6 +75,15 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> tap(fn x -> Logger.debug("Processed post: #{inspect(x)}") end)
 
     Contents.insert_or_update_public_post_profile(object_post, endpoint)
+  end
+
+  def process(
+        %{"type" => "Ping", "to" => _to} = activity,
+        %{"profile" => %{"uri" => endpoint}} = _args
+      ) do
+    activity
+    |> maybe_normalize_id("to")
+    |> Activities.receive_ping(URI.new!(endpoint))
   end
 
   def process(activity, args) do

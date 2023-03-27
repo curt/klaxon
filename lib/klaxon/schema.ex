@@ -16,6 +16,17 @@ defmodule Klaxon.Schema do
       def to_map(other) do
         other
       end
+
+      @spec apply_tag(Ecto.Changeset.t(), URI.t(), atom, binary) :: Ecto.Changeset.t() | nil
+      def apply_tag(changeset, endpoint, field, context) do
+        unless get_field(changeset, field) do
+          put_change(
+            changeset,
+            field,
+            TagUri.generate_random(endpoint.host, context)
+          )
+        end || changeset
+      end
     end
   end
 end
