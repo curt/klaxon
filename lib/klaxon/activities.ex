@@ -23,8 +23,9 @@ defmodule Klaxon.Activities do
     |> send_activity(to, profile)
   end
 
+  @spec receive_ping(map, URI.t()) :: any
   def receive_ping(%{} = activity, profile) do
-    {:ok, _ping} =
+    {:ok, ping} =
       Repo.insert(
         Ping.changeset(
           %Ping{},
@@ -37,6 +38,9 @@ defmodule Klaxon.Activities do
           profile
         )
       )
+
+    # TODO: Make this configurable.
+    send_pong(profile, ping.to_uri, ping.uri)
   end
 
   @spec send_pong(URI.t(), String.t(), String.t()) :: any
@@ -57,8 +61,26 @@ defmodule Klaxon.Activities do
     |> send_activity(to, profile)
   end
 
+  @spec receive_pong(map, URI.t()) :: any
+  def receive_pong(%{} = activity, profile) do
+    {:ok, _pong} =
+      Repo.insert(
+        Pong.changeset(
+          %Pong{},
+          %{
+            actor_uri: activity["actor"].uri,
+            uri: activity["id"],
+            to_uri: activity["to"],
+            object_uri: activity["object"],
+            direction: :in
+          },
+          profile
+        )
+      )
+  end
+
   @spec send_activity(map, String.t(), URI.t()) :: any
-  def send_activity(%{} = activity, to, profile) do
+  defp send_activity(%{} = activity, to, profile) do
     {:ok, from} = Profiles.get_local_profile_by_uri(URI.to_string(profile))
     to = Profiles.get_or_fetch_public_profile_by_uri(to)
 
@@ -66,7 +88,7 @@ defmodule Klaxon.Activities do
   end
 
   @spec contextify(map) :: map
-  def contextify(%{} = activity) do
+  defp contextify(%{} = activity) do
     Map.put(activity, "@context", "https://www.w3.org/ns/activitystreams")
   end
 end

@@ -86,6 +86,15 @@ defmodule Klaxon.Activities.Inbox.Async do
     |> Activities.receive_ping(URI.new!(endpoint))
   end
 
+  def process(
+        %{"type" => "Pong", "to" => _to, "object" => object} = activity,
+        %{"profile" => %{"uri" => endpoint}} = _args
+      ) when is_binary(object) do
+    activity
+    |> maybe_normalize_id("to")
+    |> Activities.receive_pong(URI.new!(endpoint))
+  end
+
   def process(activity, args) do
     Logger.info("Unprocessable\n  activity: #{inspect(activity)}\n  args: #{inspect(args)}")
     throw(:reject)
