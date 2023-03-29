@@ -4,6 +4,7 @@ defmodule Klaxon.Activities do
   alias Klaxon.Profiles
   alias Klaxon.Activities.Ping
   alias Klaxon.Activities.Pong
+  import Ecto.Query
 
   @spec send_ping(URI.t(), String.t()) :: any
   def send_ping(profile, to) do
@@ -21,7 +22,7 @@ defmodule Klaxon.Activities do
     case %{"type" => "Ping", "id" => ping.uri, "actor" => actor, "to" => to}
          |> contextify()
          |> send_activity(to, profile) do
-      {:ok, _} -> :ok
+      {:ok, _} -> {:ok, ping}
       result -> {:cancel, inspect(result)}
     end
   end
@@ -44,6 +45,29 @@ defmodule Klaxon.Activities do
 
     # TODO: Make this configurable.
     send_pong(profile, ping.to_uri, ping.uri)
+  end
+
+  def get_pings(profile_uri) do
+    {:ok,
+     Repo.all(
+       from p in Ping,
+         where: p.actor_uri == ^profile_uri or p.to_uri == ^profile_uri,
+         order_by: [desc: p.inserted_at]
+     )}
+  end
+
+  def get_ping(profile_uri, id) do
+    {:ok,
+     Repo.one(
+       from p in Ping,
+         where: p.actor_uri == ^profile_uri or p.to_uri == ^profile_uri,
+         where: p.id == ^id
+     )}
+  end
+
+  @spec change_ping(URI.t() | binary, any, any) :: Ecto.Changeset.t() | nil
+  def change_ping(profile, ping, attrs \\ %{}) do
+    Ping.changeset(ping, attrs, profile)
   end
 
   @spec send_pong(URI.t(), String.t(), String.t()) :: any

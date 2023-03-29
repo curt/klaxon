@@ -1,0 +1,32 @@
+<h1>Pings</h1>
+
+<div><%= link "New Ping", to: Routes.ping_path(@conn, :new) %></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Direction</th>
+      <th>Actor</th>
+      <th>To</th>
+      <th>Date/Time</th>
+      <th>&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= if length(@pings) > 0 do %>
+  <%= for ping <- @pings do %>
+    <tr>
+      <td><%= ping.direction %></td>
+      <td><%= ping.actor_uri %></td>
+      <td><%= ping.to_uri %></td>
+      <td><%= prettify_date(ping.inserted_at) %></td>
+      <td><%= link "Show", to: Routes.ping_path(@conn, :show, ping) %></td>
+    </tr>
+  <% end %>
+<% else %>
+    <tr>
+      <td colspan="4">No pings found.</td>
+    </tr>
+<% end %>
+  </tbody>
+</table>

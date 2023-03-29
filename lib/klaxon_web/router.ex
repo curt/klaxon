@@ -49,6 +49,10 @@ defmodule KlaxonWeb.Router do
 
     get "/profile/edit", ProfileController, :edit
     put "/profile", ProfileController, :update
+    get "/pings", PingController, :index
+    get "/pings/:id", PingController, :show
+    get "/pings/new", PingController, :new
+    post "/pings", PingController, :create
   end
 
   # Other scopes may use custom stacks.
