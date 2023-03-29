@@ -90,7 +90,10 @@ defmodule Klaxon.Activities do
     {:ok, from} = Profiles.get_local_profile_by_uri(URI.to_string(profile))
     to = Profiles.get_or_fetch_public_profile_by_uri(to)
 
-    HttpClient.post(Map.fetch!(to, :inbox), activity, opts: [private_key: from.private_key, key_id: from.uri])
+    # FIXME: Lookup key from repository.
+    HttpClient.post(Map.fetch!(to, :inbox), activity,
+      opts: [private_key: from.private_key, key_id: from.uri <> "#key"]
+    )
   end
 
   @spec contextify(map) :: map
