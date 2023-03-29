@@ -46,8 +46,9 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   def process(args) do
-    Logger.info("Unprocessable activity: #{inspect(args)}")
-    {:cancel}
+    msg = "Unprocessable activity: #{inspect(args)}"
+    Logger.info(msg)
+    {:cancel, msg}
   end
 
   def process(

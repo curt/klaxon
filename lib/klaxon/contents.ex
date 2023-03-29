@@ -178,7 +178,7 @@ defmodule Klaxon.Contents do
            :fetch_post_cache,
            post_uri,
            fn key ->
-             case HttpClient.activity_get(key) do
+             case HttpClient.get(key) do
                {:ok, %{body: body}} ->
                  {:commit, new_public_post_from_response(body)}
 

@@ -18,9 +18,12 @@ defmodule Klaxon.Activities do
         )
       )
 
-    %{"type" => "Ping", "id" => ping.uri, "actor" => actor, "to" => to}
-    |> contextify()
-    |> send_activity(to, profile)
+    case %{"type" => "Ping", "id" => ping.uri, "actor" => actor, "to" => to}
+         |> contextify()
+         |> send_activity(to, profile) do
+      {:ok, _} -> :ok
+      result -> {:cancel, inspect(result)}
+    end
   end
 
   @spec receive_ping(map, URI.t()) :: any
@@ -56,9 +59,12 @@ defmodule Klaxon.Activities do
         )
       )
 
-    %{"type" => "Pong", "id" => pong.uri, "actor" => actor, "to" => to, "object" => ping}
-    |> contextify()
-    |> send_activity(to, profile)
+    case %{"type" => "Pong", "id" => pong.uri, "actor" => actor, "to" => to, "object" => ping}
+         |> contextify()
+         |> send_activity(to, profile) do
+      {:ok, _} -> :ok
+      result -> {:cancel, inspect(result)}
+    end
   end
 
   @spec receive_pong(map, URI.t()) :: any
@@ -84,7 +90,7 @@ defmodule Klaxon.Activities do
     {:ok, from} = Profiles.get_local_profile_by_uri(URI.to_string(profile))
     to = Profiles.get_or_fetch_public_profile_by_uri(to)
 
-    HttpClient.activity_signed_post(Map.fetch!(to, :inbox), activity, from.private_key, from.uri)
+    HttpClient.post(Map.fetch!(to, :inbox), activity, opts: [private_key: from.private_key, key_id: from.uri])
   end
 
   @spec contextify(map) :: map

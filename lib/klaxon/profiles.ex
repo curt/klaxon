@@ -142,7 +142,7 @@ defmodule Klaxon.Profiles do
 
   @spec fetch_public_profile_by_uri(binary) :: map | nil
   def fetch_public_profile_by_uri(profile_uri) do
-    case HttpClient.activity_get(profile_uri) do
+    case HttpClient.get(profile_uri) do
       {:ok, %{body: body}} -> new_public_profile_from_response(body)
       _ -> nil
     end
