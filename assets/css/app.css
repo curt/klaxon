@@ -130,7 +130,13 @@
     @apply font-serif bg-slate-800 text-slate-200;
   }
   input, textarea, button {
-    @apply font-mono;
+    @apply font-mono text-slate-900;
+  }
+  button,
+  [type='button'],
+  [type='reset'],
+  [type='submit'] {
+    @apply p-2 rounded bg-slate-200 hover:bg-french-fuchsia;
   }
   h1 {
     @apply text-4xl my-4 pb-4 font-extrabold border-b;
@@ -143,5 +149,8 @@
   }
   a {
     @apply text-french-fuchsia cursor-pointer border-b border-french-fuchsia hover:bg-french-fuchsia hover:text-slate-200;
+  }
+  td, th {
+    @apply p-1;
   }
 }
