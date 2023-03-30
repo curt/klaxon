@@ -84,7 +84,7 @@ defmodule Klaxon.Activities.Inbox.Async do
       ) do
     activity
     |> maybe_normalize_id("to")
-    |> Activities.receive_ping(URI.new!(endpoint))
+    |> Activities.receive_ping(endpoint)
   end
 
   def process(
@@ -93,7 +93,7 @@ defmodule Klaxon.Activities.Inbox.Async do
       ) when is_binary(object) do
     activity
     |> maybe_normalize_id("to")
-    |> Activities.receive_pong(URI.new!(endpoint))
+    |> Activities.receive_pong(endpoint)
   end
 
   def process(activity, args) do

@@ -1,5 +1,18 @@
-<h1>New Ping</h1>
+<h1>Create Ping</h1>
 
-<%= render "form.html", Map.put(assigns, :action, Routes.ping_path(@conn, :create)) %>
+<.form let={f} for={@conn} action={Routes.ping_path(@conn, :create)} as={:ping}>
+  <div class="my-4">
+  <div class="my-2">
+  <%= label f, :to, class: "mr-4" %>
+  <%= url_input f, :to, required: true %>
+  </div>
+  </div>
 
-<span><%= link "Back", to: Routes.ping_path(@conn, :index) %></span>
+  <div class="my-4">
+    <%= submit "Ping" %>
+  </div>
+</.form>
+
+<p>
+  <%= link "Forgot your password?", to: Routes.user_reset_password_path(@conn, :new) %>
+</p>
