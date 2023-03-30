@@ -107,6 +107,26 @@ defmodule Klaxon.Activities do
       )
   end
 
+  @spec get_pongs(String.t()) :: {:ok, any}
+  def get_pongs(profile_uri) do
+    {:ok,
+     Repo.all(
+       from p in Pong,
+         where: p.actor_uri == ^profile_uri or p.to_uri == ^profile_uri,
+         order_by: [desc: p.inserted_at]
+     )}
+  end
+
+  @spec get_pong(String.t(), String.t()) :: {:ok, any}
+  def get_pong(profile_uri, id) do
+    {:ok,
+     Repo.one(
+       from p in Pong,
+         where: p.actor_uri == ^profile_uri or p.to_uri == ^profile_uri,
+         where: p.id == ^id
+     )}
+  end
+
   @spec send_activity(map, String.t(), String.t()) :: any
   defp send_activity(%{} = activity, to, profile) do
     {:ok, from} = Profiles.get_local_profile_by_uri(profile)

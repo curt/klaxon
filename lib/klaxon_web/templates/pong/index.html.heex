@@ -1,0 +1,30 @@
+<h1>Pongs</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Direction</th>
+      <th>Actor</th>
+      <th>To</th>
+      <th>Date/Time</th>
+      <th>&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= if length(@pongs) > 0 do %>
+  <%= for pong <- @pongs do %>
+    <tr>
+      <td><%= pong.direction %></td>
+      <td><%= pong.actor_uri %></td>
+      <td><%= pong.to_uri %></td>
+      <td><%= prettify_date(pong.inserted_at) %></td>
+      <td><%= link "Show", to: Routes.pong_path(@conn, :show, pong) %></td>
+    </tr>
+  <% end %>
+<% else %>
+    <tr>
+      <td colspan="4">No pongs found.</td>
+    </tr>
+<% end %>
+  </tbody>
+</table>

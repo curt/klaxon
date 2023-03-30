@@ -58,6 +58,8 @@ defmodule KlaxonWeb.Router do
     get "/pings/new", PingController, :new
     get "/pings/:id", PingController, :show
     post "/pings", PingController, :create
+    get "/pongs", PongController, :index
+    get "/pongs/:id", PongController, :show
   end
 
   # Other scopes may use custom stacks.
