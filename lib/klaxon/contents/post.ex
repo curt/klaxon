@@ -4,6 +4,7 @@ defmodule Klaxon.Contents.Post do
   alias TagUri
 
   schema "posts" do
+    field :attributed_to, :string, virtual: true
     field :content_html, :string
     field :context_uri, :string
     field :in_reply_to_uri, :string
@@ -15,7 +16,6 @@ defmodule Klaxon.Contents.Post do
     field :title, :string
     field :uri, :string
     field :visibility, Ecto.Enum, values: [:private, :unlisted, :public], default: :public
-    field :attributed_to, :string, virtual: true
 
     belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
     has_many :tags, Klaxon.Contents.Tag
@@ -31,18 +31,18 @@ defmodule Klaxon.Contents.Post do
   def changeset(post, attrs, endpoint) do
     post
     |> cast(attrs, [
-      :profile_id,
-      :uri,
+      :content_html,
       :context_uri,
       :in_reply_to_uri,
+      :origin,
+      :profile_id,
+      :published_at,
       :slug,
       :source,
-      :content_html,
-      :title,
       :status,
-      :visibility,
-      :origin,
-      :published_at
+      :title,
+      :uri,
+      :visibility
     ])
     |> validate_required([:uri, :status, :visibility, :origin])
     |> unique_constraint(:uri)

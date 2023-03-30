@@ -1,39 +1,39 @@
 defmodule Klaxon.Profiles.Profile do
   use Klaxon.Schema
 
-  @common_cast_attrs [
-    :url,
-    :display_name,
-    :summary,
-    :inbox,
-    :private_key,
-    :public_key,
-    :public_key_id,
-    :icon,
-    :icon_media_type,
-    :image,
-    :image_media_type
-  ]
-
   schema "profiles" do
     field :display_name, :string
+    field :icon_media_type, :string
+    field :icon, :string
+    field :image_media_type, :string
+    field :image, :string
+    field :inbox, :string
     field :name, :string
+    field :private_key, :string, redact: true
+    field :public_key_id, :string
+    field :public_key, :string
+    field :summary, :string
     field :uri, :string
     field :url, :string
-    field :inbox, :string
-    field :private_key, :string, redact: true
-    field :public_key, :string
-    field :public_key_id, :string
-    field :summary, :string
-    field :icon, :string
-    field :icon_media_type, :string
-    field :image, :string
-    field :image_media_type, :string
 
     has_many :principals, Klaxon.Profiles.Principal
 
     timestamps()
   end
+
+  @common_cast_attrs [
+    :display_name,
+    :icon_media_type,
+    :icon,
+    :image_media_type,
+    :image,
+    :inbox,
+    :private_key,
+    :public_key_id,
+    :public_key,
+    :summary,
+    :url
+  ]
 
   def changeset(profile, attrs) do
     (profile || %__MODULE__{})
