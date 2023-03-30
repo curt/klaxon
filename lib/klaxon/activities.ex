@@ -42,7 +42,7 @@ defmodule Klaxon.Activities do
       )
 
     # TODO: Make this configurable.
-    send_pong(profile, ping.to_uri, ping.uri)
+    send_pong(profile, ping.actor_uri, ping.uri)
   end
 
   @spec get_pings(String.t()) :: {:ok, any}
