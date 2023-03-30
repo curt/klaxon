@@ -7,7 +7,6 @@ defmodule KlaxonWeb.Plugs do
   require Logger
   import Plug.Conn
   import Phoenix.Controller
-  alias Klaxon.Auth.User
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
 
@@ -55,20 +54,15 @@ defmodule KlaxonWeb.Plugs do
   """
   @spec require_principal(Plug.Conn.t(), any) :: Plug.Conn.t()
   def require_principal(conn, _opts) do
-    case {conn.assigns[:current_profile], conn.assigns[:current_user]} do
-      {%Profile{} = profile, %User{} = user} ->
-        unless Profiles.is_profile_owned_by_user?(profile, user) do
-          conn
-          |> put_status(:unauthorized)
-          |> put_view(KlaxonWeb.ErrorView)
-          |> render(:"401")
-          |> halt()
-        else
-          conn
-        end
+    profile = conn.assigns[:current_profile]
+    user = conn.assigns[:current_user]
 
-      _ ->
-        conn
-    end
+    unless profile && user && Profiles.is_profile_owned_by_user?(profile, user) do
+      conn
+      |> put_status(:unauthorized)
+      |> put_view(KlaxonWeb.ErrorView)
+      |> render(:"401")
+      |> halt()
+    end || conn
   end
 end
