@@ -49,6 +49,11 @@ defmodule KlaxonWeb.Router do
 
     get "/profile/edit", ProfileController, :edit
     put "/profile", ProfileController, :update
+  end
+
+  scope "/", KlaxonWeb do
+    pipe_through [:browser, :require_principal]
+
     get "/pings", PingController, :index
     get "/pings/new", PingController, :new
     get "/pings/:id", PingController, :show

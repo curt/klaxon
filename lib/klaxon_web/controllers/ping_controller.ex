@@ -1,12 +1,10 @@
 defmodule KlaxonWeb.PingController do
   use KlaxonWeb, :controller
-  import KlaxonWeb.Plugs
 
   alias Klaxon.Activities
   alias Klaxon.Profiles.Profile
 
   action_fallback KlaxonWeb.FallbackController
-  plug :require_principal
 
   def index(conn, _params) do
     with {:ok, profile} <- current_profile(conn),
