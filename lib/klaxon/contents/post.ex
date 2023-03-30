@@ -31,6 +31,7 @@ defmodule Klaxon.Contents.Post do
   def changeset(post, attrs, endpoint) do
     post
     |> cast(attrs, [
+      :profile_id,
       :uri,
       :context_uri,
       :in_reply_to_uri,
@@ -48,15 +49,10 @@ defmodule Klaxon.Contents.Post do
     |> apply_context_uri(endpoint)
   end
 
-  @spec apply_context_uri(Changeset.t(), URI.t()) :: Changeset.t()
+  @spec apply_context_uri(Changeset.t(), URI.t() | binary) :: Changeset.t()
   def apply_context_uri(changeset, endpoint) do
-    unless get_field(changeset, :context_uri) do
-      Changeset.put_change(
-        changeset,
-        :context_uri,
-        TagUri.generate_random(endpoint.host, "context")
-      )
-    end || changeset
+    changeset
+    |> apply_tag(endpoint, :context_uri, "context")
   end
 
   def from_named() do

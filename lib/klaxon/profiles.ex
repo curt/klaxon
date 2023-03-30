@@ -1,12 +1,15 @@
 defmodule Klaxon.Profiles do
   require Logger
+
+  import Ecto.Query
+  # import Ecto.Changeset
+  import Klaxon.Helpers
+
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles.Principal
   alias Klaxon.Profiles.Profile
   alias Klaxon.HttpClient
-  import Ecto.Query
-  import Ecto.Changeset
 
   def list_principals(user_id) do
     query =
@@ -34,6 +37,10 @@ defmodule Klaxon.Profiles do
       _ -> {:error, :not_found}
     end
   end
+
+  # def get_profile_by_uri!(uri) do
+  #   Repo.one(from(p0 in Profile.uri_query(uri)))
+  # end
 
   def get_local_profile_by_uri(uri) do
     case Cachex.fetch(:local_profile_cache, uri, &get_local_profile_by_uri_cache_miss/1) do
@@ -111,7 +118,8 @@ defmodule Klaxon.Profiles do
            :get_profile_cache,
            profile_uri,
            fn key ->
-             case Repo.one(Profile.uri_query(key)) do
+             # FIXME! Make freshness configurable.
+             case Repo.one(Profile.uri_query(key) |> Profile.where_fresh(600)) do
                %Profile{} = profile ->
                  {:commit, profile}
 
@@ -143,8 +151,16 @@ defmodule Klaxon.Profiles do
   @spec fetch_public_profile_by_uri(binary) :: map | nil
   def fetch_public_profile_by_uri(profile_uri) do
     case HttpClient.get(profile_uri) do
-      {:ok, %{body: body}} -> new_public_profile_from_response(body)
-      _ -> nil
+      {:ok, %{body: body}} ->
+        if profile = new_public_profile_from_response(body) do
+          case insert_or_update_profile_by_uri(profile.uri, profile, force: true) do
+            {:ok, profile} -> profile
+            _ -> nil
+          end
+        end
+
+      _ ->
+        nil
     end
   end
 
@@ -152,16 +168,25 @@ defmodule Klaxon.Profiles do
   def new_public_profile_from_response(
         %{"id" => uri, "preferredUsername" => name, "inbox" => inbox} = body
       ) do
-    public_key = Map.get(body, "publicKey")
-    public_key_pem = public_key && Map.get(public_key, "publicKeyPem")
+    public_key = body["publicKey"]
+    public_key_pem = public_key && public_key["publicKeyPem"]
+    public_key_id = public_key && public_key["id"]
+    {icon, icon_media_type} = decompose_media_object(body["icon"])
+    {image, image_media_type} = decompose_media_object(body["image"])
 
     %{
       uri: uri,
+      url: body["url"],
       name: name,
       inbox: inbox,
-      summary: Map.get(body, "summary"),
-      display_name: Map.get(body, "name"),
-      public_key: public_key_pem
+      summary: body["summary"],
+      display_name: body["name"],
+      public_key: public_key_pem,
+      public_key_id: public_key_id,
+      icon: icon,
+      icon_media_type: icon_media_type,
+      image: image,
+      image_media_type: image_media_type
     }
   end
 
@@ -170,10 +195,10 @@ defmodule Klaxon.Profiles do
     nil
   end
 
-  def insert_or_update_profile(profile) do
-    profile
-    |> change()
-    |> Repo.insert_or_update()
+  def insert_or_update_profile_by_uri(uri, attrs, opts \\ []) do
+    Repo.one(Profile.uri_query(uri))
+    |> Profile.changeset(attrs)
+    |> Repo.insert_or_update(opts)
   end
 
   def create_local_profile(params, user_id) do

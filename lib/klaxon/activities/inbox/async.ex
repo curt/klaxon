@@ -72,10 +72,11 @@ defmodule Klaxon.Activities.Inbox.Async do
     object_post =
       activity
       |> Map.fetch!("object")
-      |> Map.put(:profile, actor_profile)
+      # |> Map.put(:profile, actor_profile)
+      |> Map.put(:profile_id, actor_profile[:id])
       |> tap(fn x -> Logger.debug("Processed post: #{inspect(x)}") end)
 
-    Contents.insert_or_update_public_post_profile(object_post, endpoint)
+    Contents.insert_or_update_public_post(object_post, endpoint)
   end
 
   def process(

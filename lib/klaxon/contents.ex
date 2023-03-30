@@ -7,7 +7,7 @@ defmodule Klaxon.Contents do
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
-  alias Klaxon.Profiles.Profile
+  #alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   import Ecto.Query
 
@@ -229,32 +229,42 @@ defmodule Klaxon.Contents do
     nil
   end
 
-  def insert_or_update_public_post_profile(attrs, endpoint) do
-    {profile_attrs, post_attrs} = Map.pop(attrs, :profile)
-
-    profile_uri = Map.get(profile_attrs, :uri)
-
-    profile_changeset =
-      (Profiles.get_public_profile_by_uri(profile_uri) || %Profile{})
-      |> Profile.changeset(profile_attrs)
-
-    post_uri = Map.get(post_attrs, :uri)
+  def insert_or_update_public_post(attrs, endpoint) do
+    post_uri = Map.get(attrs, :uri)
 
     post_changeset =
-      get_public_post_by_uri(post_uri) ||
-        %Post{}
-        |> Post.changeset(post_attrs, URI.new!(endpoint))
+      (get_public_post_by_uri(post_uri) || %Post{})
+      |> Post.changeset(attrs, endpoint)
 
-    result =
-      Ecto.Multi.new()
-      |> Ecto.Multi.insert_or_update(:profile, profile_changeset)
-      |> Ecto.Multi.insert_or_update(:post, fn %{profile: profile} ->
-        post_changeset |> Ecto.Changeset.change(%{profile: profile})
-      end)
-      |> Repo.transaction()
-
-    result
+    Repo.insert_or_update(post_changeset)
   end
+
+  # def insert_or_update_public_post_profile(attrs, endpoint) do
+  #   {profile_attrs, post_attrs} = Map.pop(attrs, :profile)
+
+  #   profile_uri = Map.get(profile_attrs, :uri)
+
+  #   profile_changeset =
+  #     (Profiles.get_public_profile_by_uri(profile_uri) || %Profile{})
+  #     |> Profile.changeset(profile_attrs)
+
+  #   post_uri = Map.get(post_attrs, :uri)
+
+  #   post_changeset =
+  #     get_public_post_by_uri(post_uri) ||
+  #       %Post{}
+  #       |> Post.changeset(post_attrs, URI.new!(endpoint))
+
+  #   result =
+  #     Ecto.Multi.new()
+  #     |> Ecto.Multi.insert_or_update(:profile, profile_changeset)
+  #     |> Ecto.Multi.insert_or_update(:post, fn %{profile: profile} ->
+  #       post_changeset |> Ecto.Changeset.change(%{profile: profile})
+  #     end)
+  #     |> Repo.transaction()
+
+  #   result
+  # end
 
   defp time_parse_rfc3339_or_now(nil) do
     Timex.now()

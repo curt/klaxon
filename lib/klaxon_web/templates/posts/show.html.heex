@@ -6,7 +6,7 @@
   <div class="mt-4 border-t">
     <p>
       <span>
-        <a {[href: @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a>
+        <a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a>
       </span>
       <span>
         <%= status_action(@post) %>: <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>.
