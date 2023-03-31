@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment: {
+      POSTGRES_DB: klaxon,
+      POSTGRES_USER: klaxon,
+      POSTGRES_PASSWORD: klaxon,
+    }
+    env_file:
+      - .env 
+    volumes:
+      - type: volume
+        source: dbdata
+        target: /var/lib/postgresql/data
+        volume:
+          nocopy: true
+  app:
+    image: curtg/klaxon:main
+    build: .
+    restart: unless-stopped
+    environment: {
+      DATABASE_URL: ecto://klaxon:klaxon@db/klaxon
+    }
+    env_file:
+      - .env
+    links:
+      - db
+    ports: [
+      "127.0.0.1:4001:4000",
+    ]
+
+volumes:
+  dbdata:
