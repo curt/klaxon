@@ -2,8 +2,6 @@ defmodule Klaxon.Media do
   require Logger
 
   alias Mogrify.Image
-  alias Ecto.NoResultsError
-  alias Ecto.Query.CastError
   alias Klaxon.MediaClient
   alias Klaxon.Repo
   alias Klaxon.Media.Media
@@ -12,23 +10,34 @@ defmodule Klaxon.Media do
   import Mogrify
   import Ecto.Query
 
-  def get_media_impression(id, scope, usage) do
-    try do
-      query =
-        from i in Impression,
-          join: m in Media,
-          on: i.media_id == m.id,
-          where: m.id == ^id,
-          where: m.scope == ^scope,
-          where: i.usage == ^usage,
-          preload: :media
+  @spec get_media_by_uri_scope(String.t(), atom) :: %Impression{} | nil
+  def get_media_by_uri_scope(uri, scope) do
+    query =
+      from m in Media,
+        where: m.uri == ^uri,
+        where: m.scope == ^scope
 
-      {:ok, Repo.one!(query)}
-    rescue
-      [CastError, NoResultsError] -> {:error, :not_found}
+    Repo.one(query)
+  end
+
+  @spec get_media_impression(String.t(), atom, atom) :: {:ok, %Impression{}} | {:error, atom}
+  def get_media_impression(id, scope, usage) do
+    query =
+      from i in Impression,
+        join: m in Media,
+        on: i.media_id == m.id,
+        where: m.id == ^id,
+        where: m.scope == ^scope,
+        where: i.usage == ^usage,
+        preload: :media
+
+    case Repo.one(query) do
+      %Impression{} = impression -> {:ok, impression}
+      _ -> {:error, :not_found}
     end
   end
 
+  @spec insert_media(map(), String.t()) :: {:ok, %Media{}}
   def insert_media(attrs, path) do
     with {:ok, media} <-
            %Media{}
@@ -38,20 +47,22 @@ defmodule Klaxon.Media do
     end
   end
 
-  def insert_remote_media(attrs, url) do
+  @spec insert_remote_media(String.t()) :: :ok | nil | {:error, any}
+  def insert_remote_media(url) do
     path = Path.join([System.tmp_dir!(), :crypto.hash(:sha256, url) |> Base.encode16()])
 
     with {:ok, result} <- MediaClient.get(url) do
       if result.status in 200..299 do
         with :ok <- File.write(path, result.body) do
           {_, content_type} = List.keyfind!(result.headers, "content-type", 0)
-          insert_media(attrs |> Map.merge(%{uri: url, mime_type: content_type}), path)
+          insert_media(%{uri: url, mime_type: content_type}, path)
           File.rm(path)
         end
-      end || {:error, nil}
-    end
+      end
+    end || {:error, nil}
   end
 
+  @spec insert_impressions(%Media{}, String.t()) :: {:ok, %Media{}}
   def insert_impressions(%Media{} = media, path) do
     for usage <- [:raw, :avatar] do
       {:ok, attrs} = create_impression(media.id, path, usage)
@@ -64,6 +75,7 @@ defmodule Klaxon.Media do
     {:ok, media}
   end
 
+  @spec create_impression(String.t(), String.t(), atom) :: {:ok, map} | {:error, atom}
   def create_impression(media_id, path, usage) do
     path = mogrify_impression(path, usage)
 
@@ -84,6 +96,7 @@ defmodule Klaxon.Media do
     end
   end
 
+  @spec mogrify_impression(String.t(), atom) :: String.t()
   def mogrify_impression(path, usage) do
     mogrified_path = mogrify_path(path, usage)
 

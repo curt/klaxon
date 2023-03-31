@@ -10,6 +10,7 @@ defmodule Klaxon.Profiles do
   alias Klaxon.Profiles.Principal
   alias Klaxon.Profiles.Profile
   alias Klaxon.HttpClient
+  alias Klaxon.Media
 
   def list_principals(user_id) do
     query =
@@ -154,8 +155,16 @@ defmodule Klaxon.Profiles do
       {:ok, %{body: body}} ->
         if profile = new_public_profile_from_response(body) do
           case insert_or_update_profile_by_uri(profile.uri, profile, force: true) do
-            {:ok, profile} -> profile
-            _ -> nil
+            {:ok, profile} ->
+              if profile.icon do
+                Media.get_media_by_uri_scope(profile.icon, :profile) ||
+                  Media.insert_remote_media(profile.icon)
+              end
+
+              profile
+
+            _ ->
+              nil
           end
         end
 
