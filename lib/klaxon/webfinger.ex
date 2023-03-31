@@ -1,3 +1,4 @@
+# TODO: This is a mess and can be greatly simplified.
 defmodule Klaxon.Webfinger do
   import Ecto.Query, warn: false
   alias Klaxon.Profiles

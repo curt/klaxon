@@ -63,7 +63,8 @@ defmodule Klaxon.MixProject do
       {:ecto_base58, git: "https://github.com/curt/ecto_base58.git"},
       {:x509, "~> 0.8.5"},
       {:earmark, "~> 1.4"},
-      {:slugify, "~> 1.3"}
+      {:slugify, "~> 1.3"},
+      {:mogrify, "~> 0.9.2"}
     ]
   end
 
