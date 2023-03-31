@@ -29,6 +29,7 @@ defmodule KlaxonWeb.Router do
     get "/posts", PostsController, :index
     get "/posts/:id", PostsController, :show
     get "/labels/:slug", LabelsController, :show
+    get "/media/:scope/:usage/:id", MediaController, :show
     get "/.well-known/webfinger", WebfingerController, :show
     get "/.well-known/nodeinfo", NodeInfoController, :well_known
     get "/nodeinfo/:version", NodeInfoController, :version
