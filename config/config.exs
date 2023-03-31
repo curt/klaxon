@@ -64,8 +64,6 @@ config :klaxon, Oban,
 
 config :tesla, adapter: Tesla.Adapter.Hackney
 
-config :klaxon, :git, revision: elem(System.cmd("git", ["rev-parse", "HEAD"]), 0)
-
 config :tailwind, version: "3.2.7", default: [
   args: ~w(
     --config=tailwind.config.js
@@ -74,6 +72,8 @@ config :tailwind, version: "3.2.7", default: [
   ),
   cd: Path.expand("../assets", __DIR__)
 ]
+
+config :klaxon, :git, revision: elem(System.cmd("git", ["rev-parse", "HEAD"]), 0)
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
