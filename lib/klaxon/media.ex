@@ -43,6 +43,7 @@ defmodule Klaxon.Media do
            %Media{}
            |> Media.changeset(attrs)
            |> Repo.insert() do
+      Logger.info("Inserted #{media.scope} media #{media.uri} as #{media.id}")
       insert_impressions(media, path)
     end
   end
@@ -70,6 +71,7 @@ defmodule Klaxon.Media do
       media
       |> Ecto.build_assoc(:impressions, attrs)
       |> Repo.insert!()
+      |> tap(fn i -> Logger.info("Inserted #{i.usage} impression for media #{media.id}") end)
     end
 
     {:ok, media}
