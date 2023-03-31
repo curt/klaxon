@@ -1,6 +1,7 @@
 defmodule Klaxon.Media do
   require Logger
 
+  alias Mogrify.Image
   alias Ecto.NoResultsError
   alias Ecto.Query.CastError
   alias Klaxon.MediaClient
@@ -64,11 +65,13 @@ defmodule Klaxon.Media do
   end
 
   def create_impression(media_id, path, usage) do
-    path = maybe_mogrify_impression(path, usage)
+    path = mogrify_impression(path, usage)
 
     with {:ok, %File.Stat{} = info} <- File.stat(path),
          %{height: height, width: width} <- identify(path),
          {:ok, data} <- File.read(path) do
+      File.rm(path)
+
       {:ok,
        %{
          media_id: media_id,
@@ -81,20 +84,29 @@ defmodule Klaxon.Media do
     end
   end
 
-  def maybe_mogrify_impression(path, :avatar), do: mogrify_resize(path, :avatar, "64x64")
+  def mogrify_impression(path, usage) do
+    mogrified_path = mogrify_path(path, usage)
 
-  def maybe_mogrify_impression(path, :raw), do: mogrify_noop(path)
+    open(path)
+    |> maybe_mogrify(usage)
+    |> custom("strip")
+    |> save(path: mogrified_path)
 
-  defp mogrify_resize(path, usage, dimensions) do
-    new_path = mogrify_path(path, usage)
-    open(path) |> resize_to_fill(dimensions) |> save(path: new_path)
-    new_path
+    mogrified_path
   end
 
-  defp mogrify_noop(path) do
-    new_path = mogrify_path(path, :raw)
-    {:ok, _} = File.copy(path, new_path)
-    new_path
+  defp maybe_mogrify(%Image{} = image, :raw) do
+    image
+  end
+
+  defp maybe_mogrify(%Image{} = image, :avatar) do
+    image |> resize_to_fill("64x64") |> maybe_downscale()
+  end
+
+  defp maybe_downscale(%Image{} = image) do
+    if image.format == "jpeg" do
+      image |> quality("65")
+    end || image
   end
 
   defp mogrify_path(path, usage), do: "#{path}-#{Atom.to_string(usage)}"
