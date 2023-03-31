@@ -52,14 +52,20 @@ defmodule Klaxon.Media do
   end
 
   def insert_impressions(%Media{} = media, path) do
-    with {:ok, attrs} <- create_impression(media.id, path, :raw) do
+    for usage <- [:raw, :avatar] do
+      {:ok, attrs} = create_impression(media.id, path, usage)
+
       media
       |> Ecto.build_assoc(:impressions, attrs)
-      |> Repo.insert()
+      |> Repo.insert!()
     end
+
+    {:ok, media}
   end
 
-  def create_impression(media_id, path, :raw = usage) do
+  def create_impression(media_id, path, usage) do
+    path = maybe_mogrify_impression(path, usage)
+
     with {:ok, %File.Stat{} = info} <- File.stat(path),
          %{height: height, width: width} <- identify(path),
          {:ok, data} <- File.read(path) do
@@ -74,4 +80,22 @@ defmodule Klaxon.Media do
        }}
     end
   end
+
+  def maybe_mogrify_impression(path, :avatar), do: mogrify_resize(path, :avatar, "64x64")
+
+  def maybe_mogrify_impression(path, :raw), do: mogrify_noop(path)
+
+  defp mogrify_resize(path, usage, dimensions) do
+    new_path = mogrify_path(path, usage)
+    open(path) |> resize_to_fill(dimensions) |> save(path: new_path)
+    new_path
+  end
+
+  defp mogrify_noop(path) do
+    new_path = mogrify_path(path, :raw)
+    {:ok, _} = File.copy(path, new_path)
+    new_path
+  end
+
+  defp mogrify_path(path, usage), do: "#{path}-#{Atom.to_string(usage)}"
 end
