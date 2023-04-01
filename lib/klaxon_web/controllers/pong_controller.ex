@@ -2,7 +2,7 @@ defmodule KlaxonWeb.PongController do
   use KlaxonWeb, :controller
 
   alias Klaxon.Activities
-  alias Klaxon.Profiles.Profile
+  # alias Klaxon.Profiles.Profile
 
   action_fallback KlaxonWeb.FallbackController
 
@@ -17,13 +17,6 @@ defmodule KlaxonWeb.PongController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, pong} <- Activities.get_pong(profile.uri, id) do
       render(conn, "show.html", pong: pong)
-    end
-  end
-
-  defp current_profile(conn) do
-    case conn.assigns[:current_profile] do
-      %Profile{} = profile -> {:ok, profile}
-      _ -> {:error, :not_found}
     end
   end
 end

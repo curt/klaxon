@@ -2,7 +2,7 @@ defmodule KlaxonWeb.PostsController do
   use KlaxonWeb, :controller
   import KlaxonWeb.Plugs
   import KlaxonWeb.Titles
-  alias Klaxon.Profiles.Profile
+  # alias Klaxon.Profiles.Profile
   alias Klaxon.Contents
 
   action_fallback KlaxonWeb.FallbackController
@@ -22,13 +22,6 @@ defmodule KlaxonWeb.PostsController do
          {:ok, post} <-
            Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
       render(conn, post: post, title: title(post))
-    end
-  end
-
-  defp current_profile(conn) do
-    case conn.assigns[:current_profile] do
-      %Profile{} = profile -> {:ok, profile}
-      _ -> {:error, :not_found}
     end
   end
 end

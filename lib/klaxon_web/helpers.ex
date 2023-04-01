@@ -74,7 +74,19 @@ defmodule KlaxonWeb.Helpers do
     %URI{host: uri.host, scheme: uri.scheme, port: uri.port}
   end
 
+  ### Controller helpers.
+  ### TODO: These should probably get their own module.
+
+  @spec json_status_response(Plug.Conn.t(), any, any) :: Plug.Conn.t()
   def json_status_response(conn, status, msg) do
     conn |> Plug.Conn.put_status(status) |> Phoenix.Controller.json(msg)
+  end
+
+  @spec current_profile(Plug.Conn.t()) :: {:error, :not_found} | {:ok, %Profile{}}
+  def current_profile(conn) do
+    case conn.assigns[:current_profile] do
+      %Profile{} = profile -> {:ok, profile}
+      _ -> {:error, :not_found}
+    end
   end
 end

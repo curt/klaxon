@@ -1,68 +1,40 @@
 # TODO: This is a mess and can be greatly simplified.
 defmodule Klaxon.Webfinger do
   import Ecto.Query, warn: false
-  alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
 
-  def get_webfinger!(resource) do
-    case parse_resource(resource) do
-      {:ok, %{type: "acct", username: name, hostname: host}}
-        -> get_webfinger_profile!(name, host)
-      {:ok, %{type: "acct", username: name}}
-        -> get_webfinger_profile!(name)
-      :error
-        -> :error
-    end
-  rescue
-    _ -> :error
-  end
-
-  def parse_resource(res) do
-    parts = Regex.split(~r{:}, res, parts: 2)
-
-    case parts do
-      ["acct", acct] -> parse_account(acct)
-      _ -> :error
+  @spec get_webfinger(%Profile{}, String.t()) ::
+          {:error, :bad_request | :not_found} | {:ok, {%Profile{}, String.t()}}
+  def get_webfinger(%Profile{} = profile, resource) do
+    with {:ok, acct} <- parse_resource(resource),
+         {:ok, name, host} <- parse_acct(acct, profile.uri),
+         {:ok, profile} <- match_profile(profile, name, host) do
+      {:ok, {profile, canonical_resource(name, host)}}
     end
   end
 
-  def parse_account(acct) do
-    parts = Regex.split(~r{@}, acct)
-
-    case parts do
-      [user, host] -> {:ok, %{type: "acct", username: user, hostname: host}}
-      [user] -> {:ok, %{type: "acct", username: user}}
-      _ -> :error
+  defp parse_resource(resource) do
+    case Regex.split(~r{:}, resource, parts: 2) do
+      ["acct", acct] -> {:ok, acct}
+      _ -> {:error, :bad_request}
     end
   end
 
-  def get_webfinger_profile!(name) do
-    case get_profile_and_host(name) do
-      {%Profile{} = profile, profile_uri_host} ->
-        {profile, canonical_resource(name, profile_uri_host)}
-      _ -> nil
+  defp parse_acct(acct, endpoint) do
+    case Regex.split(~r{@}, acct) do
+      [name, host] -> {:ok, name, host}
+      [name] -> {:ok, name, URI.new!(endpoint).host}
+      _ -> {:error, :bad_request}
     end
   end
 
-  def get_webfinger_profile!(name, host) do
-    case get_profile_and_host(name) do
-      {%Profile{} = profile, profile_uri_host} when host == profile_uri_host ->
-        {profile, canonical_resource(name, profile_uri_host)}
-      _ -> nil
+  defp match_profile(%Profile{} = profile, name, host) do
+    if profile.name == name and URI.new!(profile.uri).host == host do
+      {:ok, profile}
+    else
+      {:error, :not_found}
     end
   end
 
-  def get_profile_and_host(name) do
-    profile = Profiles.get_local_profile!(name)
-    case URI.new(profile.uri) do
-      {:ok, %URI{} = uri} -> {profile, uri.host}
-      _ -> :error
-    end
-  rescue
-    _ -> :error
-  end
-
-  def canonical_resource(name, host) do
-    "acct:#{name}@#{host}"
-  end
+  defp canonical_resource(name, host), do: "acct:#{name}@#{host}"
 end

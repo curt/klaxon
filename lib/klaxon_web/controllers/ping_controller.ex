@@ -2,7 +2,7 @@ defmodule KlaxonWeb.PingController do
   use KlaxonWeb, :controller
 
   alias Klaxon.Activities
-  alias Klaxon.Profiles.Profile
+  # alias Klaxon.Profiles.Profile
 
   action_fallback KlaxonWeb.FallbackController
 
@@ -30,13 +30,6 @@ defmodule KlaxonWeb.PingController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, ping} <- Activities.get_ping(profile.uri, id) do
       render(conn, "show.html", ping: ping)
-    end
-  end
-
-  defp current_profile(conn) do
-    case conn.assigns[:current_profile] do
-      %Profile{} = profile -> {:ok, profile}
-      _ -> {:error, :not_found}
     end
   end
 end
