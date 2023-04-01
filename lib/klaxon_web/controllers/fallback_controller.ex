@@ -14,29 +14,35 @@ defmodule KlaxonWeb.FallbackController do
     |> render("error.json", changeset: changeset)
   end
 
-  # Handles resource requests that are unauthorized.
+  # Handles an accepted request.
+  # These is not an error, but the response has no payload.
   def call(conn, {:accepted}) do
     call_with_status(conn, :accepted, :"202")
   end
 
-  # Handles resource requests that are bad requests.
+  # Handles a bad request.
   def call(conn, {:error, :bad_request}) do
     call_with_status(conn, :bad_request, :"400")
   end
 
-  # Handles resource requests that are unauthorized.
+  # Handles an unauthorized request.
   def call(conn, {:error, :unauthorized}) do
     call_with_status(conn, :unauthorized, :"401")
   end
 
-  # Handles resource requests that cannot be found.
+  # Handles a not found request.
   def call(conn, {:error, :not_found}) do
     call_with_status(conn, :not_found, :"404")
   end
 
-  # Handles resource requests that are unauthorized.
+  # Handles a not acceptable request.
   def call(conn, {:error, :not_acceptable}) do
     call_with_status(conn, :not_acceptable, :"406")
+  end
+
+  # Handles a no profile request.
+  def call(conn, {:error, :no_profile}) do
+    call_with_status(conn, :service_unavailable, :no_profile)
   end
 
   defp call_with_status(conn, status, status_code) do

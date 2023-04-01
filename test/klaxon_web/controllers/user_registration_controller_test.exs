@@ -1,7 +1,8 @@
 defmodule KlaxonWeb.UserRegistrationControllerTest do
-  use KlaxonWeb.ConnCase, async: true
+  use KlaxonWeb.ConnCase
 
   import Klaxon.AuthFixtures
+  import Klaxon.ProfileFixtures
 
   describe "GET /users/register" do
     test "renders registration page", %{conn: conn} do
@@ -19,8 +20,9 @@ defmodule KlaxonWeb.UserRegistrationControllerTest do
   end
 
   describe "POST /users/register" do
+    setup [:create_profile]
     @tag :capture_log
-    test "creates account and logs the user in", %{conn: conn} do
+    test "creates account and logs the user in", %{conn: conn, profile: profile} do
       email = unique_user_email()
 
       conn =
@@ -51,5 +53,13 @@ defmodule KlaxonWeb.UserRegistrationControllerTest do
       assert response =~ "must have the @ sign and no spaces"
       assert response =~ "should be at least 12 character"
     end
+  end
+
+  defp create_profile(%{conn: conn}) do
+    conn = Map.put(conn, :host, "example.com")
+    user = user_fixture()
+    # FIXME: Replace hard-coded profile URI with one that works.
+    profile = profile_fixture(%{}, "http://example.com/", user)
+    %{profile: profile, conn: conn, user: user}
   end
 end

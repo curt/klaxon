@@ -19,7 +19,7 @@ defmodule KlaxonWeb.ProfileController do
     with {:ok, profile} <- get_profile(conn) do
       render(conn, :index, profile: profile, title: title(profile))
     else
-      _ -> render(conn, :default)
+      _ -> {:error, :no_profile}
     end
   end
 

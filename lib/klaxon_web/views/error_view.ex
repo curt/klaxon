@@ -7,6 +7,10 @@ defmodule KlaxonWeb.ErrorView do
   #   "Internal Server Error"
   # end
 
+  def render("no_profile.html", _assigns) do
+    "Server is responding, but no profile has been configured."
+  end
+
   # By default, Phoenix returns the status message from
   # the template name. For example, "404.html" becomes
   # "Not Found".
