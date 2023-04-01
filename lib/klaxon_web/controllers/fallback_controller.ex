@@ -42,6 +42,8 @@ defmodule KlaxonWeb.FallbackController do
   defp call_with_status(conn, status, status_code, title \\ "Error") do
     conn
     |> put_status(status)
+    |> put_root_layout(false)
+    |> put_layout(false)
     |> put_view(KlaxonWeb.ErrorView)
     |> render("#{status_code}.#{get_format(conn)}", title: title)
   end
