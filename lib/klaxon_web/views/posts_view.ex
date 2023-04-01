@@ -1,10 +1,11 @@
 defmodule KlaxonWeb.PostsView do
   use KlaxonWeb, :view
   import KlaxonWeb.Titles
+  alias Klaxon.Contents.Post
 
   def render("show.activity+json", %{
-    conn: %{assigns: %{current_endpoint: _endpoint}} = _conn,
-    post: %Klaxon.Contents.Post{} = post
+    conn: %{assigns: %{current_endpoint: _endpoint}} = conn,
+    post: %Post{} = post
   }) do
     contextify()
     |> Map.put("type", "Note")
@@ -15,6 +16,9 @@ defmodule KlaxonWeb.PostsView do
     |> Map.put("content", post.content_html)
     |> Map.put("published", Timex.format!(post.published_at, "{RFC3339z}"))
     |> Map.put("url", post.uri)
+    |> mergify("inReplyTo", post.in_reply_to_uri)
+    |> mergify("to", post_to(conn, post))
+    |> mergify("cc", post_cc(conn, post))
   end
 
   def status_action(post) do
@@ -31,4 +35,7 @@ defmodule KlaxonWeb.PostsView do
       _ -> post.inserted_at
     end
   end
+
+  defp post_to(_conn, _post), do: ["https://www.w3.org/ns/activitystreams#Public"]
+  defp post_cc(conn, _post), do: [Routes.followers_url(conn, :index)]
 end
