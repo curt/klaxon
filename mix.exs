@@ -65,7 +65,11 @@ defmodule Klaxon.MixProject do
       {:earmark, "~> 1.4"},
       {:slugify, "~> 1.3"},
       {:mogrify, "~> 0.9.2"},
-      {:excon, "~> 4.0"}
+      {:excon, "~> 4.0"},
+
+      # kludge because otherwise these two excon dependencies don't end up in the release
+      {:png, "~> 0.2"},
+      {:blake2, "~> 1.0"}
     ]
   end
 
