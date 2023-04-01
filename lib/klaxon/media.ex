@@ -10,7 +10,7 @@ defmodule Klaxon.Media do
   import Mogrify
   import Ecto.Query
 
-  @spec get_media_by_uri_scope(String.t(), atom) :: %Impression{} | nil
+  @spec get_media_by_uri_scope(String.t(), atom) :: %Media{} | nil
   def get_media_by_uri_scope(uri, scope) do
     query =
       from m in Media,

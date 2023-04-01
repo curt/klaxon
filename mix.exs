@@ -64,7 +64,8 @@ defmodule Klaxon.MixProject do
       {:x509, "~> 0.8.5"},
       {:earmark, "~> 1.4"},
       {:slugify, "~> 1.3"},
-      {:mogrify, "~> 0.9.2"}
+      {:mogrify, "~> 0.9.2"},
+      {:excon, "~> 4.0"}
     ]
   end
 

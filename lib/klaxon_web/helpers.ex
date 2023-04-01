@@ -1,4 +1,7 @@
 defmodule KlaxonWeb.Helpers do
+  alias Klaxon.Profiles.Profile
+  alias KlaxonWeb.Router.Helpers, as: Routes
+
   @moduledoc """
   Provides helper functions for web app.
   """
@@ -41,7 +44,7 @@ defmodule KlaxonWeb.Helpers do
 
   See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time
   """
-  @spec htmlify_date(Timex.Types.valid_datetime) :: String.t()
+  @spec htmlify_date(Timex.Types.valid_datetime()) :: String.t()
   def htmlify_date(date) do
     Timex.format!(date, "{YYYY}-{0M}-{0D}T{h24}:{m}:{s}{Z:}")
   end
@@ -55,6 +58,15 @@ defmodule KlaxonWeb.Helpers do
       {:ok, keys} -> Keyword.get(keys, :revision)
       _ -> nil
     end
+  end
+
+  def profile_media_avatar_path(conn, %Profile{} = profile) do
+    if !is_nil(profile.icon) do
+      if media = Klaxon.Media.get_media_by_uri_scope(profile.icon, :profile) do
+        Routes.media_path(conn, :show, :profile, :avatar, media.id)
+      end
+    end ||
+      "data:image/png;base64," <> Excon.ident(profile.uri, base64: true, magnification: 8)
   end
 
   def endpointify(uri) do
