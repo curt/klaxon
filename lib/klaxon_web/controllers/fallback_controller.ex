@@ -31,7 +31,7 @@ defmodule KlaxonWeb.FallbackController do
 
   # Handles resource requests that cannot be found.
   def call(conn, {:error, :not_found}) do
-    call_with_status(conn, :not_found, :"404", "Not Found")
+    call_with_status(conn, :not_found, :"404")
   end
 
   # Handles resource requests that are unauthorized.
@@ -39,12 +39,12 @@ defmodule KlaxonWeb.FallbackController do
     call_with_status(conn, :not_acceptable, :"406")
   end
 
-  defp call_with_status(conn, status, status_code, title \\ "Error") do
+  defp call_with_status(conn, status, status_code) do
     conn
     |> put_status(status)
     |> put_root_layout(false)
     |> put_layout(false)
     |> put_view(KlaxonWeb.ErrorView)
-    |> render("#{status_code}.#{get_format(conn)}", title: title)
+    |> render("#{status_code}.#{get_format(conn)}")
   end
 end
