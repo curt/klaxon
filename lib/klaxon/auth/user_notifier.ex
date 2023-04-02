@@ -4,11 +4,14 @@ defmodule Klaxon.Auth.UserNotifier do
   alias Klaxon.Mailer
 
   # Delivers the email using the application mailer.
-  defp deliver(recipient, subject, body) do
+  defp deliver(endpoint, recipient, subject, body) do
+    host = endpoint.host
+
     email =
       new()
       |> to(recipient)
-      |> from({"Klaxon", "contact@example.com"})
+      # TODO: This should be configurable.
+      |> from({"Klaxon", "noreply@#{host}"})
       |> subject(subject)
       |> text_body(body)
 
@@ -20,8 +23,8 @@ defmodule Klaxon.Auth.UserNotifier do
   @doc """
   Deliver instructions to confirm account.
   """
-  def deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
+  def deliver_confirmation_instructions(endpoint, user, url) do
+    deliver(endpoint, user.email, "Confirmation instructions", """
 
     ==============================
 
@@ -40,8 +43,8 @@ defmodule Klaxon.Auth.UserNotifier do
   @doc """
   Deliver instructions to reset a user password.
   """
-  def deliver_reset_password_instructions(user, url) do
-    deliver(user.email, "Reset password instructions", """
+  def deliver_reset_password_instructions(endpoint, user, url) do
+    deliver(endpoint, user.email, "Reset password instructions", """
 
     ==============================
 
@@ -60,8 +63,8 @@ defmodule Klaxon.Auth.UserNotifier do
   @doc """
   Deliver instructions to update a user email.
   """
-  def deliver_update_email_instructions(user, url) do
-    deliver(user.email, "Update email instructions", """
+  def deliver_update_email_instructions(endpoint, user, url) do
+    deliver(endpoint, user.email, "Update email instructions", """
 
     ==============================
 

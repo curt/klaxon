@@ -8,10 +8,14 @@ defmodule KlaxonWeb.UserConfirmationController do
   end
 
   def create(conn, %{"user" => %{"email" => email}}) do
+    {:ok, profile} = current_profile(conn)
+    endpoint = endpoint(profile)
+
     if user = Auth.get_user_by_email(email) do
       Auth.deliver_user_confirmation_instructions(
+        endpoint,
         user,
-        &Routes.user_confirmation_url(conn, :edit, &1)
+        &Routes.user_confirmation_url(endpoint, :edit, &1)
       )
     end
 

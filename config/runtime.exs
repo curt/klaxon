@@ -81,3 +81,7 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+# Useful for function that lack a request profile.
+host = System.get_env("PHX_HOST") || "example.com"
+config :klaxon, host: host

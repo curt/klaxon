@@ -84,9 +84,14 @@ defmodule KlaxonWeb.Helpers do
 
   @spec current_profile(Plug.Conn.t()) :: {:error, :not_found} | {:ok, %Profile{}}
   def current_profile(conn) do
-    case conn.assigns[:current_profile] do
+    case conn.assigns.current_profile do
       %Profile{} = profile -> {:ok, profile}
       _ -> {:error, :not_found}
     end
+  end
+
+  @spec endpoint(%Profile{}) :: URI.t()
+  def endpoint(%Profile{} = profile) do
+    struct(URI.new!(profile.uri), path: nil)
   end
 end

@@ -50,6 +50,7 @@ defmodule Klaxon.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
+
       # not supplied with Phoenix
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:castore, "~> 0.1.22"},
@@ -59,13 +60,17 @@ defmodule Klaxon.MixProject do
       {:hackney, "~> 1.17"},
       {:cachex, "~> 3.4"},
       {:timex, "~> 3.7"},
-      # {:base_58_check, "~> 1.0"},
       {:ecto_base58, git: "https://github.com/curt/ecto_base58.git"},
       {:x509, "~> 0.8.5"},
       {:earmark, "~> 1.4"},
       {:slugify, "~> 1.3"},
       {:mogrify, "~> 0.9.2"},
       {:excon, "~> 4.0"},
+      {:gen_smtp, "~> 1.0"},
+      {:ex_aws, "~> 2.1"},
+
+      # Dependency of `:ex_aws`
+      {:sweet_xml, "~> 0.6"},
 
       # kludge because otherwise these two excon dependencies don't end up in the release
       {:png, "~> 0.2"},
