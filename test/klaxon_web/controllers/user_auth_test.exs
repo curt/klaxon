@@ -1,5 +1,5 @@
 defmodule KlaxonWeb.UserAuthTest do
-  use KlaxonWeb.ConnCase, async: true
+  use KlaxonWeb.ConnCase
 
   alias Klaxon.Auth
   alias KlaxonWeb.UserAuth

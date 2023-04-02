@@ -1,5 +1,5 @@
 defmodule KlaxonWeb.UserSessionControllerTest do
-  use KlaxonWeb.ConnCase, async: true
+  use KlaxonWeb.ConnCase
 
   import Klaxon.AuthFixtures
 

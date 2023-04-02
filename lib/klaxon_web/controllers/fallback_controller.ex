@@ -40,11 +40,6 @@ defmodule KlaxonWeb.FallbackController do
     call_with_status(conn, :not_acceptable, :"406")
   end
 
-  # Handles a no profile request.
-  def call(conn, {:error, :no_profile}) do
-    call_with_status(conn, :service_unavailable, :no_profile)
-  end
-
   defp call_with_status(conn, status, status_code) do
     conn
     |> put_status(status)

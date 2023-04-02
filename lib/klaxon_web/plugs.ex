@@ -30,13 +30,13 @@ defmodule KlaxonWeb.Plugs do
   end
 
   @doc """
-  Fetches the `Klaxon.Profiles.Profile` associated with the requested host, scheme, and port.
+  Fetches current profile and endpoint associated with host, scheme, and port.
+  Stores results in conn assigns.
   """
   @spec fetch_current_profile(Plug.Conn.t(), any) :: Plug.Conn.t()
   def fetch_current_profile(conn, _opts) do
     endpoint = %URI{host: conn.host, scheme: Atom.to_string(conn.scheme), port: conn.port}
     uri = endpoint |> Map.put(:path, "/") |> URI.to_string()
-
     Logger.info("Fetching profile: #{uri}")
 
     case Profiles.get_local_profile_by_uri(uri) do
@@ -49,8 +49,19 @@ defmodule KlaxonWeb.Plugs do
   end
 
   @doc """
-  Requires the signed-in `Klaxon.Auth.User` to be a `Klaxon.Profiles.Principal`
-  of the current `Klaxon.Profiles.Profile`.
+  Requires current profile.
+  """
+  @spec require_profile(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def require_profile(conn, _opts) do
+    profile = conn.assigns[:current_profile]
+
+    unless profile do
+      conn |> render_error_and_halt(:service_unavailable, "no_profile.#{get_format(conn)}")
+    end || conn
+  end
+
+  @doc """
+  Requires signed-in user to be principal of current profile.
   """
   @spec require_principal(Plug.Conn.t(), any) :: Plug.Conn.t()
   def require_principal(conn, _opts) do
@@ -58,11 +69,17 @@ defmodule KlaxonWeb.Plugs do
     user = conn.assigns[:current_user]
 
     unless profile && user && Profiles.is_profile_owned_by_user?(profile, user) do
-      conn
-      |> put_status(:unauthorized)
-      |> put_view(KlaxonWeb.ErrorView)
-      |> render(:"401")
-      |> halt()
+      conn |> render_error_and_halt(:unauthorized, :"401")
     end || conn
+  end
+
+  defp render_error_and_halt(conn, status, template) do
+    conn
+    |> put_status(status)
+    |> put_root_layout(false)
+    |> put_layout(false)
+    |> put_view(KlaxonWeb.ErrorView)
+    |> render(template)
+    |> halt()
   end
 end

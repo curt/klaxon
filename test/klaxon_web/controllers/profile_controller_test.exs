@@ -10,8 +10,9 @@ defmodule KlaxonWeb.ProfileControllerTest do
 
   describe "index with no profile" do
     test "display profile", %{conn: conn} do
+      conn = %Plug.Conn{conn | host: "sample.org"}
       conn = get(conn, Routes.profile_path(conn, :index))
-      assert html_response(conn, 200) =~ "Klaxon"
+      assert html_response(conn, 503) =~ "no profile"
     end
   end
 
@@ -19,6 +20,7 @@ defmodule KlaxonWeb.ProfileControllerTest do
     setup [:create_profile, :activity_json]
 
     test "get profile", %{conn: conn} do
+
       conn = get(conn, Routes.profile_path(conn, :index))
       json_response(conn, 200)
     end
@@ -45,7 +47,7 @@ defmodule KlaxonWeb.ProfileControllerTest do
   describe "update profile" do
     setup [:create_profile, :log_in_user]
 
-    test "redirects when data is valid", %{conn: conn, profile: _profile} do
+    test "redirects when data is valid", %{conn: conn} do
       conn = put(conn, Routes.profile_path(conn, :update), profile: @update_attrs)
       assert redirected_to(conn) == Routes.profile_path(conn, :index)
 
@@ -60,11 +62,10 @@ defmodule KlaxonWeb.ProfileControllerTest do
     # end
   end
 
-  defp create_profile(%{conn: conn}) do
+  defp create_profile(_) do
     user = user_fixture()
-    # FIXME: Replace hard-coded profile URI with one that works.
     profile = profile_fixture(user, %{})
-    %{profile: profile, conn: conn, user: user}
+    %{profile: profile, user: user}
   end
 
   defp activity_json(_) do
