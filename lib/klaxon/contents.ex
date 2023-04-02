@@ -100,6 +100,10 @@ defmodule Klaxon.Contents do
     end
   end
 
+  def change_post(endpoint, post, attrs \\ %{}) do
+    Post.changeset(post, attrs, endpoint)
+  end
+
   defp where_authorized(query, endpoint) do
     query
     |> Post.where_origin([:local, :remote])

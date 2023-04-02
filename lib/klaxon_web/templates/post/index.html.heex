@@ -4,7 +4,7 @@
 <article class="mb-2 flex flex-row">
     <div class="flex-none w-24"><%= prettify_date(status_date(post), :short) %></div>
     <div class="flex-auto">
-          <a class="link" {[href: Routes.posts_path(@conn, :show, post.id)]}><%= title(post) %></a>
+          <a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= title(post) %></a>
           <!--&mdash; <span class="summary"><%= raw post.content_html %></span>-->
     </div>
 </article>

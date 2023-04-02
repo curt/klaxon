@@ -28,8 +28,7 @@ defmodule KlaxonWeb.Router do
     pipe_through :browser
 
     get "/", ProfileController, :index
-    get "/posts", PostsController, :index
-    get "/posts/:id", PostsController, :show
+    resources "/posts", PostController
     get "/labels/:slug", LabelsController, :show
     get "/media/:scope/:usage/:id", MediaController, :show
     get "/.well-known/webfinger", WebfingerController, :show

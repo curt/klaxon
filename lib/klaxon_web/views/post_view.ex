@@ -1,12 +1,12 @@
-defmodule KlaxonWeb.PostsView do
+defmodule KlaxonWeb.PostView do
   use KlaxonWeb, :view
   import KlaxonWeb.Titles
   alias Klaxon.Contents.Post
 
   def render("show.activity+json", %{
-    conn: %{assigns: %{current_endpoint: endpoint}} = _conn,
-    post: %Post{} = post
-  }) do
+        conn: %{assigns: %{current_endpoint: endpoint}} = _conn,
+        post: %Post{} = post
+      }) do
     contextify()
     |> Map.put("type", "Note")
     |> Map.put("id", post.uri)
