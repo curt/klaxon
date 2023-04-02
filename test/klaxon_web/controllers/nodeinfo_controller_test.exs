@@ -1,6 +1,14 @@
 defmodule KlaxonWeb.NodeInfoControllerTest do
   use KlaxonWeb.ConnCase
   alias KlaxonWeb.Endpoint
+  import Klaxon.AuthFixtures
+  import Klaxon.ProfileFixtures
+
+  setup do
+    user = user_fixture()
+    profile = profile_fixture(user)
+    %{user: user, profile: profile}
+  end
 
   describe "nodeinfo controller" do
     test "well known", %{conn: conn} do

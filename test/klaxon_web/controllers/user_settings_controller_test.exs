@@ -1,5 +1,5 @@
 defmodule KlaxonWeb.UserSettingsControllerTest do
-  use KlaxonWeb.ConnCase, async: true
+  use KlaxonWeb.ConnCase
 
   alias Klaxon.Auth
   import Klaxon.AuthFixtures
@@ -90,12 +90,12 @@ defmodule KlaxonWeb.UserSettingsControllerTest do
   end
 
   describe "GET /users/settings/confirm_email/:token" do
-    setup %{user: user} do
+    setup %{user: user, endpoint: endpoint} do
       email = unique_user_email()
 
       token =
         extract_user_token(fn url ->
-          Auth.deliver_update_email_instructions(%{user | email: email}, user.email, url)
+          Auth.deliver_update_email_instructions(endpoint, %{user | email: email}, user.email, url)
         end)
 
       %{token: token, email: email}

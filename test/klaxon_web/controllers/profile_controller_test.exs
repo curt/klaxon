@@ -63,7 +63,7 @@ defmodule KlaxonWeb.ProfileControllerTest do
   defp create_profile(%{conn: conn}) do
     user = user_fixture()
     # FIXME: Replace hard-coded profile URI with one that works.
-    profile = profile_fixture(%{}, "http://www.example.com/", user)
+    profile = profile_fixture(user, %{})
     %{profile: profile, conn: conn, user: user}
   end
 

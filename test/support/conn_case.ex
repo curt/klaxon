@@ -46,7 +46,10 @@ defmodule KlaxonWeb.ConnCase do
   """
   def register_and_log_in_user(%{conn: conn}) do
     user = Klaxon.AuthFixtures.user_fixture()
-    %{conn: log_in_user(conn, user), user: user}
+    profile = Klaxon.ProfileFixtures.profile_fixture(user)
+    endpoint = struct(URI.new!(profile.uri), path: nil)
+    %{conn: log_in_user(conn, user), user: user, profile: profile, endpoint: endpoint}
+    # %{conn: log_in_user(conn, user), user: user}
   end
 
   @doc """

@@ -4,15 +4,23 @@ defmodule Klaxon.AuthTest do
   alias Klaxon.Auth
 
   import Klaxon.AuthFixtures
+  import Klaxon.ProfileFixtures
   alias Klaxon.Auth.{User, UserToken}
+
+  setup do
+    user = user_fixture()
+    profile = profile_fixture(user, %{})
+    endpoint = struct(URI.new!(profile.uri), path: nil)
+    %{user: user, profile: profile, endpoint: endpoint}
+  end
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
       refute Auth.get_user_by_email("unknown@example.com")
     end
 
-    test "returns the user if the email exists" do
-      %{id: id} = user = user_fixture()
+    test "returns the user if the email exists", %{user: user} do
+      %{id: id} = user
       assert %User{id: ^id} = Auth.get_user_by_email(user.email)
     end
   end
@@ -22,13 +30,12 @@ defmodule Klaxon.AuthTest do
       refute Auth.get_user_by_email_and_password("unknown@example.com", "hello world!")
     end
 
-    test "does not return the user if the password is not valid" do
-      user = user_fixture()
+    test "does not return the user if the password is not valid", %{user: user} do
       refute Auth.get_user_by_email_and_password(user.email, "invalid")
     end
 
-    test "returns the user if the email and password are valid" do
-      %{id: id} = user = user_fixture()
+    test "returns the user if the email and password are valid", %{user: user} do
+      %{id: id} = user
 
       assert %User{id: ^id} =
                Auth.get_user_by_email_and_password(user.email, valid_user_password())
@@ -144,8 +151,7 @@ defmodule Klaxon.AuthTest do
     test "validates maximum value for email for security", %{user: user} do
       too_long = String.duplicate("db", 100)
 
-      {:error, changeset} =
-        Auth.apply_user_email(user, valid_user_password(), %{email: too_long})
+      {:error, changeset} = Auth.apply_user_email(user, valid_user_password(), %{email: too_long})
 
       assert "should be at most 160 character(s)" in errors_on(changeset).email
     end
@@ -153,15 +159,13 @@ defmodule Klaxon.AuthTest do
     test "validates email uniqueness", %{user: user} do
       %{email: email} = user_fixture()
 
-      {:error, changeset} =
-        Auth.apply_user_email(user, valid_user_password(), %{email: email})
+      {:error, changeset} = Auth.apply_user_email(user, valid_user_password(), %{email: email})
 
       assert "has already been taken" in errors_on(changeset).email
     end
 
     test "validates current password", %{user: user} do
-      {:error, changeset} =
-        Auth.apply_user_email(user, "invalid", %{email: unique_user_email()})
+      {:error, changeset} = Auth.apply_user_email(user, "invalid", %{email: unique_user_email()})
 
       assert %{current_password: ["is not valid"]} = errors_on(changeset)
     end
@@ -179,10 +183,10 @@ defmodule Klaxon.AuthTest do
       %{user: user_fixture()}
     end
 
-    test "sends token through notification", %{user: user} do
+    test "sends token through notification", %{user: user, endpoint: endpoint} do
       token =
         extract_user_token(fn url ->
-          Auth.deliver_update_email_instructions(user, "current@example.com", url)
+          Auth.deliver_update_email_instructions(endpoint, user, "current@example.com", url)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -194,13 +198,13 @@ defmodule Klaxon.AuthTest do
   end
 
   describe "update_user_email/2" do
-    setup do
+    setup %{endpoint: endpoint} do
       user = user_fixture()
       email = unique_user_email()
 
       token =
         extract_user_token(fn url ->
-          Auth.deliver_update_email_instructions(%{user | email: email}, user.email, url)
+          Auth.deliver_update_email_instructions(endpoint, %{user | email: email}, user.email, url)
         end)
 
       %{user: user, token: token, email: email}
@@ -367,10 +371,10 @@ defmodule Klaxon.AuthTest do
       %{user: user_fixture()}
     end
 
-    test "sends token through notification", %{user: user} do
+    test "sends token through notification", %{endpoint: endpoint, user: user} do
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_confirmation_instructions(user, url)
+          Auth.deliver_user_confirmation_instructions(endpoint, user, url)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -382,12 +386,12 @@ defmodule Klaxon.AuthTest do
   end
 
   describe "confirm_user/1" do
-    setup do
+    setup %{endpoint: endpoint} do
       user = user_fixture()
 
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_confirmation_instructions(user, url)
+          Auth.deliver_user_confirmation_instructions(endpoint, user, url)
         end)
 
       %{user: user, token: token}
@@ -420,10 +424,10 @@ defmodule Klaxon.AuthTest do
       %{user: user_fixture()}
     end
 
-    test "sends token through notification", %{user: user} do
+    test "sends token through notification", %{endpoint: endpoint, user: user} do
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_reset_password_instructions(user, url)
+          Auth.deliver_user_reset_password_instructions(endpoint, user, url)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -435,12 +439,12 @@ defmodule Klaxon.AuthTest do
   end
 
   describe "get_user_by_reset_password_token/1" do
-    setup do
+    setup %{endpoint: endpoint} do
       user = user_fixture()
 
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_reset_password_instructions(user, url)
+          Auth.deliver_user_reset_password_instructions(endpoint, user, url)
         end)
 
       %{user: user, token: token}
