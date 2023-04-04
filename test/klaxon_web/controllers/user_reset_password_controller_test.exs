@@ -1,16 +1,12 @@
 defmodule KlaxonWeb.UserResetPasswordControllerTest do
-  use KlaxonWeb.ConnCase
+  use KlaxonWeb.ConnCase, async: true
 
   alias Klaxon.Auth
   alias Klaxon.Repo
   import Klaxon.AuthFixtures
-  import Klaxon.ProfileFixtures
 
   setup do
-    user = user_fixture()
-    profile = profile_fixture(user)
-    endpoint = struct(URI.new!(profile.uri), path: nil)
-    %{user: user, profile: profile, endpoint: endpoint}
+    %{user: user_fixture()}
   end
 
   describe "GET /users/reset_password" do
@@ -47,10 +43,10 @@ defmodule KlaxonWeb.UserResetPasswordControllerTest do
   end
 
   describe "GET /users/reset_password/:token" do
-    setup %{endpoint: endpoint, user: user} do
+    setup %{user: user} do
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_reset_password_instructions(endpoint, user, url)
+          Auth.deliver_user_reset_password_instructions(user, url, sender())
         end)
 
       %{token: token}
@@ -69,10 +65,10 @@ defmodule KlaxonWeb.UserResetPasswordControllerTest do
   end
 
   describe "PUT /users/reset_password/:token" do
-    setup %{endpoint: endpoint, user: user} do
+    setup %{user: user} do
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_reset_password_instructions(endpoint, user, url)
+          Auth.deliver_user_reset_password_instructions(user, url, sender())
         end)
 
       %{token: token}

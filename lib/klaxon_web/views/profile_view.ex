@@ -2,7 +2,7 @@ defmodule KlaxonWeb.ProfileView do
   use KlaxonWeb, :view
 
   def render("index.activity+json", %{
-        conn: %Plug.Conn{assigns: %{current_endpoint: endpoint}} = _conn,
+        conn: conn,
         profile: %Klaxon.Profiles.Profile{} = profile
       }) do
     public_key =
@@ -25,10 +25,10 @@ defmodule KlaxonWeb.ProfileView do
     |> Map.put("preferredUsername", profile.name)
     |> Map.put("name", profile.display_name)
     |> Map.put("summary", profile.summary)
-    |> Map.put("following", Routes.following_url(endpoint, :index))
-    |> Map.put("followers", Routes.followers_url(endpoint, :index))
-    |> Map.put("inbox", Routes.inbox_url(endpoint, :index))
-    |> Map.put("outbox", Routes.outbox_url(endpoint, :index))
+    |> Map.put("following", Routes.following_url(conn, :index))
+    |> Map.put("followers", Routes.followers_url(conn, :index))
+    |> Map.put("inbox", Routes.inbox_url(conn, :index))
+    |> Map.put("outbox", Routes.outbox_url(conn, :index))
     |> Map.put("publicKey", public_key)
   end
 end

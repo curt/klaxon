@@ -7,21 +7,21 @@ defmodule KlaxonWeb.Router do
   pipeline :browser do
     plug :accepts, ["html", "json", "activity+json"]
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
-    plug :fetch_current_profile
-    plug :require_profile
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {KlaxonWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug :fetch_current_profile
+    # plug :require_profile
   end
 
   pipeline :api do
     plug :accepts, ["json", "activity+json"]
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_current_profile
-    plug :require_profile
+    # plug :require_profile
   end
 
   scope "/", KlaxonWeb do
@@ -54,7 +54,7 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through [:browser, :require_principal]
+    pipe_through [:browser, :require_owner]
 
     get "/pings", PingController, :index
     get "/pings/new", PingController, :new

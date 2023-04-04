@@ -7,14 +7,8 @@ defmodule Klaxon.Contents do
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
-  #alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   import Ecto.Query
-
-  # get_posts thoughts
-  # - order by
-  # - limit for unauthenticated
-  # - option to include remote posts
 
   @doc """
   Gets posts from repo for given endpoint and user (if specified).
@@ -40,8 +34,8 @@ defmodule Klaxon.Contents do
     get_post_authenticated(endpoint, post_id, user_id)
   end
 
-  def get_post(endpoint, post_id, _) do
-    get_post_unauthenticated(endpoint, post_id)
+  def get_post(host, post_id, _) do
+    get_post_unauthenticated(host, post_id)
   end
 
   defp get_posts_authenticated(endpoint, user_id) do
@@ -100,8 +94,8 @@ defmodule Klaxon.Contents do
     end
   end
 
-  def change_post(endpoint, post, attrs \\ %{}) do
-    Post.changeset(post, attrs, endpoint)
+  def change_post(host, post, attrs \\ %{}) do
+    Post.changeset(post, attrs, host)
   end
 
   defp where_authorized(query, endpoint) do
@@ -242,33 +236,6 @@ defmodule Klaxon.Contents do
 
     Repo.insert_or_update(post_changeset)
   end
-
-  # def insert_or_update_public_post_profile(attrs, endpoint) do
-  #   {profile_attrs, post_attrs} = Map.pop(attrs, :profile)
-
-  #   profile_uri = Map.get(profile_attrs, :uri)
-
-  #   profile_changeset =
-  #     (Profiles.get_public_profile_by_uri(profile_uri) || %Profile{})
-  #     |> Profile.changeset(profile_attrs)
-
-  #   post_uri = Map.get(post_attrs, :uri)
-
-  #   post_changeset =
-  #     get_public_post_by_uri(post_uri) ||
-  #       %Post{}
-  #       |> Post.changeset(post_attrs, URI.new!(endpoint))
-
-  #   result =
-  #     Ecto.Multi.new()
-  #     |> Ecto.Multi.insert_or_update(:profile, profile_changeset)
-  #     |> Ecto.Multi.insert_or_update(:post, fn %{profile: profile} ->
-  #       post_changeset |> Ecto.Changeset.change(%{profile: profile})
-  #     end)
-  #     |> Repo.transaction()
-
-  #   result
-  # end
 
   defp time_parse_rfc3339_or_now(nil) do
     Timex.now()

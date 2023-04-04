@@ -6,7 +6,7 @@ defmodule KlaxonWeb.ProfileController do
   alias Klaxon.Profiles.Profile
 
   action_fallback KlaxonWeb.FallbackController
-  plug :require_principal when action not in [:index]
+  plug :require_owner when action not in [:index]
   plug :activity_json_response
 
   def index(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, _params) do

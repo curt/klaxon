@@ -55,4 +55,8 @@ defmodule Klaxon.DataCase do
       end)
     end)
   end
+
+  def sender() do
+    {"Klaxon", "klaxon@example.com"}
+  end
 end

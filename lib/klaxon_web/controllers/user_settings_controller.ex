@@ -12,17 +12,15 @@ defmodule KlaxonWeb.UserSettingsController do
 
   def update(conn, %{"action" => "update_email"} = params) do
     %{"current_password" => password, "user" => user_params} = params
-    {:ok, profile} = current_profile(conn)
-    endpoint = endpoint(profile)
     user = conn.assigns.current_user
 
     case Auth.apply_user_email(user, password, user_params) do
       {:ok, applied_user} ->
         Auth.deliver_update_email_instructions(
-          endpoint,
           applied_user,
           user.email,
-          &Routes.user_settings_url(endpoint, :confirm_email, &1)
+          &Routes.user_settings_url(conn, :confirm_email, &1),
+          sender(conn)
         )
 
         conn

@@ -1,12 +1,10 @@
-# TODO: This is a mess and can be greatly simplified.
 defmodule Klaxon.Webfinger do
-  import Ecto.Query, warn: false
+  alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
 
-  @spec get_webfinger(%Profile{}, String.t()) ::
-          {:error, :bad_request | :not_found} | {:ok, {%Profile{}, String.t()}}
-  def get_webfinger(%Profile{} = profile, resource) do
-    with {:ok, acct} <- parse_resource(resource),
+  def get_webfinger(profile_uri, resource) do
+    with {:ok, profile} <- Profiles.get_local_profile_by_uri(profile_uri),
+         {:ok, acct} <- parse_resource(resource),
          {:ok, name, host} <- parse_acct(acct, profile.uri),
          {:ok, profile} <- match_profile(profile, name, host) do
       {:ok, {profile, canonical_resource(name, host)}}

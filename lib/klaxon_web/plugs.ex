@@ -9,6 +9,7 @@ defmodule KlaxonWeb.Plugs do
   import Phoenix.Controller
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
+  alias KlaxonWeb.Router.Helpers, as: Routes
 
   @doc """
   Puts the `application/activity+json` content type on the response if the request was of a corresponding format.
@@ -35,13 +36,12 @@ defmodule KlaxonWeb.Plugs do
   """
   @spec fetch_current_profile(Plug.Conn.t(), any) :: Plug.Conn.t()
   def fetch_current_profile(conn, _opts) do
-    endpoint = %URI{host: conn.host, scheme: Atom.to_string(conn.scheme), port: conn.port}
-    uri = endpoint |> Map.put(:path, "/") |> URI.to_string()
+    uri = Routes.profile_url(conn, :index)
     Logger.info("Fetching profile: #{uri}")
 
     case Profiles.get_local_profile_by_uri(uri) do
       {:ok, %Profile{} = profile} ->
-        conn |> assign(:current_profile, profile) |> assign(:current_endpoint, endpoint)
+        conn |> assign(:current_profile, profile)
 
       _ ->
         conn
@@ -63,8 +63,8 @@ defmodule KlaxonWeb.Plugs do
   @doc """
   Requires signed-in user to be principal of current profile.
   """
-  @spec require_principal(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def require_principal(conn, _opts) do
+  @spec require_owner(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def require_owner(conn, _opts) do
     profile = conn.assigns[:current_profile]
     user = conn.assigns[:current_user]
 

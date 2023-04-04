@@ -19,11 +19,8 @@ defmodule KlaxonWeb.PostController do
   end
 
   def new(conn, _params) do
-    with {:ok, profile} <- current_profile(conn),
-         %URI{} = endpoint <- endpoint(profile) do
-      changeset = Contents.change_post(endpoint, %Post{})
-      render(conn, "new.html", changeset: changeset)
-    end
+    changeset = Contents.change_post(conn.host, %Post{})
+    render(conn, "new.html", changeset: changeset)
   end
 
   # def create(conn, %{"post" => post_params}) do

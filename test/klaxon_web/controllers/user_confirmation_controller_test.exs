@@ -1,16 +1,12 @@
 defmodule KlaxonWeb.UserConfirmationControllerTest do
-  use KlaxonWeb.ConnCase
+  use KlaxonWeb.ConnCase, async: true
 
   alias Klaxon.Auth
   alias Klaxon.Repo
   import Klaxon.AuthFixtures
-  import Klaxon.ProfileFixtures
 
   setup do
-    user = user_fixture()
-    profile = profile_fixture(user)
-    endpoint = struct(URI.new!(profile.uri), path: nil)
-    %{user: user, profile: profile, endpoint: endpoint}
+    %{user: user_fixture()}
   end
 
   describe "GET /users/confirm" do
@@ -71,10 +67,10 @@ defmodule KlaxonWeb.UserConfirmationControllerTest do
   end
 
   describe "POST /users/confirm/:token" do
-    test "confirms the given token once", %{conn: conn, user: user, endpoint: endpoint} do
+    test "confirms the given token once", %{conn: conn, user: user} do
       token =
         extract_user_token(fn url ->
-          Auth.deliver_user_confirmation_instructions(endpoint, user, url)
+          Auth.deliver_user_confirmation_instructions(user, url, sender())
         end)
 
       conn = post(conn, Routes.user_confirmation_path(conn, :update, token))

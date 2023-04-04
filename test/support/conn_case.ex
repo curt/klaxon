@@ -46,10 +46,7 @@ defmodule KlaxonWeb.ConnCase do
   """
   def register_and_log_in_user(%{conn: conn}) do
     user = Klaxon.AuthFixtures.user_fixture()
-    profile = Klaxon.ProfileFixtures.profile_fixture(user)
-    endpoint = struct(URI.new!(profile.uri), path: nil)
-    %{conn: log_in_user(conn, user), user: user, profile: profile, endpoint: endpoint}
-    # %{conn: log_in_user(conn, user), user: user}
+    %{conn: log_in_user(conn, user), user: user}
   end
 
   @doc """
@@ -72,5 +69,9 @@ defmodule KlaxonWeb.ConnCase do
       |> Plug.Conn.assign(:current_user, user)
 
     %{conn: conn, user: user}
+  end
+
+  def sender() do
+    {"Klaxon", "klaxon@example.com"}
   end
 end

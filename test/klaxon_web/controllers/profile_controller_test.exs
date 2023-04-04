@@ -1,8 +1,9 @@
 defmodule KlaxonWeb.ProfileControllerTest do
   use KlaxonWeb.ConnCase
 
-  import Klaxon.ProfileFixtures
-  import Klaxon.AuthFixtures
+  alias Klaxon.Repo
+  alias Klaxon.Auth.User
+  alias Klaxon.Profiles.Profile
 
   @update_attrs %{display_name: "some updated display_name", summary: "some updated summary"}
   # TODO: Will be needed when profile attributes are extended.
@@ -20,7 +21,6 @@ defmodule KlaxonWeb.ProfileControllerTest do
     setup [:create_profile, :activity_json]
 
     test "get profile", %{conn: conn} do
-
       conn = get(conn, Routes.profile_path(conn, :index))
       json_response(conn, 200)
     end
@@ -63,9 +63,22 @@ defmodule KlaxonWeb.ProfileControllerTest do
   end
 
   defp create_profile(_) do
-    user = user_fixture()
-    profile = profile_fixture(user, %{})
-    %{profile: profile, user: user}
+    user =
+      Repo.insert!(%User{
+        email: "alice@example.com",
+        hashed_password: "password"
+      })
+
+    profile =
+      Repo.insert!(%Profile{
+        owner_id: user.id,
+        # NOTE! The host and port need to reflect the controller conn.
+        uri: "http://localhost:4002/",
+        name: "alice",
+        display_name: "Alice N. Wonderland"
+      })
+
+    %{user: user, profile: profile}
   end
 
   defp activity_json(_) do

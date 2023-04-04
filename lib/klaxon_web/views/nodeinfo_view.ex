@@ -1,11 +1,11 @@
 defmodule KlaxonWeb.NodeInfoView do
   use KlaxonWeb, :view
 
-  def render("well_known.json", assigns) do
+  def render("well_known.json", %{conn: conn}) do
     %{
       links: [
         %{
-          href: Routes.node_info_url(endpointify(assigns.current_profile.uri), :version, "2.0"),
+          href: Routes.node_info_url(conn, :version, "2.0"),
           rel: "http://nodeinfo.diaspora.software/ns/schema/2.0"
         }
       ]
@@ -21,7 +21,7 @@ defmodule KlaxonWeb.NodeInfoView do
       },
       protocols: ["activitypub"],
       services: %{inbound: [], outbound: ["rss2.0"]},
-      openRegistrations: false,
+      openRegistrations: false
     }
   end
 end

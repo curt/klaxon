@@ -11,16 +11,13 @@ defmodule KlaxonWeb.UserRegistrationController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    {:ok, profile} = current_profile(conn)
-    endpoint = endpoint(profile)
-
     case Auth.register_user(user_params) do
       {:ok, user} ->
         {:ok, _} =
           Auth.deliver_user_confirmation_instructions(
-            endpoint,
             user,
-            &Routes.user_confirmation_url(endpoint, :edit, &1)
+            &Routes.user_confirmation_url(conn, :edit, &1),
+            sender(conn)
           )
 
         conn

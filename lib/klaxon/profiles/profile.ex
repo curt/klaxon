@@ -1,5 +1,6 @@
 defmodule Klaxon.Profiles.Profile do
   use Klaxon.Schema
+  alias Klaxon.Auth.User
 
   schema "profiles" do
     field :display_name, :string
@@ -16,7 +17,8 @@ defmodule Klaxon.Profiles.Profile do
     field :uri, :string
     field :url, :string
 
-    has_many :principals, Klaxon.Profiles.Principal
+    # has_many :principals, Klaxon.Profiles.Principal
+    belongs_to :owner, User, type: :binary_id
 
     timestamps()
   end
@@ -35,17 +37,11 @@ defmodule Klaxon.Profiles.Profile do
     :url
   ]
 
-  def changeset(profile, attrs) do
-    (profile || %__MODULE__{})
-    |> cast(attrs, [:name, :uri] ++ @common_cast_attrs)
-    |> validate_required([:name, :uri])
-    |> unique_constraint(:uri)
-  end
-
   def insert_changeset(attrs) do
     %__MODULE__{}
-    |> cast(attrs, [:name, :uri] ++ @common_cast_attrs)
-    |> validate_required([:name, :uri])
+    |> upsert_changeset(attrs)
+    # |> cast(attrs, [:name, :uri, :owner_id] ++ @common_cast_attrs)
+    # |> validate_required([:name, :uri])
   end
 
   def update_changeset(profile, attrs) do
@@ -53,14 +49,10 @@ defmodule Klaxon.Profiles.Profile do
     |> cast(attrs, @common_cast_attrs)
   end
 
-  @spec uri_query(binary) :: Ecto.Query.t()
-  def uri_query(uri) do
-    from p in __MODULE__, where: p.uri == ^uri
-  end
-
-  @spec where_fresh(Ecto.Query.t(), integer) :: Ecto.Query.t()
-  def where_fresh(query, seconds) do
-    cutoff = DateTime.add(DateTime.utc_now(), seconds)
-    where(query, [p], p.updated_at >= ^cutoff)
+  def upsert_changeset(profile, attrs) do
+    (profile || %__MODULE__{})
+    |> cast(attrs, [:name, :uri] ++ @common_cast_attrs)
+    |> validate_required([:name, :uri])
+    |> unique_constraint(:uri)
   end
 end

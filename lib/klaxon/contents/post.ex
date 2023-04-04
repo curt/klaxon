@@ -28,7 +28,7 @@ defmodule Klaxon.Contents.Post do
   end
 
   @doc false
-  def changeset(post, attrs, endpoint) do
+  def changeset(post, attrs, host) do
     post
     |> cast(attrs, [
       :content_html,
@@ -46,13 +46,13 @@ defmodule Klaxon.Contents.Post do
     ])
     |> validate_required([:uri, :status, :visibility, :origin])
     |> unique_constraint(:uri)
-    |> apply_context_uri(endpoint)
+    |> apply_context_uri(host)
   end
 
-  @spec apply_context_uri(Changeset.t(), URI.t() | binary) :: Changeset.t()
-  def apply_context_uri(changeset, endpoint) do
+  @spec apply_context_uri(Changeset.t(), String.t()) :: Changeset.t()
+  def apply_context_uri(changeset, host) do
     changeset
-    |> apply_tag(endpoint, :context_uri, "context")
+    |> apply_tag(host, :context_uri, "context")
   end
 
   def from_named() do

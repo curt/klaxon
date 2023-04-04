@@ -1,15 +1,38 @@
 defmodule KlaxonWeb.WebfingerControllerTest do
-  use KlaxonWeb.ConnCase
+  use KlaxonWeb.ConnCase, async: true
 
-  import Klaxon.ProfileFixtures
-  import Klaxon.AuthFixtures
+  alias Klaxon.Repo
+  alias Klaxon.Auth.User
+  alias Klaxon.Profiles.Profile
 
   describe "webfinger controller" do
-    setup [:create_profile]
+    setup do
+      user =
+        Repo.insert!(%User{
+          email: "alice@example.com",
+          hashed_password: "password"
+        })
+
+      profile =
+        Repo.insert!(%Profile{
+          owner_id: user.id,
+          # NOTE! The host and port need to reflect the controller conn.
+          uri: "http://localhost:4002/",
+          name: "alice"
+        })
+
+      %{profile: profile}
+    end
 
     test "show with hostname", %{conn: conn, profile: profile} do
-      endpoint = URI.new!(profile.uri)
-      conn = get(conn, Routes.webfinger_path(conn, :show, resource: "acct:#{profile.name}@#{endpoint.host}"))
+      host = URI.new!(profile.uri).host
+
+      conn =
+        get(
+          conn,
+          Routes.webfinger_path(conn, :show, resource: "acct:#{profile.name}@#{host}")
+        )
+
       assert json_response(conn, 200)
     end
 
@@ -19,7 +42,9 @@ defmodule KlaxonWeb.WebfingerControllerTest do
     end
 
     test "show with incorrect hostname", %{conn: conn, profile: profile} do
-      conn = get(conn, Routes.webfinger_path(conn, :show, resource: "acct:#{profile.name}@sample.com"))
+      conn =
+        get(conn, Routes.webfinger_path(conn, :show, resource: "acct:#{profile.name}@bad-example.com"))
+
       assert html_response(conn, 404)
     end
 
@@ -37,12 +62,5 @@ defmodule KlaxonWeb.WebfingerControllerTest do
       conn = get(conn, Routes.webfinger_path(conn, :show, resource: "account:#{profile.name}"))
       assert html_response(conn, 400)
     end
-  end
-
-  defp create_profile(%{conn: conn}) do
-    user = user_fixture()
-    # FIXME: Replace hard-coded profile URI with one that works.
-    profile = profile_fixture(user, %{})
-    %{profile: profile, conn: conn, user: user}
   end
 end

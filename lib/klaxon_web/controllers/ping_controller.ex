@@ -2,7 +2,6 @@ defmodule KlaxonWeb.PingController do
   use KlaxonWeb, :controller
 
   alias Klaxon.Activities
-  # alias Klaxon.Profiles.Profile
 
   action_fallback KlaxonWeb.FallbackController
 
@@ -19,10 +18,10 @@ defmodule KlaxonWeb.PingController do
 
   def create(conn, %{"ping" => ping_params}) do
     with {:ok, profile} <- current_profile(conn),
-    {:ok, _ping} <- Activities.send_ping(profile.uri, ping_params["to"]) do
-        conn
-        |> put_flash(:info, "Ping created successfully.")
-        |> redirect(to: Routes.ping_path(conn, :index))
+         {:ok, _ping} <- Activities.send_ping(profile.uri, ping_params["to"]) do
+      conn
+      |> put_flash(:info, "Ping created successfully.")
+      |> redirect(to: Routes.ping_path(conn, :index))
     end
   end
 

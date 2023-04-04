@@ -6,9 +6,8 @@ defmodule KlaxonWeb.WebfingerController do
   action_fallback KlaxonWeb.FallbackController
 
   def show(conn, %{"resource" => resource}) do
-    with {:ok, %Profile{} = current_profile} <- current_profile(conn),
-         {:ok, {%Profile{} = profile, canonical_resource}} <-
-           Webfinger.get_webfinger(current_profile, resource) do
+    with {:ok, {%Profile{} = profile, canonical_resource}} <-
+           Webfinger.get_webfinger(Routes.profile_url(conn, :index), resource) do
       render(conn, "show.json", webfinger: profile, resource: canonical_resource)
     end
   end

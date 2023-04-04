@@ -1,9 +1,9 @@
 defmodule KlaxonWeb.PostControllerTest do
   use KlaxonWeb.ConnCase
 
-  import Klaxon.ProfileFixtures
-  import Klaxon.AuthFixtures
-  # import Klaxon.ContentsFixtures
+  alias Klaxon.Repo
+  alias Klaxon.Auth.User
+  alias Klaxon.Profiles.Profile
 
   # @create_attrs %{in_reply_to_uri: "some in_reply_to_uri", slug: "some slug", source: "some source", status: :draft, title: "some title", visibility: :private}
   # @update_attrs %{in_reply_to_uri: "some updated in_reply_to_uri", slug: "some updated slug", source: "some updated source", status: :published, title: "some updated title", visibility: :unlisted}
@@ -86,9 +86,22 @@ defmodule KlaxonWeb.PostControllerTest do
   # end
 
   defp create_profile(_) do
-    user = user_fixture()
-    profile = profile_fixture(user, %{})
-    %{profile: profile, user: user}
+    user =
+      Repo.insert!(%User{
+        email: "alice@example.com",
+        hashed_password: "password"
+      })
+
+    profile =
+      Repo.insert!(%Profile{
+        owner_id: user.id,
+        # NOTE! The host and port need to reflect the controller conn.
+        uri: "http://localhost:4002/",
+        name: "alice",
+        display_name: "Alice N. Wonderland"
+      })
+
+    %{user: user, profile: profile}
   end
 
   # defp create_post(_) do

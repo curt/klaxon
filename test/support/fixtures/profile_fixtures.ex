@@ -1,9 +1,10 @@
 defmodule Klaxon.ProfileFixtures do
   def valid_profile_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
-      uri: "http://www.example.com/",
+      uri: "http://localhost:4002/",
       display_name: "Alice Jones",
-      name: "alice"
+      name: "alice",
+      origin: :local
     })
   end
 

@@ -162,15 +162,15 @@ defmodule Klaxon.Auth do
 
   ## Examples
 
-      iex> deliver_update_email_instructions(user, current_email, &Routes.user_update_email_url(conn, :edit, &1))
+      iex> deliver_update_email_instructions(user, current_email, &Routes.user_update_email_url(conn, :edit, &1), sender)
       {:ok, %{to: ..., body: ...}}
 
   """
   def deliver_update_email_instructions(
-        %URI{} = endpoint,
         %User{} = user,
         current_email,
-        update_email_url_fun
+        update_email_url_fun,
+        sender
       )
       when is_function(update_email_url_fun, 1) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
@@ -178,9 +178,9 @@ defmodule Klaxon.Auth do
     Repo.insert!(user_token)
 
     UserNotifier.deliver_update_email_instructions(
-      endpoint,
       user,
-      update_email_url_fun.(encoded_token)
+      update_email_url_fun.(encoded_token),
+      sender
     )
   end
 
@@ -259,17 +259,17 @@ defmodule Klaxon.Auth do
 
   ## Examples
 
-      iex> deliver_user_confirmation_instructions(user, &Routes.user_confirmation_url(conn, :edit, &1))
+      iex> deliver_user_confirmation_instructions(user, &Routes.user_confirmation_url(conn, :edit, &1), sender)
       {:ok, %{to: ..., body: ...}}
 
-      iex> deliver_user_confirmation_instructions(confirmed_user, &Routes.user_confirmation_url(conn, :edit, &1))
+      iex> deliver_user_confirmation_instructions(confirmed_user, &Routes.user_confirmation_url(conn, :edit, &1), sender)
       {:error, :already_confirmed}
 
   """
   def deliver_user_confirmation_instructions(
-        %URI{} = endpoint,
         %User{} = user,
-        confirmation_url_fun
+        confirmation_url_fun,
+        sender
       )
       when is_function(confirmation_url_fun, 1) do
     if user.confirmed_at do
@@ -279,9 +279,9 @@ defmodule Klaxon.Auth do
       Repo.insert!(user_token)
 
       UserNotifier.deliver_confirmation_instructions(
-        endpoint,
         user,
-        confirmation_url_fun.(encoded_token)
+        confirmation_url_fun.(encoded_token),
+        sender
       )
     end
   end
@@ -315,23 +315,23 @@ defmodule Klaxon.Auth do
 
   ## Examples
 
-      iex> deliver_user_reset_password_instructions(user, &Routes.user_reset_password_url(conn, :edit, &1))
+      iex> deliver_user_reset_password_instructions(user, &Routes.user_reset_password_url(conn, :edit, &1), sender)
       {:ok, %{to: ..., body: ...}}
 
   """
   def deliver_user_reset_password_instructions(
-        %URI{} = endpoint,
         %User{} = user,
-        reset_password_url_fun
+        reset_password_url_fun,
+        sender
       )
       when is_function(reset_password_url_fun, 1) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "reset_password")
     Repo.insert!(user_token)
 
     UserNotifier.deliver_reset_password_instructions(
-      endpoint,
       user,
-      reset_password_url_fun.(encoded_token)
+      reset_password_url_fun.(encoded_token),
+      sender
     )
   end
 
