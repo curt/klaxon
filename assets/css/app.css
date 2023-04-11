@@ -129,7 +129,7 @@
   body {
     @apply font-serif bg-slate-800 text-slate-200;
   }
-  input, textarea, button {
+  input, textarea, button, select {
     @apply font-mono text-slate-900;
   }
   button,

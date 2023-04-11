@@ -60,6 +60,7 @@ defmodule Klaxon.Contents do
   defp get_posts_unauthenticated(endpoint) do
     case Post.from_preloaded()
          |> where_unauthenticated(endpoint)
+         |> Post.order_by_default()
          |> Repo.all() do
       posts when is_list(posts) -> {:ok, posts}
       _ -> {:error, :not_found}
@@ -121,7 +122,7 @@ defmodule Klaxon.Contents do
 
   defp is_user_id_endpoint_principal?(endpoint, user_id) do
     case Profiles.get_profile_by_uri(endpoint) do
-      {:ok, profile} -> Enum.any?(profile.principals, fn x -> x.user_id == user_id end)
+      {:ok, profile} -> profile.owner_id == user_id
       _ -> false
     end
   end
@@ -235,6 +236,15 @@ defmodule Klaxon.Contents do
       |> Post.changeset(attrs, endpoint)
 
     Repo.insert_or_update(post_changeset)
+  end
+
+  def insert_local_post(attrs, profile_id, host, uri_fun) when is_function(uri_fun, 1) do
+    id = EctoBase58.generate()
+    uri = uri_fun.(id)
+
+    %Post{id: id, uri: uri, profile_id: profile_id, origin: :local}
+    |> Post.changeset(attrs, host)
+    |> Repo.insert()
   end
 
   defp time_parse_rfc3339_or_now(nil) do

@@ -10,7 +10,7 @@
         <span><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a>.</span>
         <span>
           <%= status_action(@post) %>: <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>.
-          <%= if @post.origin == :local and @post.updated_at > status_date(@post) do %>
+          <%= if @post.origin == :local and DateTime.compare(@post.updated_at, DateTime.add(status_date(@post), 5)) == :gt do %>
             Updated: <%= prettify_date(@post.updated_at) %>.
           <% end %>
           <%= if length(@post.tags) > 0 do %>Tags:

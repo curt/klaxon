@@ -23,17 +23,26 @@ defmodule KlaxonWeb.PostController do
     render(conn, "new.html", changeset: changeset)
   end
 
-  # def create(conn, %{"post" => post_params}) do
-  #   case Contents.create_post(post_params) do
-  #     {:ok, post} ->
-  #       conn
-  #       |> put_flash(:info, "Post created successfully.")
-  #       |> redirect(to: Routes.post_path(conn, :show, post))
+  def create(conn, %{"post" => post_params}) do
+    with {:ok, profile} <- current_profile(conn),
+         {:ok, post} <-
+           Contents.insert_local_post(
+             post_params,
+             profile.id,
+             conn.host,
+             &Routes.post_url(conn, :show, &1)
+           ) do
+      conn
+      |> put_flash(:info, "Post created successfully.")
+      |> redirect(to: Routes.post_path(conn, :show, post))
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        render(conn, "new.html", changeset: changeset)
 
-  #     {:error, %Ecto.Changeset{} = changeset} ->
-  #       render(conn, "new.html", changeset: changeset)
-  #   end
-  # end
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 
   def show(conn, %{"id" => id}) do
     with {:ok, profile} <- current_profile(conn),

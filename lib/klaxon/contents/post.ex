@@ -47,12 +47,28 @@ defmodule Klaxon.Contents.Post do
     |> validate_required([:uri, :status, :visibility, :origin])
     |> unique_constraint(:uri)
     |> apply_context_uri(host)
+    |> apply_content_html()
+    |> apply_published_at()
   end
 
   @spec apply_context_uri(Changeset.t(), String.t()) :: Changeset.t()
   def apply_context_uri(changeset, host) do
     changeset
     |> apply_tag(host, :context_uri, "context")
+  end
+
+  def apply_content_html(changeset) do
+    if source = get_change(changeset, :source) do
+      put_change(changeset, :content_html, Earmark.as_html!(source))
+    end || changeset
+  end
+
+  def apply_published_at(changeset) do
+    published_at = get_field(changeset, :published_at)
+
+    if get_change(changeset, :status) == :published && !published_at do
+      put_change(changeset, :published_at, DateTime.utc_now())
+    end || changeset
   end
 
   def from_named() do
