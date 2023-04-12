@@ -23,7 +23,7 @@ defmodule KlaxonWeb.PostControllerTest do
 
     test "renders form", %{conn: conn} do
       conn = get(conn, Routes.post_path(conn, :new))
-      assert html_response(conn, 200) =~ "New Post"
+      assert html_response(conn, 401)
     end
   end
 
