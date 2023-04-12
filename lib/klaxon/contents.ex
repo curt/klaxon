@@ -59,7 +59,7 @@ defmodule Klaxon.Contents do
 
   defp get_posts_unauthenticated(endpoint) do
     case Post.from_preloaded()
-         |> where_unauthenticated(endpoint)
+         |> where_unauthenticated_list(endpoint)
          |> Post.order_by_default()
          |> Repo.all() do
       posts when is_list(posts) -> {:ok, posts}
@@ -87,7 +87,7 @@ defmodule Klaxon.Contents do
 
   defp get_post_unauthenticated(endpoint, post_id) do
     case Post.from_preloaded()
-         |> where_unauthenticated(endpoint)
+         |> where_unauthenticated_single(endpoint)
          |> Post.where_post_id(post_id)
          |> Repo.one() do
       %Post{} = post -> {:ok, post}
@@ -112,11 +112,22 @@ defmodule Klaxon.Contents do
     )
   end
 
-  defp where_unauthenticated(query, endpoint) do
+  defp where_local_published(query, endpoint) do
     query
     |> Post.where_profile_uri(endpoint)
     |> Post.where_origin([:local])
     |> Post.where_status([:published])
+  end
+
+  defp where_unauthenticated_single(query, endpoint) do
+    query
+    |> where_local_published(endpoint)
+    |> Post.where_visibility([:public, :unlisted])
+  end
+
+  defp where_unauthenticated_list(query, endpoint) do
+    query
+    |> where_local_published(endpoint)
     |> Post.where_visibility([:public])
   end
 
