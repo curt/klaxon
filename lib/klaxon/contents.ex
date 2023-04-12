@@ -247,6 +247,12 @@ defmodule Klaxon.Contents do
     |> Repo.insert()
   end
 
+  def update_local_post(post, attrs, host) do
+    post
+    |> Post.changeset(attrs, host)
+    |> Repo.update()
+  end
+
   defp time_parse_rfc3339_or_now(nil) do
     Timex.now()
   end

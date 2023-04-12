@@ -8,6 +8,7 @@ defmodule KlaxonWeb.PostController do
 
   action_fallback KlaxonWeb.FallbackController
   plug :activity_json_response
+  plug :require_owner when action in [:new, :create, :edit, :update, :delete]
 
   def index(conn, _params) do
     with {:ok, profile} <- current_profile(conn),
@@ -52,25 +53,28 @@ defmodule KlaxonWeb.PostController do
     end
   end
 
-  # def edit(conn, %{"id" => id}) do
-  #   post = Contents.get_post!(id)
-  #   changeset = Contents.change_post(post)
-  #   render(conn, "edit.html", post: post, changeset: changeset)
-  # end
+  def edit(conn, %{"id" => id}) do
+    with {:ok, profile} <- current_profile(conn),
+         {:ok, post} <- Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
+      changeset = Contents.change_post(conn.host, post)
+      render(conn, "edit.html", post: post, changeset: changeset)
+    end
+  end
 
-  # def update(conn, %{"id" => id, "post" => post_params}) do
-  #   post = Contents.get_post!(id)
+  def update(conn, %{"id" => id, "post" => post_params}) do
+    with {:ok, profile} <- current_profile(conn),
+         {:ok, post} <- Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
+      case Contents.update_local_post(post, post_params, conn.host) do
+        {:ok, post} ->
+          conn
+          |> put_flash(:info, "Post updated successfully.")
+          |> redirect(to: Routes.post_path(conn, :show, post))
 
-  #   case Contents.update_post(post, post_params) do
-  #     {:ok, post} ->
-  #       conn
-  #       |> put_flash(:info, "Post updated successfully.")
-  #       |> redirect(to: Routes.post_path(conn, :show, post))
-
-  #     {:error, %Ecto.Changeset{} = changeset} ->
-  #       render(conn, "edit.html", post: post, changeset: changeset)
-  #   end
-  # end
+        {:error, %Ecto.Changeset{} = changeset} ->
+          render(conn, "edit.html", post: post, changeset: changeset)
+      end
+    end
+  end
 
   # def delete(conn, %{"id" => id}) do
   #   post = Contents.get_post!(id)
