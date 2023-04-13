@@ -3,10 +3,10 @@
   <div class="e-content">
     <%= raw @post.content_html %>
   </div>
-  <div class="mt-4 border-t">
+  <div class="mt-4 border-t text-sm">
     <p>
-      <span class="flex gap-2">
-        <span><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "w-8 h-auto rounded" ]}/></span>
+      <span class="flex gap-2 items-center">
+        <span><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded" ]}/></span>
         <span><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a></span>
         <span>
           <%= status_action(@post) %> <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
@@ -18,10 +18,10 @@
         <span>
 
 <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+  <%= if @post.origin == :local do %>
     <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i><% end %>
+  <% end %>
 <% end %>
-
-
 
         </span>
       </span>

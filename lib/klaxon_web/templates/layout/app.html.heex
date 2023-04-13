@@ -7,7 +7,7 @@
         <a {[href: Routes.profile_path(@conn, :index)]}>Home</a>
         | <a {[href: Routes.post_path(@conn, :index)]}>Posts</a>
         <%= render "_current_user.html", assigns %>
-        || Klaxon (source: <%= link String.slice(git_revision(), 0, 7), to: "https://github.com/curt/klaxon/tree/#{git_revision()}" %>)
+        || Klaxon: <%= link String.slice(git_revision(), 0, 7), to: "https://github.com/curt/klaxon/tree/#{git_revision()}" %>
     </p>
   </footer>
 </main>
