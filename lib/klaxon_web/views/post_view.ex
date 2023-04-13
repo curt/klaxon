@@ -23,9 +23,9 @@ defmodule KlaxonWeb.PostView do
 
   def status_action(post) do
     case post.status do
-      :draft -> "Drafted"
-      :published -> "Posted"
-      _ -> "Appeared"
+      :draft -> "drafted"
+      :published -> "posted"
+      _ -> "appeared"
     end
   end
 

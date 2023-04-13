@@ -7,16 +7,22 @@
     <p>
       <span class="flex gap-2">
         <span><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "w-8 h-auto rounded" ]}/></span>
-        <span><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a>.</span>
+        <span><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a></span>
         <span>
-          <%= status_action(@post) %>: <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>.
-          <%= if @post.origin == :local and DateTime.compare(@post.updated_at, DateTime.add(status_date(@post), 5)) == :gt do %>
-            Updated: <%= prettify_date(@post.updated_at) %>.
-          <% end %>
-          <%= if length(@post.tags) > 0 do %>Tags:
+          <%= status_action(@post) %> <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
+          <%= if length(@post.tags) > 0 do %>tagged
             <%= Enum.map_intersperse(Enum.sort(@post.tags, fn t1, t2 -> t1.label <= t2.label end), ", ", fn t -> %>
-              <a {[href: Routes.labels_path(@conn, :show, t.label.slug)]}><%= t.label.title %></a><% end) %>.
+              <a {[href: Routes.labels_path(@conn, :show, t.label.slug)]}><%= t.label.title %></a><% end) %>
           <% end %>
+        </span>
+        <span>
+
+<%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+    <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i><% end %>
+<% end %>
+
+
+
         </span>
       </span>
     </p>

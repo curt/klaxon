@@ -32,11 +32,13 @@ defmodule KlaxonWeb.Helpers do
   end
 
   def prettify_date(date) do
-    Timex.format!(date, "{YYYY}-{0M}-{0D} {h24}:{m}:{s}")
+    # Timex.format!(date, "{YYYY}-{0M}-{0D} {h24}:{m}:{s}")
+    Timex.format!(date, "{D} {Mshort} {YYYY} {h24}:{m}")
   end
 
   def prettify_date(date, :short) do
-    Timex.format!(date, "{YYYY}-{0M}-{0D}")
+    # Timex.format!(date, "{YYYY}-{0M}-{0D}")
+    Timex.format!(date, "{D} {Mshort} {YYYY}")
   end
 
   @doc """
