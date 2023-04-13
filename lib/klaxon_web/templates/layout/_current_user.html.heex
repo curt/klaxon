@@ -1,10 +1,10 @@
 <%= if assigns[:current_user] do %>
-    || Signed in: <%= @current_user.email %>
+    || <%= @current_user.email %>
+    | <%= link to: Routes.user_session_path(@conn, :delete), method: :delete do %><i class="fa-solid fa-right-from-bracket"></i><% end %>
     <%= if (not is_nil(assigns[:current_profile])) and Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
-        | <a {[href: Routes.profile_path(@conn, :edit)]}>Edit profile</a>
+        <a {[href: Routes.profile_path(@conn, :edit)]}><i class="fa-solid fa-user-pen"></i></a>
     <% end %>
-    | <%= link "Sign out", to: Routes.user_session_path(@conn, :delete), method: :delete %>
 <% else %>
-    || <%= link "Register", to: Routes.user_registration_path(@conn, :new) %>
-    | <%= link "Sign in", to: Routes.user_session_path(@conn, :new) %>
+    || <%= link to: Routes.user_session_path(@conn, :new) do %><i class="fa-solid fa-right-to-bracket"></i><% end %>
+    <%= link to: Routes.user_registration_path(@conn, :new) do %><i class="fa-solid fa-user-plus"></i><% end %>
 <% end %>
