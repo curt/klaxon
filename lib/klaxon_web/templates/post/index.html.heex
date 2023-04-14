@@ -11,11 +11,12 @@
 <%= if length(@posts) > 0 do %>
   <%= for post <- @posts do %>
     <article class="mb-2">
-      <div class="flex gap-4">
-        <div class="block"><%= prettify_date(status_date(post), :short) %></div>
-        <div class="block">
+      <div class="flex flex-wrap items-center mb-4">
+        <div class="block pr-4"><%= prettify_date(status_date(post), :short) %></div>
+        <div class="flex items-center gap-4">
+          <div><img {[src: profile_media_avatar_path(@conn, post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
           <%= if post.status == :draft do %><i class="fa-solid fa-pen-ruler"></i><% end %>
-          <a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= title(post) %></a>
+          <span><a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= title(post) %></a></span>
         </div>
       </div>
     </article>
