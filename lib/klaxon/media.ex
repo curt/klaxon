@@ -39,6 +39,14 @@ defmodule Klaxon.Media do
     end
   end
 
+  def get_media(scope) do
+    query =
+      from m in Media,
+        where: m.scope == ^scope
+
+    {:ok, Repo.all(query)}
+  end
+
   @spec insert_media(map(), String.t()) :: {:ok, %Media{}}
   def insert_media(attrs, path) do
     with {:ok, media} <-

@@ -1,0 +1,13 @@
+<h1>Media</h1>
+
+<%= if length(@media) > 0 do %>
+  <div class="flex flex-wrap items-center mb-4">
+  <%= for media <- @media do %>
+        <div class="block">
+            <img {[src: Routes.media_path(@conn, :show, media.scope, :gallery, media.id), class: "rounded w-[256px] min-w-[256px] h-auto" ]}/>
+        </div>
+  <% end %>
+  </div>
+<% else %>
+  <p>No media found.</p>
+<% end %>

@@ -29,6 +29,7 @@ defmodule KlaxonWeb.Router do
     pipe_through [:browser, :require_owner]
 
     get "/posts/new", PostController, :new
+    get "/media/:scope", MediaController, :index
   end
 
   scope "/", KlaxonWeb do

@@ -5,6 +5,12 @@ defmodule KlaxonWeb.MediaController do
 
   action_fallback KlaxonWeb.FallbackController
 
+  def index(conn, %{"scope" => scope}) do
+    with {:ok, media} <- Media.get_media(scope) do
+      render(conn, media: media)
+    end
+  end
+
   def show(conn, %{"id" => id, "scope" => scope, "usage" => usage}) do
     with {:ok, impression} <- Media.get_media_impression(id, scope, usage) do
       conn
