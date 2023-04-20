@@ -1,4 +1,9 @@
 <%= if assigns[:current_user] do %>
+    <%= if (not is_nil(assigns[:current_profile])) and Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+        | <a {[href: Routes.media_path(@conn, :index, :post)]}>Media</a>
+        | <a {[href: Routes.ping_path(@conn, :index)]}>Pings</a>
+        | <a {[href: Routes.pong_path(@conn, :index)]}>Pongs</a>
+    <% end %>
     || <%= @current_user.email %>
     | <%= link to: Routes.user_session_path(@conn, :delete), method: :delete do %><i class="fa-solid fa-right-from-bracket"></i><% end %>
     <%= if (not is_nil(assigns[:current_profile])) and Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
