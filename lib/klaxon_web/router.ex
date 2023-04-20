@@ -24,11 +24,19 @@ defmodule KlaxonWeb.Router do
     # plug :require_profile
   end
 
+  # These routes have higher priority due to potential matches below.
+  scope "/", KlaxonWeb do
+    pipe_through [:browser, :require_owner]
+
+    get "/posts/new", PostController, :new
+  end
+
   scope "/", KlaxonWeb do
     pipe_through :browser
 
     get "/", ProfileController, :index
-    resources "/posts", PostController
+    get "/posts", PostController, :index
+    get "/posts/:id", PostController, :show
     get "/labels/:slug", LabelsController, :show
     get "/media/:scope/:usage/:id", MediaController, :show
     get "/.well-known/webfinger", WebfingerController, :show
@@ -56,6 +64,10 @@ defmodule KlaxonWeb.Router do
   scope "/", KlaxonWeb do
     pipe_through [:browser, :require_owner]
 
+    get "/posts/:id/edit", PostController, :edit
+    post "/posts", PostController, :create
+    put "/posts/:id", PostController, :update
+    patch "/posts/:id", PostController, :update
     get "/pings", PingController, :index
     get "/pings/new", PingController, :new
     get "/pings/:id", PingController, :show

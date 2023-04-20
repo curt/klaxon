@@ -8,7 +8,6 @@ defmodule KlaxonWeb.PostController do
 
   action_fallback KlaxonWeb.FallbackController
   plug :activity_json_response
-  plug :require_owner when action in [:new, :create, :edit, :update, :delete]
 
   def index(conn, _params) do
     with {:ok, profile} <- current_profile(conn),
