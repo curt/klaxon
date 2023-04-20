@@ -10,6 +10,8 @@ defmodule Klaxon.Media do
   import Mogrify
   import Ecto.Query
 
+  @usages [profile: [:raw, :avatar], post: [:raw, :full, :gallery]]
+
   @spec get_media_by_uri_scope(String.t(), atom) :: %Media{} | nil
   def get_media_by_uri_scope(uri, scope) do
     query =
@@ -63,9 +65,17 @@ defmodule Klaxon.Media do
     end || {:error, nil}
   end
 
+  @spec insert_local_media(String.t(), String.t(), atom, fun) :: :ok | {:error, any}
+  def insert_local_media(path, content_type, scope, url_fun) do
+    id = EctoBase58.generate()
+    url = url_fun.(scope, id)
+    insert_media(%{uri: url, origin: :local, scope: scope, mime_type: content_type}, path)
+    File.rm(path)
+  end
+
   @spec insert_impressions(%Media{}, String.t()) :: {:ok, %Media{}}
   def insert_impressions(%Media{} = media, path) do
-    for usage <- [:raw, :avatar] do
+    for usage <- @usages[media.scope] do
       {:ok, attrs} = create_impression(media.id, path, usage)
 
       media
@@ -116,6 +126,14 @@ defmodule Klaxon.Media do
 
   defp maybe_mogrify(%Image{} = image, :avatar) do
     image |> resize_to_fill("64x64") |> maybe_downscale()
+  end
+
+  defp maybe_mogrify(%Image{} = image, :gallery) do
+    image |> resize_to_fill("256x256") |> maybe_downscale()
+  end
+
+  defp maybe_mogrify(%Image{} = image, :full) do
+    image |> resize_to_limit("1024x1024") |> maybe_downscale()
   end
 
   defp maybe_downscale(%Image{} = image) do
