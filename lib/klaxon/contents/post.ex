@@ -19,6 +19,7 @@ defmodule Klaxon.Contents.Post do
 
     belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
     has_many :tags, Klaxon.Contents.Tag
+    has_many :attachments, Klaxon.Contents.Attachment
 
     has_one :in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri
     has_many :replies, __MODULE__, references: :uri, foreign_key: :in_reply_to_uri
@@ -96,8 +97,10 @@ defmodule Klaxon.Contents.Post do
     query
     |> join(:left, [posts: p], r in assoc(p, :profile), as: :profile)
     |> join(:left, [posts: p], t in assoc(p, :tags), as: :tags)
+    |> join(:left, [posts: p], a in assoc(p, :attachments), as: :attachments)
     |> join(:left, [tags: t], l in assoc(t, :label), as: :labels)
-    |> preload([profile: r, tags: t, labels: l], profile: r, tags: {t, label: l})
+    |> join(:left, [attachments: a], m in assoc(a, :media), as: :media)
+    |> preload([profile: r, tags: t, labels: l, attachments: a, media: m], profile: r, tags: {t, label: l}, attachments: {a, media: m})
   end
 
   # TODO: Rename this.

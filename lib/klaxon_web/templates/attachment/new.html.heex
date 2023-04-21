@@ -1,0 +1,28 @@
+<h1>New Attachment</h1>
+
+<div><%= raw @post.content_html %></div>
+
+<div class="my-4">
+<%= form_for @changeset, Routes.attachment_path(@conn, :create, @post.id), [multipart: true], fn f -> %>
+  <%= if @changeset.action do %>
+    <div class="alert alert-danger">
+      <p>Oops, something went wrong! Please check the errors below.</p>
+    </div>
+  <% end %>
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+    <%= label class: "block md:col-span-4" do %>
+      <span>Upload</span>
+      <%= file_input f, :upload, class: "mt-1 block w-full" %>
+      <%= error_tag f, :title %>
+    <% end %>
+    <%= label class: "block md:col-span-6" do %>
+      <span>Caption</span>
+      <%= textarea f, :caption, class: "mt-1 block w-full h-24", rows: 3 %>
+      <%= error_tag f, :caption %>
+    <% end %>
+    <div class="flex justify-end md:col-span-6">
+      <%= submit "Save", class: "mt-1 px-4 block" %>
+    </div>
+  </div>
+<% end %>
+</div>

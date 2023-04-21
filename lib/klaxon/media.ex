@@ -10,7 +10,7 @@ defmodule Klaxon.Media do
   import Mogrify
   import Ecto.Query
 
-  @usages [profile: [:raw, :avatar], post: [:raw, :full, :gallery]]
+  @usages [profile: [:raw, :avatar], post: [:raw, :full, :gallery, :avatar]]
 
   @spec get_media_by_uri_scope(String.t(), atom) :: %Media{} | nil
   def get_media_by_uri_scope(uri, scope) do
@@ -73,12 +73,13 @@ defmodule Klaxon.Media do
     end || {:error, nil}
   end
 
-  @spec insert_local_media(String.t(), String.t(), atom, fun) :: :ok | {:error, any}
-  def insert_local_media(path, content_type, scope, url_fun) do
+  @spec insert_local_media(String.t(), String.t(), atom, fun) :: {:ok, %Media{}} | {:error, any}
+  def insert_local_media(path, content_type, scope, url_fun) when is_function(url_fun, 2) do
     id = EctoBase58.generate()
     url = url_fun.(scope, id)
-    insert_media(%{uri: url, origin: :local, scope: scope, mime_type: content_type}, path)
-    File.rm(path)
+    {:ok, media} = insert_media(%{uri: url, origin: :local, scope: scope, mime_type: content_type}, path)
+    :ok = File.rm(path)
+    {:ok, media}
   end
 
   @spec insert_impressions(%Media{}, String.t()) :: {:ok, %Media{}}

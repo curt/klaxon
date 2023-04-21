@@ -6,6 +6,8 @@
   <%= if @post.origin == :local do %>
         <div>
     <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i><% end %>
+
+    <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-images"></i><% end %>
         </div>
   <% end %>
 <% end %>
@@ -14,6 +16,16 @@
   <div class="e-content">
     <%= raw @post.content_html %>
   </div>
+  <%= if length(@post.attachments) > 0 do %>
+    <div class="flex flex-wrap gap-4 mt-4">
+      <%= for attachment <- @post.attachments do %>
+        <div>
+          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto" ]}/>
+          <div><%= attachment.caption %></div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
   <div class="mt-4 border-t text-sm">
     <p>
       <div class="flex flex-wrap gap-2 items-center">

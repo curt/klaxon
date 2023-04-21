@@ -29,7 +29,6 @@ defmodule KlaxonWeb.Router do
     pipe_through [:browser, :require_owner]
 
     get "/posts/new", PostController, :new
-    get "/media/:scope", MediaController, :index
   end
 
   scope "/", KlaxonWeb do
@@ -69,12 +68,20 @@ defmodule KlaxonWeb.Router do
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
     patch "/posts/:id", PostController, :update
+    get "/posts/:post_id/attachments", AttachmentController, :index
+    post "/posts/:post_id/attachments", AttachmentController, :create
+    get "/posts/:post_id/attachments/new", AttachmentController, :new
+    get "/posts/:post_id/attachments/:id/edit", AttachmentController, :edit
+    get "/posts/:post_id/attachments/:id", AttachmentController, :show
+    put "/posts/:post_id/attachments/:id", AttachmentController, :update
+    patch "/posts/:post_id/attachments/:id", AttachmentController, :update
     get "/pings", PingController, :index
     get "/pings/new", PingController, :new
     get "/pings/:id", PingController, :show
     post "/pings", PingController, :create
     get "/pongs", PongController, :index
     get "/pongs/:id", PongController, :show
+    get "/media/:scope", MediaController, :index
   end
 
   # Other scopes may use custom stacks.
