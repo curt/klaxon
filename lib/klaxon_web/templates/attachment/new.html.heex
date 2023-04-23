@@ -20,8 +20,9 @@
       <%= textarea f, :caption, class: "mt-1 block w-full h-24", rows: 3 %>
       <%= error_tag f, :caption %>
     <% end %>
-    <div class="flex justify-end md:col-span-6">
-      <%= submit "Save", class: "mt-1 px-4 block" %>
+    <div class="flex justify-end gap-6 md:col-span-6 items-center">
+      <div><%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
+      <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
     </div>
   </div>
 <% end %>

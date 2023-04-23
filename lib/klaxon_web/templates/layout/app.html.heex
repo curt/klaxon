@@ -4,10 +4,10 @@
   <%= @inner_content %>
   <footer class="mt-2 border-t text-sm">
     <p>
-        <a {[href: Routes.profile_path(@conn, :index)]}>Home</a>
-        | <a {[href: Routes.post_path(@conn, :index)]}>Posts</a>
+        <a {[href: Routes.profile_path(@conn, :index)]}><i class="fa-solid fa-house"></i> Home</a>
+        | <a {[href: Routes.post_path(@conn, :index)]}><i class="fa-solid fa-folder-open"></i> Posts</a>
         <%= render "_current_user.html", assigns %>
-        || Klaxon: <%= link String.slice(git_revision(), 0, 7), to: "https://github.com/curt/klaxon/tree/#{git_revision()}" %>
+        || Klaxon: <%= link to: "https://github.com/curt/klaxon/tree/#{git_revision()}" do %><i class="fa-solid fa-code-commit"></i> <%= String.slice(git_revision(), 0, 7) %><% end %>
     </p>
   </footer>
 </main>

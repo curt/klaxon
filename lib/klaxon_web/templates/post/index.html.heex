@@ -3,7 +3,7 @@
 
 <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
 <div class="mb-4">
-    <%= link to: Routes.post_path(@conn, :new) do %><i class="fa-solid fa-plus"></i><% end %>
+    <%= link to: Routes.post_path(@conn, :new) do %><i class="fa-solid fa-file-circle-plus"></i> Add Post<% end %>
 </div>
 <% end %>
 

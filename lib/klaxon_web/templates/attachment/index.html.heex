@@ -3,7 +3,8 @@
 <div><%= raw @post.content_html %></div>
 
 <div class="mb-4">
-    <%= link to: Routes.attachment_path(@conn, :new, @post.id) do %><i class="fa-solid fa-plus"></i><% end %>
+    <%= link to: Routes.post_path(@conn, :edit, @post.id) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %>
+    <%= link to: Routes.attachment_path(@conn, :new, @post.id) do %><i class="fa-solid fa-image"></i> Add Attachment<% end %>
 </div>
 
 <%= if length(@post.attachments) > 0 do %>

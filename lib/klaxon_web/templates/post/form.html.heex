@@ -36,8 +36,9 @@
       <%= select f, :visibility, Ecto.Enum.values(Klaxon.Contents.Post, :visibility), prompt: "Choose a value", class: "mt-1 block w-full" %>
       <%= error_tag f, :visibility %>
     <% end %>
-    <div class="flex justify-end md:col-span-6">
-      <%= submit "Save", class: "mt-1 px-4 block" %>
+    <div class="flex justify-end gap-6 md:col-span-6 items-center">
+      <div><%= link to: Routes.post_path(@conn, :index) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
+      <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
     </div>
   </div>
 <% end %>

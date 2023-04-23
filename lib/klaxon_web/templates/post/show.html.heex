@@ -5,9 +5,9 @@
 <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
   <%= if @post.origin == :local do %>
         <div>
-    <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i><% end %>
+    <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i> Edit<% end %>
 
-    <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-images"></i><% end %>
+    <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-images"></i> Attachments<% end %>
         </div>
   <% end %>
 <% end %>
