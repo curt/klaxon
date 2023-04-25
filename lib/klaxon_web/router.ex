@@ -42,6 +42,12 @@ defmodule KlaxonWeb.Router do
     get "/.well-known/webfinger", WebfingerController, :show
     get "/.well-known/nodeinfo", NodeInfoController, :well_known
     get "/nodeinfo/:version", NodeInfoController, :version
+    get "/subscriptions/new", SubscriptionController, :new
+    post "/subscriptions", SubscriptionController, :create
+    get "/subscriptions/:id/:key/confirm", SubscriptionController, :confirm
+    get "/subscriptions/:id/:key/edit", SubscriptionController, :edit
+    put "/subscriptions/:id/:key", SubscriptionController, :update
+    patch "/subscriptions/:id/:key", SubscriptionController, :update
   end
 
   scope "/", KlaxonWeb do

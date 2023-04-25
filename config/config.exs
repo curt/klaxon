@@ -64,7 +64,13 @@ config :phoenix, :format_encoders,
 
 config :klaxon, Oban,
   repo: Klaxon.Repo,
-  plugins: [Oban.Plugins.Pruner],
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron, crontab: [
+      {"7 * * * *", Klaxon.Syndication.Scheduler, args: %{"schedule" => "hourly"}},
+      {"12 15 * * *", Klaxon.Syndication.Scheduler, args: %{"schedule" => "daily"}},
+      {"17 15 * * MON", Klaxon.Syndication.Scheduler, args: %{"schedule" => "weekly"}}
+    ]}],
   queues: [default: 10]
 
 config :tesla, adapter: Tesla.Adapter.Hackney
