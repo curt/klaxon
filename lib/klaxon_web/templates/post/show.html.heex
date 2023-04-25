@@ -1,17 +1,16 @@
 <article class="h-entry">
-  <h1 class="p-name"><%= @title %></h1>
-
-
-<%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
-  <%= if @post.origin == :local do %>
-        <div>
-    <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i> Edit<% end %>
-
-    <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-images"></i> Attachments<% end %>
-        </div>
+  <%= unless is_nil(@post.title) do %>
+    <h1 class="p-name"><%= @post.title %></h1>
   <% end %>
-<% end %>
 
+  <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+    <%= if @post.origin == :local do %>
+      <div>
+        <%= link to: Routes.post_path(@conn, :edit, @post) do %><i class="fa-solid fa-pen-to-square"></i> Edit<% end %>
+        <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-images"></i> Attachments<% end %>
+      </div>
+    <% end %>
+  <% end %>
 
   <div class="e-content my-4">
     <%= raw @post.content_html %>
