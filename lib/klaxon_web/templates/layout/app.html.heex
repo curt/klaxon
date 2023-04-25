@@ -2,7 +2,7 @@
   <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
   <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
   <%= @inner_content %>
-  <footer class="mt-2 border-t text-sm">
+  <footer class="py-1 border-t text-sm">
     <p>
         <a {[href: Routes.profile_path(@conn, :index)]}><i class="fa-solid fa-house"></i> Home</a>
         | <a {[href: Routes.post_path(@conn, :index)]}><i class="fa-solid fa-folder-open"></i> Posts</a>

@@ -25,9 +25,8 @@
       <% end %>
     </div>
   <% end %>
-  <div class="mt-4 border-t text-sm">
-    <p>
-      <div class="flex flex-wrap gap-2 items-center">
+  <div class="mt-4 py-4 border-t text-sm">
+      <div class="flex flex-wrap gap-1 items-center">
         <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
         <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a></div>
         <div>
@@ -38,6 +37,5 @@
           <% end %>
         </div>
       </div>
-    </p>
   </div>
 </article>
