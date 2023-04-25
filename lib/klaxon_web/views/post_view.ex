@@ -1,6 +1,6 @@
 defmodule KlaxonWeb.PostView do
   use KlaxonWeb, :view
-  import KlaxonWeb.Titles
+  # import KlaxonWeb.Titles
   alias Klaxon.Contents.Post
 
   def render("show.activity+json", %{

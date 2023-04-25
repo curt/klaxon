@@ -18,9 +18,9 @@ defmodule Klaxon.Snippet do
   defp take(list, max) do
     String.trim(
       Enum.reduce_while(list, "", fn x, acc ->
-        if String.length(acc) + String.length(x) + 1 <= max do
-          {:cont, Enum.join([acc, x])}
-        end || {:halt, Enum.join([acc, " ..."])}
+        if (String.length(acc) + String.length(x) + 1) <= max do
+          {:cont, acc <> x <> " "}
+        end || {:halt, acc <> " ..."}
       end)
     )
   end
@@ -35,7 +35,7 @@ defmodule Klaxon.Snippet do
 
   defp reduce(text, acc) when is_binary(text) do
     if String.length(text) > 0 do
-      acc ++ [text]
+      acc ++ String.split(text)
     end || acc
   end
 
