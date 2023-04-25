@@ -16,7 +16,7 @@
         <div class="flex items-center gap-4">
           <div><img {[src: profile_media_avatar_path(@conn, post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
           <%= if post.status == :draft do %><i class="fa-solid fa-pen-ruler"></i><% end %>
-          <span><a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= title(post) %></a></span>
+          <span><a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= post.title || Klaxon.Snippet.snippify(post.source || post.content_html || "", 140) %></a></span>
         </div>
       </div>
     </article>
