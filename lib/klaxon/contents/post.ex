@@ -133,6 +133,6 @@ defmodule Klaxon.Contents.Post do
   end
 
   def order_by_default(query) do
-    order_by(query, [posts: p], [desc_nulls_first: p.published_at, desc: p.updated_at])
+    order_by(query, [posts: p], [desc_nulls_last: p.published_at, desc: p.inserted_at])
   end
 end
