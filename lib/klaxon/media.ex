@@ -74,10 +74,10 @@ defmodule Klaxon.Media do
   end
 
   @spec insert_local_media(String.t(), String.t(), atom, fun) :: {:ok, %Media{}} | {:error, any}
-  def insert_local_media(path, content_type, scope, url_fun) when is_function(url_fun, 2) do
+  def insert_local_media(path, content_type, scope, url_fun) when is_function(url_fun, 3) do
     id = EctoBase58.generate()
-    url = url_fun.(scope, id)
-    {:ok, media} = insert_media(%{uri: url, origin: :local, scope: scope, mime_type: content_type}, path)
+    url = url_fun.(scope, :raw, id)
+    {:ok, media} = insert_media(%{id: id, uri: url, origin: :local, scope: scope, mime_type: content_type}, path)
     :ok = File.rm(path)
     {:ok, media}
   end

@@ -139,6 +139,19 @@ defmodule Klaxon.Profiles do
     end
   end
 
+  def insert_local_profile_avatar(profile_id, path, content_type, url_fun)
+      when is_function(url_fun, 3) do
+    with {:ok, media} <- Media.insert_local_media(path, content_type, :profile, url_fun),
+         %Profile{} = profile <- Repo.one(from p in Profile, where: p.id == ^profile_id) do
+      profile
+      |> Profile.update_changeset(%{
+        icon_media_type: media.mime_type,
+        icon: url_fun.(:profile, :raw, media.id)
+      })
+      |> Repo.update()
+    end
+  end
+
   def create_rsa_pair() do
     private_key = X509.PrivateKey.new_rsa(2048)
     public_key = X509.PublicKey.derive(private_key)

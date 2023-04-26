@@ -260,7 +260,7 @@ defmodule Klaxon.Contents do
     |> Repo.insert()
   end
 
-  def insert_local_post_attachment(post_id, attrs, path, content_type, url_fun) when is_function(url_fun, 2) do
+  def insert_local_post_attachment(post_id, attrs, path, content_type, url_fun) when is_function(url_fun, 3) do
     with {:ok, media} <- Media.insert_local_media(path, content_type, :post, url_fun) do
       %Attachment{post_id: post_id, media_id: media.id}
       |> Attachment.changeset(attrs)

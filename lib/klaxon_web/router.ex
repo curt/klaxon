@@ -62,14 +62,15 @@ defmodule KlaxonWeb.Router do
 
   scope "/", KlaxonWeb do
     pipe_through [:browser, :require_authenticated_user]
-
-    get "/profile/edit", ProfileController, :edit
-    put "/profile", ProfileController, :update
   end
 
   scope "/", KlaxonWeb do
     pipe_through [:browser, :require_owner]
 
+    get "/profile/avatars/new", AvatarController, :new
+    post "/profile/avatars", AvatarController, :create
+    get "/profile/edit", ProfileController, :edit
+    put "/profile", ProfileController, :update
     get "/posts/:id/edit", PostController, :edit
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update

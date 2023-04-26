@@ -1,0 +1,17 @@
+<h1>New Avatar</h1>
+
+<div class="my-4">
+<%= form_for @conn, Routes.avatar_path(@conn, :create), [multipart: true], fn f -> %>
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+    <%= label class: "block md:col-span-4" do %>
+      <span>Upload</span>
+      <%= file_input f, :upload, class: "mt-1 block w-full" %>
+      <%= error_tag f, :upload %>
+    <% end %>
+    <div class="flex justify-end gap-6 md:col-span-6 items-center">
+      <div><%= link to: Routes.profile_path(@conn, :edit) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
+      <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
+    </div>
+  </div>
+<% end %>
+</div>

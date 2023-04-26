@@ -34,7 +34,7 @@ defmodule KlaxonWeb.AttachmentController do
              attachment_params,
              path,
              content_type,
-             &Routes.media_url(conn, :show, &1, :raw, &2)
+             &Routes.media_url(conn, :show, &1, &2, &3)
            ) do
       conn
       |> put_flash(:info, "Post created successfully.")

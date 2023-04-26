@@ -16,7 +16,7 @@ defmodule Klaxon.Media.Media do
   @doc false
   def changeset(media, attrs) do
     media
-    |> cast(attrs, [:origin, :scope, :mime_type, :uri, :description])
+    |> cast(attrs, [:id, :origin, :scope, :mime_type, :uri, :description])
     |> validate_required([:origin, :scope, :mime_type, :uri])
   end
 end
