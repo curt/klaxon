@@ -19,8 +19,8 @@
     <div class="flex flex-wrap gap-4 mt-4">
       <%= for attachment <- @post.attachments do %>
         <div>
-          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto" ]}/>
-          <div><%= attachment.caption %></div>
+          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto mt-4 mb-2" ]}/>
+          <div class="mt-2 mb-4"><%= attachment.caption %></div>
         </div>
       <% end %>
     </div>
