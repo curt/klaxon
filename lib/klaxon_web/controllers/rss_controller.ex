@@ -27,7 +27,7 @@ defmodule KlaxonWeb.RssController do
       DateTime.utc_now(),
       profile.display_name || profile.name
     )
-    |> Feed.author(profile.display_name || profile.name, email: profile.url || profile.uri)
+    |> Feed.author(profile.display_name || profile.name, email: profile.name <> "@" <> conn.host)
     |> Feed.link(Routes.rss_url(conn, :index), rel: "self")
     |> Feed.entries(Enum.map(posts, &get_entry(conn, profile, &1)))
     |> Feed.build()
@@ -38,10 +38,11 @@ defmodule KlaxonWeb.RssController do
     Entry.new(
       Routes.post_url(conn, :show, post.id),
       DateTime.from_naive!(post.published_at, "Etc/UTC"),
-      snippet(post)
+      post.title || snippet(post)
     )
     |> Entry.link(Routes.post_url(conn, :show, post.id))
     |> Entry.author(profile.display_name || profile.name)
+    |> Entry.content(snippet(post))
     |> Entry.build()
   end
 end
