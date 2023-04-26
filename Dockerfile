@@ -26,7 +26,6 @@ COPY assets assets
 COPY lib lib
 COPY .git .git
 RUN mix assets.deploy && \
-    mix phx.digest && \
     mix compile
 
 COPY config/runtime.exs config/
