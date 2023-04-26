@@ -11,7 +11,4 @@
     <% end %>
 <% else %>
     || <%= link to: Routes.user_session_path(@conn, :new) do %><i class="fa-solid fa-right-to-bracket"></i> Sign in<% end %>
-    <%= unless true do %>
-        | <%= link to: Routes.user_registration_path(@conn, :new) do %><i class="fa-solid fa-user-plus"></i> Register<% end %>
-    <% end %>
 <% end %>
