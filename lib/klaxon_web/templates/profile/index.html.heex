@@ -1,4 +1,4 @@
 <h1><%= @profile.display_name || @profile.name %></h1>
 <div class="my-4">
-  <%= @profile.summary %>
+  <%= raw Earmark.as_html!(@profile.summary) %>
 </div>
