@@ -4,6 +4,7 @@ defmodule KlaxonWeb.ProfileController do
   import KlaxonWeb.Titles
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
+  alias Klaxon.Media
 
   action_fallback KlaxonWeb.FallbackController
   plug :require_owner when action not in [:index]
@@ -11,7 +12,7 @@ defmodule KlaxonWeb.ProfileController do
 
   def index(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, _params) do
     with {:ok, profile} <- get_profile(conn) do
-      render(conn, :index, profile: profile)
+      render(conn, :index, profile: profile, avatar: get_avatar(profile))
     end
   end
 
@@ -48,6 +49,12 @@ defmodule KlaxonWeb.ProfileController do
     case conn.assigns[:current_profile] do
       %Profile{} = profile -> {:ok, profile}
       _ -> {:error, :not_found}
+    end
+  end
+
+  defp get_avatar(%Profile{} = profile) do
+    if profile.icon do
+      Media.get_media_by_uri_scope(profile.icon, :profile)
     end
   end
 end
