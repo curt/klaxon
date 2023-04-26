@@ -211,6 +211,11 @@ defmodule Klaxon.Activities.Inbox.Async do
     # TODO: Should reject if signature validation fails.
     Logger.debug("Verify signature pass? #{valid?}")
 
+    unless valid? do
+      Logger.info("Signature verification failed: #{inspect(activity)}")
+      throw(:reject)
+    end
+
     activity
   end
 
