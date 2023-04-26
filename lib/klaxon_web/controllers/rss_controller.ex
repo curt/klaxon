@@ -12,7 +12,7 @@ defmodule KlaxonWeb.RssController do
   def index(conn, _params) do
     with {:ok, %Profile{} = profile} <- current_profile(conn),
          {:ok, posts} <-
-           Contents.get_posts(profile.uri, conn.assigns[:current_user], limit: 20) do
+           Contents.get_posts(profile.uri, nil, limit: 20) do
       feed = build_feed(conn, profile, posts)
 
       conn

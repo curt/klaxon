@@ -128,6 +128,10 @@ defmodule Klaxon.Contents.Post do
     where(query, [posts: p], p.visibility in ^visibilities)
   end
 
+  def where_published_at(query) do
+    where(query, [posts: p], not is_nil(p.published_at))
+  end
+
   def where_profile_uri(query, profile_uri) do
     where(query, [profile: r], r.uri == ^profile_uri)
   end

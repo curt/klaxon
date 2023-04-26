@@ -123,6 +123,7 @@ defmodule Klaxon.Contents do
     |> Post.where_profile_uri(endpoint)
     |> Post.where_origin([:local])
     |> Post.where_status([:published])
+    |> Post.where_published_at()
   end
 
   defp where_unauthenticated_single(query, endpoint) do
