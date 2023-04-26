@@ -1,7 +1,6 @@
 defmodule KlaxonWeb.PostView do
   use KlaxonWeb, :view
   alias Klaxon.Contents.Post
-  alias Klaxon.Snippet
 
   def render("show.activity+json", %{
         conn: conn,
@@ -33,16 +32,6 @@ defmodule KlaxonWeb.PostView do
     case post.status do
       :published -> post.published_at || post.inserted_at
       _ -> post.inserted_at
-    end
-  end
-
-  def snippet(%Post{} = post) do
-    post.title || Snippet.snippify(post.source || post.content_html || captions(post) || "", 140)
-  end
-
-  defp captions(%Post{} = post) do
-    if post.attachments do
-      Enum.reduce(post.attachments, "", fn x, acc -> acc <> "\n\n" <> (x.caption || "") end)
     end
   end
 

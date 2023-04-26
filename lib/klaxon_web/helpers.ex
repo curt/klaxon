@@ -1,5 +1,7 @@
 defmodule KlaxonWeb.Helpers do
   alias Klaxon.Profiles.Profile
+  alias Klaxon.Contents.Post
+  alias Klaxon.Snippet
   alias KlaxonWeb.Router.Helpers, as: Routes
 
   @moduledoc """
@@ -97,5 +99,15 @@ defmodule KlaxonWeb.Helpers do
   @spec sender(%Plug.Conn{}) :: tuple
   def sender(%Plug.Conn{} = conn) do
     {"Klaxon", "klaxon@#{conn.host}"}
+  end
+
+  def snippet(%Post{} = post) do
+    post.title || Snippet.snippify(post.source || post.content_html || captions(post) || "", 140)
+  end
+
+  defp captions(%Post{} = post) do
+    if post.attachments do
+      Enum.reduce(post.attachments, "", fn x, acc -> acc <> "\n\n" <> (x.caption || "") end)
+    end
   end
 end

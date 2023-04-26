@@ -48,6 +48,7 @@ defmodule KlaxonWeb.Router do
     get "/subscriptions/:id/:key/edit", SubscriptionController, :edit
     put "/subscriptions/:id/:key", SubscriptionController, :update
     patch "/subscriptions/:id/:key", SubscriptionController, :update
+    get "/rss", RssController, :index
   end
 
   scope "/", KlaxonWeb do

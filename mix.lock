@@ -1,4 +1,5 @@
 %{
+  "atomex": {:hex, :atomex, "0.5.1", "706a8241fd6d1719b27a77b6d1192d2f85e6ecc78e6eadab29207d8cb9bb7ae5", [:mix], [{:xml_builder, "~> 2.1", [hex: :xml_builder, repo: "hexpm", optional: false]}], "hexpm", "6248891b5fcab8503982e090eedeeadb757a6311c2ef2e2998b874f7d319ab3f"},
   "base58": {:hex, :base58, "0.1.1", "1e9d70b06850c81e2cc8f53d7331696b51f625fafbcac54078baa2d8e1ec7035", [:mix], [], "hexpm", "91a1ded9e39cf4117897c5de779f50d8a59e471e47d06c0bb1e853e549f380a5"},
   "base_58_check": {:git, "https://github.com/curt/base58check.git", "d36bab06b05af0c65b7663e7f4d905b0e9cef526", [ref: "d36bab06b05af0c65b7663e7f4d905b0e9cef526"]},
   "bcrypt_elixir": {:hex, :bcrypt_elixir, "3.0.1", "9be815469e6bfefec40fa74658ecbbe6897acfb57614df1416eeccd4903f602c", [:make, :mix], [{:comeonin, "~> 5.3", [hex: :comeonin, repo: "hexpm", optional: false]}, {:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "486bb95efb645d1efc6794c1ddd776a186a9a713abf06f45708a6ce324fb96cf"},
@@ -70,4 +71,5 @@
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.7.0", "bc84380c9ab48177092f43ac89e4dfa2c6d62b40b8bd132b1059ecc7232f9a78", [:rebar3], [], "hexpm", "25eee6d67df61960cf6a794239566599b09e17e668d3700247bc498638152521"},
   "unsafe": {:hex, :unsafe, "1.0.1", "a27e1874f72ee49312e0a9ec2e0b27924214a05e3ddac90e91727bc76f8613d8", [:mix], [], "hexpm", "6c7729a2d214806450d29766abc2afaa7a2cbecf415be64f36a6691afebb50e5"},
   "x509": {:hex, :x509, "0.8.5", "22b2c5dfc87b05d46595d3764f41a23fcb7360f891e0464f1a2ec118177cd4e4", [:mix], [], "hexpm", "c63eb89e8bbe8a5e21b6404ad1082faff670e38b74960297f90d023177949e07"},
+  "xml_builder": {:hex, :xml_builder, "2.2.0", "cc5f1eeefcfcde6e90a9b77fb6c490a20bc1b856a7010ce6396f6da9719cbbab", [:mix], [], "hexpm", "9d66d52fb917565d358166a4314078d39ef04d552904de96f8e73f68f64a62c9"},
 }

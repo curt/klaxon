@@ -15,15 +15,17 @@ defmodule Klaxon.Contents do
   @doc """
   Gets posts from repo for given endpoint and user (if specified).
   """
-  @spec get_posts(String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
+  @spec get_posts(String.t(), %Klaxon.Auth.User{id: String.t()} | nil, any) ::
           {:error, :not_found} | {:ok, maybe_improper_list}
-  def get_posts(endpoint, %User{id: user_id, email: email} = _user) do
+  def get_posts(endpoint, user, options \\ %{})
+
+  def get_posts(endpoint, %User{id: user_id, email: email} = _user, options) do
     Logger.debug("Getting posts authenticated as user: #{email}")
-    get_posts_authenticated(endpoint, user_id)
+    get_posts_authenticated(endpoint, user_id, options)
   end
 
-  def get_posts(endpoint, _) do
-    get_posts_unauthenticated(endpoint)
+  def get_posts(endpoint, _user, options) do
+    get_posts_unauthenticated(endpoint, options)
   end
 
   @doc """
@@ -40,29 +42,31 @@ defmodule Klaxon.Contents do
     get_post_unauthenticated(host, post_id)
   end
 
-  defp get_posts_authenticated(endpoint, user_id) do
+  defp get_posts_authenticated(endpoint, user_id, options) do
     if is_user_id_endpoint_principal?(endpoint, user_id) do
       Logger.debug("Getting posts as principal of endpoint: #{endpoint}")
-      get_posts_authorized(endpoint)
+      get_posts_authorized(endpoint, options)
     else
-      get_posts_unauthenticated(endpoint)
+      get_posts_unauthenticated(endpoint, options)
     end
   end
 
-  defp get_posts_authorized(endpoint) do
+  defp get_posts_authorized(endpoint, options) do
     case Post.from_preloaded()
          |> where_authorized(endpoint)
          |> Post.order_by_default()
+         |> maybe_limit(options)
          |> Repo.all() do
       posts when is_list(posts) -> {:ok, posts}
       _ -> {:error, :not_found}
     end
   end
 
-  defp get_posts_unauthenticated(endpoint) do
+  defp get_posts_unauthenticated(endpoint, options) do
     case Post.from_preloaded()
          |> where_unauthenticated_list(endpoint)
          |> Post.order_by_default()
+         |> maybe_limit(options)
          |> Repo.all() do
       posts when is_list(posts) -> {:ok, posts}
       _ -> {:error, :not_found}
@@ -131,6 +135,13 @@ defmodule Klaxon.Contents do
     query
     |> where_local_published(endpoint)
     |> Post.where_visibility([:public])
+  end
+
+  defp maybe_limit(query, options) do
+    case options[:limit] do
+      lim when is_integer(lim) -> query |> limit(^lim)
+      _ -> query
+    end
   end
 
   defp is_user_id_endpoint_principal?(endpoint, user_id) do
@@ -260,7 +271,8 @@ defmodule Klaxon.Contents do
     |> Repo.insert()
   end
 
-  def insert_local_post_attachment(post_id, attrs, path, content_type, url_fun) when is_function(url_fun, 3) do
+  def insert_local_post_attachment(post_id, attrs, path, content_type, url_fun)
+      when is_function(url_fun, 3) do
     with {:ok, media} <- Media.insert_local_media(path, content_type, :post, url_fun) do
       %Attachment{post_id: post_id, media_id: media.id}
       |> Attachment.changeset(attrs)
