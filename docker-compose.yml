@@ -16,7 +16,7 @@ services:
         volume:
           nocopy: true
   app:
-    image: curtg/klaxon:main
+    image: klaxon
     build: .
     restart: unless-stopped
     environment: {
@@ -27,7 +27,7 @@ services:
     links:
       - db
     ports: [
-      "127.0.0.1:4001:4000",
+      "127.0.0.1:${KLAXON_PORT:-4000}:4000",
     ]
 
 volumes:
