@@ -26,7 +26,9 @@ defmodule Klaxon.Syndication do
   end
 
   def get_subscriber(id, key) do
-    case from(s in Subscription, where: not is_nil(s.confirmed_at) and s.id == ^id and s.key == ^key)
+    case from(s in Subscription,
+           where: not is_nil(s.confirmed_at) and s.id == ^id and s.key == ^key
+         )
          |> Repo.one() do
       %Subscription{} = subscriber -> {:ok, subscriber}
       _ -> {:error, :not_found}
@@ -35,7 +37,11 @@ defmodule Klaxon.Syndication do
 
   def insert_subscriber(attrs, sender, conf_url_fun) when is_function(conf_url_fun, 2) do
     with {:ok, subscriber} <- Repo.insert(Subscription.changeset(%Subscription{}, attrs)) do
-      send_confirmation_to_subscriber(subscriber, sender, conf_url_fun.(subscriber.id, subscriber.key))
+      send_confirmation_to_subscriber(
+        subscriber,
+        sender,
+        conf_url_fun.(subscriber.id, subscriber.key)
+      )
     end
   end
 
@@ -55,7 +61,7 @@ defmodule Klaxon.Syndication do
       Email.new()
       |> Email.to(subscriber.email)
       |> Email.from(sender)
-      |> Email.subject("Your latest Klaxon digest")
+      |> Email.subject("Your confirmation required from #{host()}")
       |> Email.html_body(confirmation_html(subscriber, url))
       |> Email.text_body(confirmation_text(subscriber, url))
 
@@ -101,7 +107,9 @@ defmodule Klaxon.Syndication do
     case from(s in Subscription, where: s.id == ^id and s.key == ^key)
          |> Repo.one() do
       %Subscription{} = subscriber ->
-        Repo.update(Subscription.confirm_changeset(subscriber, %{confirmed_at: DateTime.utc_now()}))
+        Repo.update(
+          Subscription.confirm_changeset(subscriber, %{confirmed_at: DateTime.utc_now()})
+        )
 
       _ ->
         {:error, :not_found}
@@ -128,8 +136,8 @@ defmodule Klaxon.Syndication do
     email =
       Email.new()
       |> Email.to(subscriber.email)
-      |> Email.from("bob@example.local")
-      |> Email.subject("Your latest Klaxon digest")
+      |> Email.from(sender())
+      |> Email.subject("Your latest digest from #{host()}")
       |> Email.html_body(digest_html(subscriber, posts))
       |> Email.text_body(digest_text(subscriber, posts))
 
@@ -200,4 +208,7 @@ defmodule Klaxon.Syndication do
   defp end_at_offset(datetime) do
     DateTime.add(datetime, -@mail_offset, :minute)
   end
+
+  defp sender(), do: Application.fetch_env!(:klaxon, :sender)
+  defp host(), do: Application.fetch_env!(:klaxon, :host)
 end
