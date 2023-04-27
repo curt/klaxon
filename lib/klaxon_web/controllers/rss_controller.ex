@@ -25,7 +25,7 @@ defmodule KlaxonWeb.RssController do
     Feed.new(
       Routes.profile_url(conn, :index),
       DateTime.utc_now(),
-      profile.display_name || profile.name
+      profile.site_title || profile.display_name || profile.name
     )
     |> Feed.author(profile.display_name || profile.name, email: profile.name <> "@" <> conn.host)
     |> Feed.link(Routes.rss_url(conn, :index), rel: "self")

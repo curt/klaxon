@@ -21,6 +21,21 @@
       <%= textarea f, :summary, class: "mt-1 block w-full h-24", rows: 3 %>
       <%= error_tag f, :summary %>
     <% end %>
+    <%= label class: "block" do %>
+      <span>Site name</span>
+      <%= text_input f, :site_title, class: "mt-1 block w-full" %>
+      <%= error_tag f, :site_title %>
+    <% end %>
+    <%= label class: "block" do %>
+      <span>Site tag</span>
+      <%= text_input f, :site_tag, class: "mt-1 block w-full" %>
+      <%= error_tag f, :site_tag %>
+    <% end %>
+    <%= label class: "block md:col-span-2" do %>
+      <span>Site text</span>
+      <%= textarea f, :site_text, class: "mt-1 block w-full h-24", rows: 6 %>
+      <%= error_tag f, :site_text %>
+    <% end %>
     <div class="flex justify-end md:col-span-2">
       <%= submit "Save", class: "mt-1 px-4 block" %>
     </div>

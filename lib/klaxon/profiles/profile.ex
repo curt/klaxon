@@ -13,11 +13,13 @@ defmodule Klaxon.Profiles.Profile do
     field :private_key, :string, redact: true
     field :public_key_id, :string
     field :public_key, :string
+    field :site_tag, :string
+    field :site_text, :string
+    field :site_title, :string
     field :summary, :string
     field :uri, :string
     field :url, :string
 
-    # has_many :principals, Klaxon.Profiles.Principal
     belongs_to :owner, User, type: :binary_id
 
     timestamps()
@@ -33,6 +35,9 @@ defmodule Klaxon.Profiles.Profile do
     :private_key,
     :public_key_id,
     :public_key,
+    :site_tag,
+    :site_text,
+    :site_title,
     :summary,
     :url
   ]
@@ -40,8 +45,6 @@ defmodule Klaxon.Profiles.Profile do
   def insert_changeset(attrs) do
     %__MODULE__{}
     |> upsert_changeset(attrs)
-    # |> cast(attrs, [:name, :uri, :owner_id] ++ @common_cast_attrs)
-    # |> validate_required([:name, :uri])
   end
 
   def update_changeset(profile, attrs) do
@@ -51,7 +54,7 @@ defmodule Klaxon.Profiles.Profile do
 
   def upsert_changeset(profile, attrs) do
     (profile || %__MODULE__{})
-    |> cast(attrs, [:name, :uri] ++ @common_cast_attrs)
+    |> cast(attrs, [:name, :uri, :owner_id] ++ @common_cast_attrs)
     |> validate_required([:name, :uri])
     |> unique_constraint(:uri)
   end
