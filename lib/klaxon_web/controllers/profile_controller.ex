@@ -4,9 +4,10 @@ defmodule KlaxonWeb.ProfileController do
   import KlaxonWeb.Titles
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
+  alias Klaxon.Contents
   alias Klaxon.Media
 
-  action_fallback KlaxonWeb.FallbackController
+  action_fallback(KlaxonWeb.FallbackController)
   plug :require_owner when action not in [:index]
   plug :activity_json_response
 
@@ -17,10 +18,9 @@ defmodule KlaxonWeb.ProfileController do
   end
 
   def index(conn, _params) do
-    with {:ok, profile} <- get_profile(conn) do
-      render(conn, :index, profile: profile, title: title(profile))
-    else
-      _ -> {:error, :no_profile}
+    with {:ok, profile} <- get_profile(conn),
+         {:ok, posts} <- Contents.get_posts(profile.uri, nil, limit: 5) do
+      render(conn, :index, profile: profile, posts: posts, title: title(profile))
     end
   end
 
@@ -48,7 +48,7 @@ defmodule KlaxonWeb.ProfileController do
   defp get_profile(conn) do
     case conn.assigns[:current_profile] do
       %Profile{} = profile -> {:ok, profile}
-      _ -> {:error, :not_found}
+      _ -> {:error, :no_profile}
     end
   end
 

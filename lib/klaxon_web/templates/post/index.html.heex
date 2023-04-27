@@ -4,22 +4,4 @@
     <%= link to: Routes.post_path(@conn, :new) do %><i class="fa-solid fa-file-circle-plus"></i> Add Post<% end %>
 </div>
 <% end %>
-<%= if length(@posts) > 0 do %>
-  <%= for dates <- Stream.chunk_by(@posts, fn x -> prettify_date(status_date(x), :short) end) |> Enum.to_list() do %>
-    <article class="my-4">
-      <div class="my-4">
-        <% pretty_date = prettify_date(status_date(List.first(dates)), :short) %>
-        <div class="block"><%= pretty_date %></div>
-        <%= for post <- dates do %>
-            <div class="my-4 flex items-center gap-4">
-              <div><img {[src: profile_media_avatar_path(@conn, post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
-              <%= if post.status == :draft do %><i class="fa-solid fa-pen-ruler"></i><% end %>
-              <span><a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= prettify_date(status_date(post), :time) %> &ndash; <%= snippet(post) %></a></span>
-            </div>
-        <% end %>
-      </div>
-    </article>
-  <% end %>
-<% else %>
-  <p>No posts found.</p>
-<% end %>
+<%= render "list.html", assigns %>
