@@ -33,9 +33,9 @@ defmodule Klaxon.Syndication do
     end
   end
 
-  def insert_subscriber(attrs, conf_url_fun) when is_function(conf_url_fun, 2) do
+  def insert_subscriber(attrs, sender, conf_url_fun) when is_function(conf_url_fun, 2) do
     with {:ok, subscriber} <- Repo.insert(Subscription.changeset(%Subscription{}, attrs)) do
-      send_confirmation_to_subscriber(subscriber, conf_url_fun.(subscriber.id, subscriber.key))
+      send_confirmation_to_subscriber(subscriber, sender, conf_url_fun.(subscriber.id, subscriber.key))
     end
   end
 
@@ -50,11 +50,11 @@ defmodule Klaxon.Syndication do
     end
   end
 
-  def send_confirmation_to_subscriber(%Subscription{} = subscriber, url) do
+  def send_confirmation_to_subscriber(%Subscription{} = subscriber, sender, url) do
     email =
       Email.new()
       |> Email.to(subscriber.email)
-      |> Email.from("bob@example.local")
+      |> Email.from(sender)
       |> Email.subject("Your latest Klaxon digest")
       |> Email.html_body(confirmation_html(subscriber, url))
       |> Email.text_body(confirmation_text(subscriber, url))

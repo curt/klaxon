@@ -14,6 +14,7 @@ defmodule KlaxonWeb.SubscriptionController do
     with {:ok, _subscription} <-
            Syndication.insert_subscriber(
              subscription_params,
+             sender(conn),
              &Routes.subscription_url(conn, :confirm, &1, &2)
            ) do
       conn
