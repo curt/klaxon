@@ -4,6 +4,8 @@ defmodule Klaxon.Syndication do
   alias Klaxon.Contents.Post
   alias Klaxon.Syndication.Subscription
   alias Klaxon.Mailer
+  # FIXME!
+  alias KlaxonWeb.Helpers
   alias Swoosh.Email
   import Ecto.Query
 
@@ -172,7 +174,7 @@ defmodule Klaxon.Syndication do
         Enum.map(
           posts,
           fn post ->
-            Timex.format!(post.published_at, "{RFC3339z}") <> "\n#{post.uri}"
+            "#{Helpers.prettify_date(post.published_at)}\n#{Helpers.snippet(post)}\n#{post.uri}"
           end
         ),
         "\n\n"
@@ -195,9 +197,8 @@ defmodule Klaxon.Syndication do
         Enum.map(
           posts,
           fn post ->
-            "<p>" <>
-              Timex.format!(post.published_at, "{RFC3339z}") <>
-              "<br><a href=\"#{post.uri}\">#{post.uri}</a>\n"
+            "<p>#{Helpers.prettify_date(post.published_at)}<br>" <>
+              "#{Helpers.snippet(post)}<br><a href=\"#{post.uri}\">#{post.uri}</a>\n"
           end
         )
       )
