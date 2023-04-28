@@ -77,7 +77,7 @@ defmodule Klaxon.Syndication do
 
     Hi #{subscriber.email},
 
-    Before receiving post digests from Klaxon, you must confirm this
+    Before receiving post digests from #{host()}, you must confirm this
     e-mail address by clicking the link below.
 
     If the link is not clickable, you may copy and paste the link
@@ -94,7 +94,7 @@ defmodule Klaxon.Syndication do
     """
     <hr>
     <p>Hi #{subscriber.email},</p>
-    <p>Before receiving post digests from Klaxon, you must confirm this
+    <p>Before receiving post digests from #{host()}, you must confirm this
     e-mail address by clicking the link below.</p>
     <p>If the link is not clickable, you may copy and paste the link
     into the address bar of your browser.</p>
@@ -159,7 +159,7 @@ defmodule Klaxon.Syndication do
 
     Hi #{subscriber.email},
 
-    Links to the most recent Klaxon posts can be found below.
+    Links to the most recent posts from #{host()} can be found below.
 
     Enjoy!
 
@@ -185,7 +185,7 @@ defmodule Klaxon.Syndication do
     header = """
     <hr>
     <p>Hi #{subscriber.email},</p>
-    <p>Links to the most recent Klaxon posts can be found below.</p>
+    <p>Links to the most recent posts from #{host()} can be found below.</p>
     <p>Enjoy!</p>
     <hr>
     """
