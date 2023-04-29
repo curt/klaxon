@@ -6,7 +6,7 @@ defmodule Klaxon.Syndication.Subscription do
     field :confirmed_at, :utc_datetime_usec
     field :email, :string
     field :key, :string
-    field :schedule, Ecto.Enum, values: [:hourly, :daily, :weekly, :none], default: :none
+    field :schedule, Ecto.Enum, values: [:hourly, :daily, :weekly, :none], default: :daily
     field :last_published_at, :utc_datetime_usec
 
     timestamps()
