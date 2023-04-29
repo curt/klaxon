@@ -122,12 +122,13 @@ defmodule Klaxon.Syndication do
     begin_at = subscriber.last_published_at || subscriber.confirmed_at || subscriber.inserted_at
     end_at = DateTime.utc_now() |> end_at_offset()
 
-    case from(p in Post,
-           where:
-             not is_nil(p.published_at) and
-               p.published_at > ^begin_at and p.published_at <= ^end_at and p.status == :published and
-               p.origin == :local and p.visibility == :public
-         )
+    case Post.from_preloaded()
+         |> Post.where_status([:published])
+         |> Post.where_origin([:local])
+         |> Post.where_visibility([:public])
+         |> where([posts: p], not is_nil(p.published_at))
+         |> where([posts: p], p.published_at > ^begin_at)
+         |> where([posts: p], p.published_at <= ^end_at)
          |> Repo.all() do
       posts when is_list(posts) -> {:ok, Enum.sort_by(posts, & &1.published_at, DateTime)}
       _ -> {:error, :not_found}
@@ -155,6 +156,8 @@ defmodule Klaxon.Syndication do
   end
 
   def digest_text(%Subscription{} = subscriber, posts) do
+    edit_url = edit_subscription_url(subscriber.id, subscriber.key)
+
     header = """
 
     ==============================
@@ -178,12 +181,26 @@ defmodule Klaxon.Syndication do
           end
         ),
         "\n\n"
-      )
+      ) <> "\n"
 
-    header <> body
+    footer = """
+
+    ==============================
+
+    Use the following link to edit your subscription:
+    #{edit_url}
+
+    ==============================
+
+    Please do not reply to this message.
+    """
+
+    header <> body <> footer
   end
 
   def digest_html(%Subscription{} = subscriber, posts) do
+    edit_url = edit_subscription_url(subscriber.id, subscriber.key)
+
     header = """
     <hr>
     <p>Hi #{subscriber.email},</p>
@@ -198,12 +215,23 @@ defmodule Klaxon.Syndication do
           posts,
           fn post ->
             "<p>#{Helpers.prettify_date(post.published_at)}<br>" <>
-              "#{Helpers.snippet(post)}<br><a href=\"#{post.uri}\">#{post.uri}</a>\n"
+              "#{Helpers.snippet(post)}<br><a href=\"#{post.uri}\">#{post.uri}</a></p>\n"
           end
         )
       )
 
-    header <> body
+    footer = """
+    <hr>
+    <p>Use the following link to edit your subscription:<br>
+    <a href="#{edit_url}">#{edit_url}</a></p>
+    </p>
+    <p>
+    </p>
+    <hr>
+    <p>Please do not reply to this message.</p>
+    """
+
+    header <> body <> footer
   end
 
   defp end_at_offset(datetime) do
@@ -212,4 +240,11 @@ defmodule Klaxon.Syndication do
 
   defp sender(), do: Application.fetch_env!(:klaxon, :sender)
   defp host(), do: Application.fetch_env!(:klaxon, :host)
+
+  # FIXME! Heinous kludges follow.
+  defp edit_subscription_url(id, key) do
+    KlaxonWeb.Router.Helpers.subscription_url(endpoint(), :edit, id, key)
+  end
+
+  defp endpoint(), do: KlaxonWeb.Endpoint
 end
