@@ -1,6 +1,14 @@
 <h1>New Subscription</h1>
 
 <div class="my-4">
+<p>You may subscribe to receive regular digests of new posts by entering your e-mail address below.</p>
+<p>By default you will receive a <strong>daily</strong> digest, but you may change the frequency after
+confirming your e-mail address.</p>
+<p>Click the <strong>Send confirmation</strong> button to submit, and then
+check your e-mail inbox for the confirmation link.</p>
+</div>
+
+<div class="my-4">
 <%= form_for @changeset, Routes.subscription_path(@conn, :create), fn f -> %>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -10,17 +18,12 @@
   <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
     <%= label class: "block md:col-span-4" do %>
       <span>E-mail address</span>
-      <%= text_input f, :email, class: "mt-1 block w-full" %>
+      <%= email_input f, :email, class: "mt-1 block w-full" %>
       <%= error_tag f, :email %>
-    <% end %>
-    <%= label class: "block md:col-span-2" do %>
-      <span>Schedule</span>
-      <%= select f, :schedule, Ecto.Enum.values(Klaxon.Syndication.Subscription, :schedule), prompt: "Choose a value", class: "mt-1 block w-full" %>
-      <%= error_tag f, :schedule %>
     <% end %>
     <div class="flex justify-end gap-6 md:col-span-6 items-center">
       <div><%= link to: Routes.profile_path(@conn, :index) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
-      <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
+      <div><%= submit "Send confirmation", class: "mt-1 px-4 block" %></div>
     </div>
   </div>
 <% end %>

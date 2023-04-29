@@ -1,6 +1,12 @@
 <h1>Edit Subscription</h1>
 
 <div class="my-4">
+<p>You may change the frequency of your subscription by selecting a new schedule below.
+You may also suspend delivery of digests by selecting Suspend.</p>
+<p>Click the <strong>Submit</strong> button when finished.</p>
+</div>
+
+<div class="my-4">
 <%= form_for @changeset, Routes.subscription_path(@conn, :update, @id, @key), fn f -> %>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -10,12 +16,12 @@
   <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
     <%= label class: "block md:col-span-2" do %>
       <span>Schedule</span>
-      <%= select f, :schedule, Ecto.Enum.values(Klaxon.Syndication.Subscription, :schedule), prompt: "Choose a value", class: "mt-1 block w-full" %>
+      <%= select f, :schedule, schedule_options(), class: "mt-1 block w-full" %>
       <%= error_tag f, :schedule %>
     <% end %>
     <div class="flex justify-end gap-6 md:col-span-6 items-center">
       <div><%= link to: Routes.profile_path(@conn, :index) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
-      <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
+      <div><%= submit "Submit", class: "mt-1 px-4 block" %></div>
     </div>
   </div>
 <% end %>
