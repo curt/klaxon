@@ -33,6 +33,12 @@ defmodule KlaxonWeb.SubscriptionController do
     end
   end
 
+  def confirm?(conn, %{"id" => id, "key" => key}) do
+    with {:ok, subscription} <- Syndication.get_any_subscriber(id, key) do
+      render(conn, :confirm?, subscription: subscription)
+    end
+  end
+
   def confirm(conn, %{"id" => id, "key" => key}) do
     with {:ok, _subscription} <- Syndication.confirm_subscriber(id, key) do
       conn
@@ -59,6 +65,20 @@ defmodule KlaxonWeb.SubscriptionController do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  def delete?(conn, %{"id" => id, "key" => key}) do
+    with {:ok, subscription} <- Syndication.get_any_subscriber(id, key) do
+      render(conn, :delete?, subscription: subscription)
+    end
+  end
+
+  def delete(conn, %{"id" => id, "key" => key}) do
+    with {:ok, _subscription} <- Syndication.delete_subscriber(id, key) do
+      conn
+      |> put_flash(:info, "Subscription deleted successfully.")
+      |> redirect(to: Routes.profile_path(conn, :index))
     end
   end
 end

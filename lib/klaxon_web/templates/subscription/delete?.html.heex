@@ -1,0 +1,16 @@
+<h1>Delete Subscription</h1>
+
+<div class="my-4">
+<p>Click the <strong>Delete subscription</strong> button to delete your subscription.</p>
+</div>
+
+<div class="my-4">
+<%= form_for @conn, Routes.subscription_path(@conn, :delete, @subscription.id, @subscription.key), fn _f -> %>
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+    <div class="flex justify-end gap-6 md:col-span-6 items-center">
+      <div><%= link to: Routes.profile_path(@conn, :index) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
+      <div><%= submit "Delete subscription", class: "mt-1 px-4 block" %></div>
+    </div>
+  </div>
+<% end %>
+</div>

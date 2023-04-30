@@ -37,6 +37,16 @@ defmodule Klaxon.Syndication do
     end
   end
 
+  def get_any_subscriber(id, key) do
+    case from(s in Subscription,
+           where: s.id == ^id and s.key == ^key
+         )
+         |> Repo.one() do
+      %Subscription{} = subscriber -> {:ok, subscriber}
+      _ -> {:error, :not_found}
+    end
+  end
+
   def insert_subscriber(attrs, sender, conf_url_fun) when is_function(conf_url_fun, 2) do
     with {:ok, subscriber} <- Repo.insert(Subscription.changeset(%Subscription{}, attrs)) do
       send_confirmation_to_subscriber(
@@ -106,15 +116,14 @@ defmodule Klaxon.Syndication do
   end
 
   def confirm_subscriber(id, key) do
-    case from(s in Subscription, where: s.id == ^id and s.key == ^key)
-         |> Repo.one() do
-      %Subscription{} = subscriber ->
-        Repo.update(
-          Subscription.confirm_changeset(subscriber, %{confirmed_at: DateTime.utc_now()})
-        )
+    with {:ok, %Subscription{} = subscriber} <- get_any_subscriber(id, key) do
+      Repo.update(Subscription.confirm_changeset(subscriber, %{confirmed_at: DateTime.utc_now()}))
+    end
+  end
 
-      _ ->
-        {:error, :not_found}
+  def delete_subscriber(id, key) do
+    with {:ok, %Subscription{} = subscriber} <- get_any_subscriber(id, key) do
+      Repo.delete(Subscription.changeset(subscriber, %{}))
     end
   end
 
