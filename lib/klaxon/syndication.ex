@@ -166,6 +166,7 @@ defmodule Klaxon.Syndication do
 
   def digest_text(%Subscription{} = subscriber, posts) do
     edit_url = edit_subscription_url(subscriber.id, subscriber.key)
+    delete_url = delete_subscription_url(subscriber.id, subscriber.key)
 
     header = """
 
@@ -199,6 +200,9 @@ defmodule Klaxon.Syndication do
     Use the following link to edit your subscription:
     #{edit_url}
 
+    Use the following link to delete your subscription:
+    #{delete_url}
+
     ==============================
 
     Please do not reply to this message.
@@ -209,6 +213,7 @@ defmodule Klaxon.Syndication do
 
   def digest_html(%Subscription{} = subscriber, posts) do
     edit_url = edit_subscription_url(subscriber.id, subscriber.key)
+    delete_url = delete_subscription_url(subscriber.id, subscriber.key)
 
     header = """
     <hr>
@@ -234,6 +239,9 @@ defmodule Klaxon.Syndication do
     <p>Use the following link to edit your subscription:<br>
     <a href="#{edit_url}">#{edit_url}</a></p>
     </p>
+    <p>Use the following link to delete your subscription:<br>
+    <a href="#{delete_url}">#{delete_url}</a></p>
+    </p>
     <p>
     </p>
     <hr>
@@ -247,13 +255,16 @@ defmodule Klaxon.Syndication do
     DateTime.add(datetime, -@mail_offset, :minute)
   end
 
-  defp sender(), do: Application.fetch_env!(:klaxon, :sender)
-  defp host(), do: Application.fetch_env!(:klaxon, :host)
-
   # FIXME! Heinous kludges follow.
   defp edit_subscription_url(id, key) do
     KlaxonWeb.Router.Helpers.subscription_url(endpoint(), :edit, id, key)
   end
 
-  defp endpoint(), do: KlaxonWeb.Endpoint
+  defp delete_subscription_url(id, key) do
+    KlaxonWeb.Router.Helpers.subscription_url(endpoint(), :delete, id, key)
+  end
+
+  defp sender(), do: {"Klaxon", "klaxon@#{host()}"}
+  defp host(), do: endpoint().host
+  defp endpoint(), do: KlaxonWeb.Endpoint.struct_url()
 end
