@@ -16,6 +16,9 @@
       <%= text_input f, :location, class: "mt-1 block w-full" %>
       <%= error_tag f, :location %>
     <% end %>
+    <div class="block md:col-span-6">
+      <a {[href: "#", onclick: "geoGrab();"]}>Grab coordinates</a>
+    </div>
     <%= label class: "block md:col-span-2" do %>
       <span>Latitude<br>(degrees +N, -S)</span>
       <%= text_input f, :lat, class: "mt-1 block w-full" %>
@@ -31,9 +34,6 @@
       <%= text_input f, :ele, class: "mt-1 block w-full" %>
       <%= error_tag f, :ele %>
     <% end %>
-    <div class="block md:col-span-6">
-      <a {[href: "#", onclick: "geoGrab();"]}>Grab coordinates</a>
-    </div>
     <%= label class: "block md:col-span-3" do %>
       <span>In reply to</span>
       <%= text_input f, :in_reply_to_uri, class: "mt-1 block w-full", type: "url" %>
