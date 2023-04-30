@@ -16,6 +16,10 @@ defmodule Klaxon.Contents.Post do
     field :title, :string
     field :uri, :string
     field :visibility, Ecto.Enum, values: [:private, :unlisted, :public], default: :public
+    field :lat, :float
+    field :lon, :float
+    field :ele, :float
+    field :location, :string
 
     belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
     has_many :tags, Klaxon.Contents.Tag
@@ -43,8 +47,12 @@ defmodule Klaxon.Contents.Post do
       :status,
       :title,
       :uri,
-      :visibility
-    ])
+      :visibility,
+      :lat,
+      :lon,
+      :ele,
+      :location
+      ])
     |> validate_required([:uri, :status, :visibility, :origin])
     |> unique_constraint(:uri)
     |> apply_context_uri(host)

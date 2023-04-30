@@ -6,22 +6,45 @@
     </div>
   <% end %>
   <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
-    <%= label class: "block md:col-span-4" do %>
-      <span>Title</span>
-      <%= text_input f, :title, class: "mt-1 block w-full" %>
-      <%= error_tag f, :title %>
-    <% end %>
     <%= label class: "block md:col-span-6" do %>
       <span>Content</span>
       <%= textarea f, :source, class: "mt-1 block w-full h-48", rows: 6 %>
       <%= error_tag f, :source %>
     <% end %>
+    <%= label class: "block md:col-span-6" do %>
+      <span>Location</span>
+      <%= text_input f, :location, class: "mt-1 block w-full" %>
+      <%= error_tag f, :location %>
+    <% end %>
+    <%= label class: "block md:col-span-2" do %>
+      <span>Latitude<br>(degrees +N, -S)</span>
+      <%= text_input f, :lat, class: "mt-1 block w-full" %>
+      <%= error_tag f, :lat %>
+    <% end %>
+    <%= label class: "block md:col-span-2" do %>
+      <span>Longitude<br>(degrees +E, -W)</span>
+      <%= text_input f, :lon, class: "mt-1 block w-full" %>
+      <%= error_tag f, :lon %>
+    <% end %>
+    <%= label class: "block md:col-span-2" do %>
+      <span>Elevation<br>(meters)</span>
+      <%= text_input f, :ele, class: "mt-1 block w-full" %>
+      <%= error_tag f, :ele %>
+    <% end %>
+    <div class="block md:col-span-6">
+      <a {[href: "#", onclick: "geoGrab();"]}>Grab coordinates</a>
+    </div>
     <%= label class: "block md:col-span-3" do %>
       <span>In reply to</span>
       <%= text_input f, :in_reply_to_uri, class: "mt-1 block w-full", type: "url" %>
       <%= error_tag f, :in_reply_to_uri %>
     <% end %>
     <%= label class: "block md:col-span-3" do %>
+      <span>Title</span>
+      <%= text_input f, :title, class: "mt-1 block w-full" %>
+      <%= error_tag f, :title %>
+    <% end %>
+    <%= label class: "block md:col-span-2" do %>
       <span>Slug</span>
       <%= text_input f, :slug, class: "mt-1 block w-full" %>
       <%= error_tag f, :slug %>
