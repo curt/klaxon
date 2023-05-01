@@ -20,7 +20,7 @@ defmodule KlaxonWeb.Endpoint do
     at: "/",
     from: :klaxon,
     gzip: false,
-    only: ~w(assets fonts fontawesome klaxon images favicon.ico robots.txt style.css)
+    only: ~w(assets fonts fontawesome klaxon leaflet images favicon.ico robots.txt style.css)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
