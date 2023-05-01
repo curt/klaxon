@@ -25,6 +25,22 @@
       <% end %>
     </div>
   <% end %>
+  <%= if @post.lat && @post.lon do %>
+  <div id="map" class="my-4 h-[384px] max-w-[1024px]"></div>
+  <script>
+const center = [<%= @post.lat %>, <%= @post.lon %>];
+const description = "<%= @post.location || "" %>";
+const map = L.map('map').setView(center, 13);
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 16,
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+const marker = L.marker(center).addTo(map);
+if (description.length > 0) {
+  marker.bindPopup(description).openPopup();
+}
+  </script>
+  <% end %>
   <div class="mt-4 py-4 border-t text-sm">
       <div class="flex flex-wrap gap-1 items-center">
         <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
