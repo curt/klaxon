@@ -9,8 +9,8 @@
     <link rel="stylesheet" href={Routes.static_path(@conn, "/fontawesome/css/all.min.css")}/>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
-    <link rel="stylesheet" href={Routes.static_path(@conn, "/leaflet/leaflet.css")} crossorigin=""/>
-    <script type="text/javascript" src={Routes.static_path(@conn, "/leaflet/leaflet.js")} crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
     <script defer type="text/javascript" src={Routes.static_path(@conn, "/klaxon/app.js")}></script>
   </head>
   <body>
