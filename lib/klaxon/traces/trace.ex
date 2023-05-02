@@ -12,7 +12,7 @@ defmodule Klaxon.Traces.Trace do
   end
 
   @doc false
-  def changeset(trace, attrs) do
+  def changeset(trace, attrs \\ %{}) do
     trace
     |> cast(attrs, [:name, :post_id])
   end

@@ -47,4 +47,22 @@ defmodule KlaxonWeb.AttachmentController do
         {:error, reason}
     end
   end
+
+  def edit(conn, %{"post_id" => post_id, "id" => id}) do
+    with {:ok, profile} <- current_profile(conn),
+         {:ok, post} <-
+           Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
+      if attachment = List.first(Enum.filter(post.attachments, fn x -> x.id == id end)) do
+        changeset = Attachment.changeset(%Attachment{post: post})
+
+        render(conn, "edit.html",
+          changeset: changeset,
+          post: post,
+          attachment: attachment
+        )
+      else
+        {:error, :not_found}
+      end
+    end
+  end
 end

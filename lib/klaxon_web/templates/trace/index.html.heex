@@ -1,0 +1,18 @@
+<h1>Traces</h1>
+
+<div><%= raw @post.content_html %></div>
+
+<div class="mb-4">
+    <%= link to: Routes.post_path(@conn, :show, @post.id) do %><i class="fa-solid fa-xmark"></i> Post<% end %>
+    <%= link to: Routes.trace_path(@conn, :new, @post.id) do %><i class="fa-solid fa-image"></i> Add Trace<% end %>
+</div>
+
+<%= if length(@post.traces) > 0 do %>
+  <%= for trace <- @post.traces do %>
+    <article class="mb-2">
+      <%= prettify_date(trace.inserted_at) %> &ndash; <%= trace.name %>
+    </article>
+  <% end %>
+<% else %>
+  <p>No traces found.</p>
+<% end %>

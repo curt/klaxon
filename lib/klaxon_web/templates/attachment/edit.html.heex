@@ -1,0 +1,24 @@
+<h1>Edit Attachment</h1>
+<div>
+  <img {[src: Routes.media_path(@conn, :show, :post, :full, @attachment.media.id), class: "rounded h-auto mt-4 mb-2" ]}/>
+</div>
+<div class="my-4">
+<%= form_for @changeset, Routes.attachment_path(@conn, :update, @post.id, @attachment.id), [multipart: true], fn f -> %>
+  <%= if @changeset.action do %>
+    <div class="alert alert-danger">
+      <p>Oops, something went wrong! Please check the errors below.</p>
+    </div>
+  <% end %>
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+    <%= label class: "block md:col-span-6" do %>
+      <span>Caption</span>
+      <%= textarea f, :caption, class: "mt-1 block w-full h-24", rows: 3 %>
+      <%= error_tag f, :caption %>
+    <% end %>
+    <div class="flex justify-end gap-6 md:col-span-6 items-center">
+      <div><%= link to: Routes.attachment_path(@conn, :index, @post.id) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
+      <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
+    </div>
+  </div>
+<% end %>
+</div>

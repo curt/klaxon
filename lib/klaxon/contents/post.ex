@@ -24,6 +24,7 @@ defmodule Klaxon.Contents.Post do
     belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
     has_many :tags, Klaxon.Contents.Tag
     has_many :attachments, Klaxon.Contents.Attachment
+    has_many :traces, Klaxon.Traces.Trace
 
     has_one :in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri
     has_many :replies, __MODULE__, references: :uri, foreign_key: :in_reply_to_uri
@@ -52,7 +53,7 @@ defmodule Klaxon.Contents.Post do
       :lon,
       :ele,
       :location
-      ])
+    ])
     |> validate_required([:uri, :status, :visibility, :origin])
     |> unique_constraint(:uri)
     |> apply_context_uri(host)
@@ -106,9 +107,15 @@ defmodule Klaxon.Contents.Post do
     |> join(:left, [posts: p], r in assoc(p, :profile), as: :profile)
     |> join(:left, [posts: p], t in assoc(p, :tags), as: :tags)
     |> join(:left, [posts: p], a in assoc(p, :attachments), as: :attachments)
+    |> join(:left, [posts: p], x in assoc(p, :traces), as: :traces)
     |> join(:left, [tags: t], l in assoc(t, :label), as: :labels)
     |> join(:left, [attachments: a], m in assoc(a, :media), as: :media)
-    |> preload([profile: r, tags: t, labels: l, attachments: a, media: m], profile: r, tags: {t, label: l}, attachments: {a, media: m})
+    |> preload([profile: r, tags: t, labels: l, attachments: a, traces: x, media: m],
+      profile: r,
+      tags: {t, label: l},
+      attachments: {a, media: m},
+      traces: x
+    )
   end
 
   # TODO: Rename this.
@@ -145,6 +152,6 @@ defmodule Klaxon.Contents.Post do
   end
 
   def order_by_default(query) do
-    order_by(query, [posts: p], [desc_nulls_last: p.published_at, desc: p.inserted_at])
+    order_by(query, [posts: p], desc_nulls_last: p.published_at, desc: p.inserted_at)
   end
 end
