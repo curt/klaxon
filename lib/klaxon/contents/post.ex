@@ -104,17 +104,12 @@ defmodule Klaxon.Contents.Post do
   @spec preload_all(Ecto.Query.t()) :: Ecto.Query.t()
   def preload_all(query) do
     query
-    |> join(:left, [posts: p], r in assoc(p, :profile), as: :profile)
-    |> join(:left, [posts: p], t in assoc(p, :tags), as: :tags)
-    |> join(:left, [posts: p], a in assoc(p, :attachments), as: :attachments)
-    |> join(:left, [posts: p], x in assoc(p, :traces), as: :traces)
-    |> join(:left, [tags: t], l in assoc(t, :label), as: :labels)
-    |> join(:left, [attachments: a], m in assoc(a, :media), as: :media)
-    |> preload([profile: r, tags: t, labels: l, attachments: a, traces: x, media: m],
+    |> join(:inner, [posts: p], r in assoc(p, :profile), as: :profile)
+    |> preload([p, r],
       profile: r,
-      tags: {t, label: l},
-      attachments: {a, media: m},
-      traces: x
+      tags: [:label],
+      attachments: [:media],
+      traces: :traces
     )
   end
 
