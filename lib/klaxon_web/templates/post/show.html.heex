@@ -21,7 +21,7 @@
       <%= for attachment <- @post.attachments do %>
         <div>
           <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto mt-4 mb-2" ]}/>
-          <div class="mt-2 mb-4"><%= attachment.caption %></div>
+          <div class="mt-2 mb-4"><%= raw attachment.caption_html %></div>
         </div>
       <% end %>
     </div>
