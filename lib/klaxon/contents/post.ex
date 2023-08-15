@@ -108,8 +108,10 @@ defmodule Klaxon.Contents.Post do
     |> preload([p, r],
       profile: r,
       tags: [:label],
-      attachments: [:media],
-      traces: :traces
+      attachments: [:media]
+      # FIXME
+      # ,
+      # traces: :traces
     )
   end
 
