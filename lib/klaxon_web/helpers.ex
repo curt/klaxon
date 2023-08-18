@@ -1,6 +1,7 @@
 defmodule KlaxonWeb.Helpers do
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
+  alias Klaxon.Contents.Attachment
   alias Klaxon.Snippet
   alias KlaxonWeb.Router.Helpers, as: Routes
 
@@ -53,6 +54,14 @@ defmodule KlaxonWeb.Helpers do
   @spec htmlify_date(Timex.Types.valid_datetime()) :: String.t()
   def htmlify_date(date) do
     Timex.format!(date, "{YYYY}-{0M}-{0D}T{h24}:{m}:{s}{Z:}")
+  end
+
+  @doc """
+  Returns an attachment caption with Markdown processed for HTML.
+  """
+  @spec htmlify_caption(%Attachment{:caption => String.t()}) :: String.t()
+  def htmlify_caption(%Attachment{} = attachment) do
+    String.trim(Earmark.as_html!(attachment.caption, inner_html: true))
   end
 
   @doc """
