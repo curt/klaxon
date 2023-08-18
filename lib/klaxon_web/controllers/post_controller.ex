@@ -2,7 +2,6 @@ defmodule KlaxonWeb.PostController do
   use KlaxonWeb, :controller
 
   import KlaxonWeb.Plugs
-  import KlaxonWeb.Titles
   alias Klaxon.Contents
   alias Klaxon.Contents.Post
 
@@ -48,7 +47,7 @@ defmodule KlaxonWeb.PostController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <-
            Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
-      render(conn, post: post, title: title(post))
+      render(conn, post: post, title: htmlify_title(post))
     end
   end
 

@@ -1,4 +1,5 @@
 defmodule KlaxonWeb.Helpers do
+  import KlaxonWeb.Titles
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   alias Klaxon.Contents.Attachment
@@ -61,7 +62,17 @@ defmodule KlaxonWeb.Helpers do
   """
   @spec htmlify_caption(%Attachment{:caption => String.t()}) :: String.t()
   def htmlify_caption(%Attachment{} = attachment) do
-    String.trim(Earmark.as_html!(attachment.caption, inner_html: true))
+    # String.trim(Earmark.as_html!(attachment.caption, inner_html: true))
+    htmlify_markdown_string(attachment.caption)
+  end
+
+  @spec htmlify_title(%Post{}) :: String.t()
+  def htmlify_title(%Post{} = post) do
+    htmlify_markdown_string(title(post))
+  end
+
+  defp htmlify_markdown_string(markdown) do
+    String.trim(Earmark.as_html!(markdown, inner_html: true))
   end
 
   @doc """
