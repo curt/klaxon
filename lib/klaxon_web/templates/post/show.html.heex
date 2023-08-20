@@ -20,7 +20,7 @@
     <div class="flex flex-wrap gap-4 mt-4">
       <%= for attachment <- @post.attachments do %>
         <div>
-          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto mt-4 mb-2" ]}/>
+          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto mt-4 mb-2", alt: htmlify_caption(attachment) ]}/>
           <div class="mt-2 mb-4"><%= raw htmlify_caption(attachment) %></div>
         </div>
       <% end %>
