@@ -1,6 +1,8 @@
 <article class="h-entry">
   <%= unless is_nil(@post.title) do %>
     <h1 class="p-name"><%= @post.title %></h1>
+  <% else %>
+    <h1 style="display: none;" class="p-name">Untitled Article</h1>
   <% end %>
 
   <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
@@ -44,7 +46,7 @@ if (description.length > 0) {
   <% end %>
   <div class="mt-4 py-4 border-t text-sm">
       <div class="flex flex-wrap gap-1 items-center">
-        <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
+        <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded w-[32px] min-w-[32px] h-auto", alt: @post.profile.display_name ]}/></div>
         <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a></div>
         <div>
           <%= status_action(@post) %> <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
