@@ -37,7 +37,7 @@ defmodule KlaxonWeb.AttachmentController do
              &Routes.media_url(conn, :show, &1, &2, &3)
            ) do
       conn
-      |> put_flash(:info, "Post created successfully.")
+      |> put_flash(:info, "Attachment created successfully.")
       |> redirect(to: Routes.attachment_path(conn, :index, post_id))
     else
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -53,7 +53,7 @@ defmodule KlaxonWeb.AttachmentController do
          {:ok, post} <-
            Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
       if attachment = List.first(Enum.filter(post.attachments, fn x -> x.id == id end)) do
-        changeset = Attachment.changeset(%Attachment{post: post})
+        changeset = Attachment.changeset(attachment)
 
         render(conn, "edit.html",
           changeset: changeset,
@@ -63,6 +63,22 @@ defmodule KlaxonWeb.AttachmentController do
       else
         {:error, :not_found}
       end
+    end
+  end
+
+  def update(conn, %{"post_id" => post_id, "id" => id, "attachment" => params}) do
+    with {:ok, attachment} <-
+           Contents.get_local_post_attachment(id),
+         {:ok, _attachment} <- Contents.update_local_post_attachment(attachment, params) do
+      conn
+      |> put_flash(:info, "Attachment updated successfully.")
+      |> redirect(to: Routes.attachment_path(conn, :index, post_id))
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        render(conn, "edit.html", changeset: changeset)
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

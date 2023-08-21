@@ -3,8 +3,8 @@
 <div><%= raw @post.content_html %></div>
 
 <div class="mb-4">
-    <%= link to: Routes.post_path(@conn, :show, @post.id) do %><i class="fa-solid fa-xmark"></i> Post<% end %>
-    <%= link to: Routes.attachment_path(@conn, :new, @post.id) do %><i class="fa-solid fa-image"></i> Add Attachment<% end %>
+    <%= link to: Routes.post_path(@conn, :show, @post.id) do %><i class="fa-solid fa-message"></i> Post<% end %>
+    <%= link to: Routes.attachment_path(@conn, :new, @post.id) do %><i class="fa-solid fa-image"></i> Add<% end %>
 </div>
 
 <%= if length(@post.attachments) > 0 do %>
@@ -12,7 +12,8 @@
     <%= if !is_nil(attachment.media) do %>
       <article class="mb-2">
         <div><img {[src: Routes.media_path(@conn, :show, :post, :gallery, attachment.media.id), class: "rounded w-[256px] min-w-[256px] h-auto" ]}/></div>
-        <%= raw htmlify_caption(attachment) %>
+        <div><%= raw htmlify_caption(attachment) %></div>
+        <div><%= link to: Routes.attachment_path(@conn, :edit, @post.id, attachment.id) do %><i class="fa-solid fa-pen"></i> Edit<% end %></div>
       </article>
     <% end %>
   <% end %>

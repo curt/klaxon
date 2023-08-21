@@ -101,6 +101,13 @@ defmodule Klaxon.Contents do
     end
   end
 
+  def get_local_post_attachment(attachment_id) do
+    case Attachment |> Repo.get(attachment_id) do
+      %Attachment{} = attachment -> {:ok, attachment}
+      _ -> {:error, :not_found}
+    end
+  end
+
   def change_post(host, post, attrs \\ %{}) do
     Post.changeset(post, attrs, host)
   end
@@ -284,6 +291,12 @@ defmodule Klaxon.Contents do
   def update_local_post(post, attrs, host) do
     post
     |> Post.changeset(attrs, host)
+    |> Repo.update()
+  end
+
+  def update_local_post_attachment(attachment, attrs) do
+    attachment
+    |> Attachment.changeset(attrs)
     |> Repo.update()
   end
 
