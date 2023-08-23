@@ -9,8 +9,9 @@ is written mostly in [Elixir](https://elixir-lang.org/).
 
 ## Status
 
-At the moment, Klaxon is mostly just a pre-alpha placeholder, but it is being
-updated periodically.
+At the moment, Klaxon is, at best, pre-alpha code.
+There is no meaningful documentation and no support.
+Use it at your own risk.
 
 ## Author
 
