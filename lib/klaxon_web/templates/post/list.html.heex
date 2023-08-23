@@ -7,7 +7,7 @@
         <%= for post <- dates do %>
             <div class="my-4 flex items-center gap-4">
               <div><img {[src: profile_media_avatar_path(@conn, post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
-              <%= if post.status == :draft do %><i class="fa-solid fa-pen-ruler"></i><% end %>
+              <%= if post.status == :draft do %><i>Draft</i><% end %>
               <span><a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}><%= prettify_date(status_date(post), :time) %> &ndash; <%= String.trim(Earmark.as_html!(snippet(post), inner_html: true)) %></a></span>
             </div>
         <% end %>

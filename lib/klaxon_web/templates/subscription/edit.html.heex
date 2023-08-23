@@ -20,7 +20,7 @@ You may also suspend delivery of digests by selecting Suspend.</p>
       <%= error_tag f, :schedule %>
     <% end %>
     <div class="flex justify-end gap-6 md:col-span-6 items-center">
-      <div><%= link to: Routes.profile_path(@conn, :index) do %><i class="fa-solid fa-xmark"></i> Cancel<% end %></div>
+      <div><%= link to: Routes.profile_path(@conn, :index) do %>Cancel<% end %></div>
       <div><%= submit "Submit", class: "mt-1 px-4 block" %></div>
     </div>
   </div>

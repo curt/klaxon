@@ -3,8 +3,8 @@
 <div><%= raw @post.content_html %></div>
 
 <div class="mb-4">
-    <%= link to: Routes.post_path(@conn, :show, @post.id) do %><i class="fa-solid fa-xmark"></i> Post<% end %>
-    <%= link to: Routes.trace_path(@conn, :new, @post.id) do %><i class="fa-solid fa-image"></i> Add Trace<% end %>
+    <%= link to: Routes.post_path(@conn, :show, @post.id) do %>Post<% end %>
+    | <%= link to: Routes.trace_path(@conn, :new, @post.id) do %>Trace<% end %>
 </div>
 
 <%= if length(@post.traces) > 0 do %>
