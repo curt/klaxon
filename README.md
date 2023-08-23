@@ -2,15 +2,15 @@
 
 <https://github.com/curt/klaxon>
 
-Klaxon aims to be a lightweight 
+Klaxon aims to be a lightweight, single-author, blog-centric 
 [ActivityPub](https://www.w3.org/TR/activitypub/) server. It is being developed 
 using the excellent [Phoenix Framework](https://www.phoenixframework.org/) and 
 is written mostly in [Elixir](https://elixir-lang.org/).
 
 ## Status
 
-At the moment, Klaxon is mostly just a placeholder, but it is being updated 
-frequently.
+At the moment, Klaxon is mostly just a pre-alpha placeholder, but it is being
+updated periodically.
 
 ## Author
 
