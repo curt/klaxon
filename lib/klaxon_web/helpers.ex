@@ -122,6 +122,10 @@ defmodule KlaxonWeb.Helpers do
     post.title || Snippet.snippify(post.source || post.content_html || captions(post) || "", 140)
   end
 
+  def snippet(%Attachment{} = attachment) do
+    Snippet.snippify(attachment.caption, 140)
+  end
+
   defp captions(%Post{} = post) do
     if post.attachments do
       Enum.reduce(post.attachments, "", fn x, acc -> acc <> "\n\n" <> (x.caption || "") end)

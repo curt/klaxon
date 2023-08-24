@@ -56,6 +56,7 @@ defmodule KlaxonWeb.PostView do
   def post_attachment(conn, %Attachment{} = attachment) do
     %{
       "mediaType" => attachment.media.mime_type,
+      "name" => snippet(attachment),
       "summary" => htmlify_caption(attachment),
       "type" => "Document",
       "url" => Routes.media_url(conn, :show, :post, :full, attachment.media.id)
