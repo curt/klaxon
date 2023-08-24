@@ -18,16 +18,12 @@ defmodule KlaxonWeb.Helpers do
     %{"@context": "https://www.w3.org/ns/activitystreams"}
   end
 
-  # @doc """
-  # Puts ActivityStream `@context` key with
-  # appropriate value onto given object.
-  # """
-  # @spec contextify(map) :: map
-  # def contextify(%{} = object) do
-  #   Map.put(object, "@context", "https://www.w3.org/ns/activitystreams")
-  # end
-
+  @spec mergify(map, any, any) :: map
   def mergify(%{} = object, _key, nil) do
+    object
+  end
+
+  def mergify(%{} = object, _key, []) do
     object
   end
 
