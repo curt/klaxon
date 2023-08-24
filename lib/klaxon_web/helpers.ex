@@ -67,7 +67,9 @@ defmodule KlaxonWeb.Helpers do
   end
 
   defp htmlify_markdown_string(markdown) do
-    String.trim(Earmark.as_html!(markdown, inner_html: true, compact_output: true))
+    Earmark.as_html!(markdown, inner_html: true, compact_output: true)
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 
   @doc """
