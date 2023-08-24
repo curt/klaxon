@@ -58,7 +58,6 @@ defmodule KlaxonWeb.Helpers do
   """
   @spec htmlify_caption(%Attachment{:caption => String.t()}) :: String.t()
   def htmlify_caption(%Attachment{} = attachment) do
-    # String.trim(Earmark.as_html!(attachment.caption, inner_html: true))
     htmlify_markdown_string(attachment.caption)
   end
 
@@ -68,7 +67,7 @@ defmodule KlaxonWeb.Helpers do
   end
 
   defp htmlify_markdown_string(markdown) do
-    String.trim(Earmark.as_html!(markdown, inner_html: true))
+    String.trim(Earmark.as_html!(markdown, inner_html: true, compact_output: true))
   end
 
   @doc """
