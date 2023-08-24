@@ -4,31 +4,31 @@ defmodule Klaxon.Contents.Post do
   alias TagUri
 
   schema "posts" do
-    field :attributed_to, :string, virtual: true
-    field :content_html, :string
-    field :context_uri, :string
-    field :in_reply_to_uri, :string
-    field :origin, Ecto.Enum, values: [:local, :remote], default: :remote
-    field :published_at, :utc_datetime_usec
-    field :slug, :string
-    field :source, :string
-    field :status, Ecto.Enum, values: [:draft, :published, :deleted], default: :draft
-    field :title, :string
-    field :uri, :string
-    field :visibility, Ecto.Enum, values: [:private, :unlisted, :public], default: :public
-    field :lat, :float
-    field :lon, :float
-    field :ele, :float
-    field :location, :string
+    field(:attributed_to, :string, virtual: true)
+    field(:content_html, :string)
+    field(:context_uri, :string)
+    field(:in_reply_to_uri, :string)
+    field(:origin, Ecto.Enum, values: [:local, :remote], default: :remote)
+    field(:published_at, :utc_datetime_usec)
+    field(:slug, :string)
+    field(:source, :string)
+    field(:status, Ecto.Enum, values: [:draft, :published, :deleted], default: :draft)
+    field(:title, :string)
+    field(:uri, :string)
+    field(:visibility, Ecto.Enum, values: [:private, :unlisted, :public], default: :public)
+    field(:lat, :float)
+    field(:lon, :float)
+    field(:ele, :float)
+    field(:location, :string)
 
-    belongs_to :profile, Klaxon.Profiles.Profile, type: EctoBase58
-    has_many :tags, Klaxon.Contents.Tag
-    has_many :attachments, Klaxon.Contents.Attachment
-    has_many :traces, Klaxon.Traces.Trace
+    belongs_to(:profile, Klaxon.Profiles.Profile, type: EctoBase58)
+    has_many(:tags, Klaxon.Contents.Tag)
+    has_many(:attachments, Klaxon.Contents.Attachment)
+    has_many(:traces, Klaxon.Traces.Trace)
 
-    has_one :in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri
-    has_many :replies, __MODULE__, references: :uri, foreign_key: :in_reply_to_uri
-    has_many :conversation, __MODULE__, references: :context_uri, foreign_key: :context_uri
+    has_one(:in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri)
+    has_many(:replies, __MODULE__, references: :uri, foreign_key: :in_reply_to_uri)
+    has_many(:conversation, __MODULE__, references: :context_uri, foreign_key: :context_uri)
 
     timestamps()
   end
@@ -69,7 +69,12 @@ defmodule Klaxon.Contents.Post do
 
   def apply_content_html(changeset) do
     if source = get_change(changeset, :source) do
-      put_change(changeset, :content_html, Earmark.as_html!(source))
+      put_change(
+        changeset,
+        :content_html,
+        source
+        |> Earmark.as_html!(compact_output: true)
+      )
     end || changeset
   end
 
