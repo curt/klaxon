@@ -134,11 +134,11 @@ defmodule Klaxon.Media do
   end
 
   defp maybe_mogrify(%Image{} = image, :avatar) do
-    image |> resize_to_fill("64x64") |> maybe_downscale()
+    image |> gravity("Center") |> resize_to_fill("64x64") |> maybe_downscale()
   end
 
   defp maybe_mogrify(%Image{} = image, :gallery) do
-    image |> resize_to_fill("256x256") |> maybe_downscale()
+    image |> gravity("Center") |> resize_to_fill("256x256") |> maybe_downscale()
   end
 
   defp maybe_mogrify(%Image{} = image, :full) do
