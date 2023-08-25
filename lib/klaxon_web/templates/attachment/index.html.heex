@@ -13,7 +13,10 @@
       <article class="mb-2">
         <div><img {[src: Routes.media_path(@conn, :show, :post, :gallery, attachment.media.id), class: "rounded w-[256px] min-w-[256px] h-auto" ]}/></div>
         <div><%= raw htmlify_caption(attachment) %></div>
-        <div><%= link to: Routes.attachment_path(@conn, :edit, @post.id, attachment.id) do %>Edit<% end %></div>
+        <div>
+          <%= link to: Routes.attachment_path(@conn, :edit, @post.id, attachment.id) do %>Edit<% end %>
+          | <%= link to: Routes.attachment_path(@conn, :delete?, @post.id, attachment.id) do %>Delete<% end %>
+        </div>
       </article>
     <% end %>
   <% end %>

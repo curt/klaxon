@@ -1,0 +1,15 @@
+<h1>Delete Attachment?</h1>
+<div class="my-4">
+  <div>
+    <img {[src: Routes.media_path(@conn, :show, :post, :gallery, @attachment.media.id), class: "rounded h-auto mt-4 mb-2" ]}/>
+  </div>
+  <p>
+    <%= @attachment.caption %>
+  </p>
+<%= form_for @conn, Routes.attachment_path(@conn, :delete, @post.id, @attachment.id), [multipart: true], fn _f -> %>
+  <div class="flex justify-end gap-6 md:col-span-6 items-center">
+    <div><%= link to: Routes.attachment_path(@conn, :index, @post.id) do %>Cancel<% end %></div>
+    <div><%= submit "Delete", class: "mt-1 px-4 block" %></div>
+  </div>
+<% end %>
+</div>

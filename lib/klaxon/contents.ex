@@ -300,6 +300,11 @@ defmodule Klaxon.Contents do
     |> Repo.update()
   end
 
+  def delete_post_attachment(attachment) do
+    attachment
+    |> Repo.delete()
+  end
+
   defp time_parse_rfc3339_or_now(nil) do
     Timex.now()
   end
