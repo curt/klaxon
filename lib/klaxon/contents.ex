@@ -307,4 +307,20 @@ defmodule Klaxon.Contents do
   defp time_parse_rfc3339_or_now(rfc3339_datetime_string) do
     Timex.parse!(rfc3339_datetime_string, "{RFC3339}")
   end
+
+  def update_public_posts_content_html() do
+    for p <- Klaxon.Repo.all(get_posts_local_published_all()) do
+      if p.source do
+        Ecto.Changeset.change(p)
+        |> Klaxon.Contents.Post.put_change_content_html(p.source)
+        |> Klaxon.Repo.update()
+      end
+    end
+  end
+
+  defp get_posts_local_published_all() do
+    from(posts in Post, as: :posts)
+    |> Post.where_origin([:local])
+    |> Post.where_status([:published])
+  end
 end

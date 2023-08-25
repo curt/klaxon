@@ -69,13 +69,17 @@ defmodule Klaxon.Contents.Post do
 
   def apply_content_html(changeset) do
     if source = get_change(changeset, :source) do
-      put_change(
-        changeset,
-        :content_html,
-        source
-        |> Earmark.as_html!(compact_output: true)
-      )
+      put_change_content_html(changeset, source)
     end || changeset
+  end
+
+  def put_change_content_html(changeset, source) do
+    force_change(
+      changeset,
+      :content_html,
+      source
+      |> Earmark.as_html!(compact_output: true)
+    )
   end
 
   def apply_published_at(changeset) do
