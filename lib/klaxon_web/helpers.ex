@@ -118,12 +118,28 @@ defmodule KlaxonWeb.Helpers do
     {"Klaxon", "klaxon@#{conn.host}"}
   end
 
+  @spec snippet(%Attachment{} | %Post{}) :: nil | binary
   def snippet(%Post{} = post) do
-    post.title || Snippet.snippify(post.source || post.content_html || captions(post) || "", 140)
+    post.title ||
+      Snippet.snippify(
+        post.source ||
+          html_textify(post.content_html) ||
+          captions(post) ||
+          "",
+        140
+      )
   end
 
   def snippet(%Attachment{} = attachment) do
     Snippet.snippify(attachment.caption, 140)
+  end
+
+  @spec html_textify(nil | binary) :: nil | binary
+  def html_textify(html) do
+    if html do
+      Floki.parse_fragment!(html)
+      |> Floki.text()
+    end
   end
 
   defp captions(%Post{} = post) do
