@@ -4,7 +4,7 @@
   <%= @inner_content %>
   <footer class="py-1 border-t text-sm">
     <p>
-        <a {[href: Routes.profile_path(@conn, :index)]}>Home</a>
+        <a {[href: Routes.profile_path(@conn, :index)]}><%= (assigns[:current_profile] && @current_profile.site_title) || "Home" %></a>
         | <a {[href: Routes.post_path(@conn, :index)]}>Posts</a>
         <%= render "_current_user.html", assigns %>
         || Klaxon: <%= link to: "https://github.com/curt/klaxon/tree/#{git_revision()}" do %><%= String.slice(git_revision(), 0, 7) %><% end %>
