@@ -4,17 +4,26 @@ defmodule KlaxonWeb.NodeInfoView do
   def render("well_known.json", %{conn: conn}) do
     %{
       links: [
-        %{
-          href: Routes.node_info_url(conn, :version, "2.0"),
-          rel: "http://nodeinfo.diaspora.software/ns/schema/2.0"
-        }
+        well_known_map(conn, "2.0"),
+        well_known_map(conn, "2.1")
       ]
     }
   end
 
-  def render("version.json", %{version: "2.0"}) do
+  def render("version.json", %{version: "2.0"}), do: version_map("2.0")
+
+  def render("version.json", %{version: "2.1"}), do: version_map("2.1")
+
+  defp well_known_map(conn, version) do
     %{
-      version: "2.0",
+      href: Routes.node_info_url(conn, :version, version),
+      rel: "http://nodeinfo.diaspora.software/ns/schema/#{version}"
+    }
+  end
+
+  defp version_map(version) do
+    %{
+      version: version,
       software: %{
         name: "Klaxon",
         version: "pre-alpha"
