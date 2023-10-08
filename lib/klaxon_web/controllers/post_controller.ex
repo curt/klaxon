@@ -61,13 +61,22 @@ defmodule KlaxonWeb.PostController do
 
   def update(conn, %{"id" => id, "post" => post_params} = params) do
     IO.inspect(params)
+
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <- Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
       case Contents.update_local_post(post, post_params, conn.host) do
         {:ok, post} ->
-          conn
-          |> put_flash(:info, "Post updated successfully.")
-          |> redirect(to: Routes.post_path(conn, :show, post))
+          case post.status do
+            :deleted ->
+              conn
+              |> put_flash(:info, "Post deleted successfully.")
+              |> redirect(to: Routes.post_path(conn, :index))
+
+            _ ->
+              conn
+              |> put_flash(:info, "Post updated successfully.")
+              |> redirect(to: Routes.post_path(conn, :show, post))
+          end
 
         {:error, %Ecto.Changeset{} = changeset} ->
           render(conn, "edit.html", post: post, changeset: changeset)
