@@ -29,7 +29,7 @@
     </div>
   <% end %>
   <%= if @post.lat && @post.lon do %>
-  <div id="map" class="my-4 h-[384px] max-w-[1024px]"></div>
+  <div id="map"></div>
   <script>
 const center = [<%= @post.lat %>, <%= @post.lon %>];
 const description = "<%= @post.location || "" %>";
@@ -44,7 +44,7 @@ if (description.length > 0) {
 }
   </script>
   <% end %>
-  <div class="post-byline ">
+  <div class="post-byline">
     <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "post-avatar", alt: @post.profile.display_name ]}/></div>
     <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author", rel: "author"]}><%= @post.profile.display_name %></a></div>
     <div>
