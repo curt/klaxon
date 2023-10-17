@@ -2,7 +2,7 @@
   <%= unless is_nil(@post.title) do %>
     <h1 class="post-title p-name"><%= @post.title %></h1>
   <% else %>
-    <h1 style="display: none;" class="p-name">Untitled Article</h1>
+    <h1 style="display: none;" class="p-name"><%= String.trim(Earmark.as_html!(snippet(@post), inner_html: true)) %></h1>
   <% end %>
 
   <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
@@ -15,15 +15,15 @@
     <% end %>
   <% end %>
 
-  <div class="post-content e-content my-4">
+  <div class="post-content e-content">
     <%= raw @post.content_html %>
   </div>
   <%= if length(@post.attachments) > 0 do %>
-    <div class="flex flex-wrap gap-4 mt-4">
+    <div class="post-attachments">
       <%= for attachment <- @post.attachments do %>
-        <div class="post-attachment max-w-[1024px]">
-          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto mt-4 mb-2", alt: htmlify_caption(attachment) ]}/>
-          <div class="post-attachment-caption mt-2 mb-4"><%= raw htmlify_caption(attachment) %></div>
+        <div class="post-attachment">
+          <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), alt: htmlify_caption(attachment) ]}/>
+          <div class="post-attachment-caption"><%= raw htmlify_caption(attachment) %></div>
         </div>
       <% end %>
     </div>
@@ -44,17 +44,15 @@ if (description.length > 0) {
 }
   </script>
   <% end %>
-  <div class="post-byline mt-4 py-4 border-t text-sm">
-      <div class="flex flex-wrap gap-1 items-center">
-        <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded w-[32px] min-w-[32px] h-auto", alt: @post.profile.display_name ]}/></div>
-        <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a></div>
-        <div>
-          <%= status_action(@post) %> <a {[href: @post.uri]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
-          <%= if length(@post.tags) > 0 do %>tagged
-            <%= Enum.map_intersperse(Enum.sort(@post.tags, fn t1, t2 -> t1.label <= t2.label end), ", ", fn t -> %>
-              <a {[href: Routes.labels_path(@conn, :show, t.label.slug)]}><%= t.label.title %></a><% end) %>
-          <% end %>
-        </div>
-      </div>
+  <div class="post-byline ">
+    <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "post-avatar", alt: @post.profile.display_name ]}/></div>
+    <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author", rel: "author"]}><%= @post.profile.display_name %></a></div>
+    <div>
+      <%= status_action(@post) %> <a {[href: @post.uri, class: "u-url u-uid"]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
+      <%= if length(@post.tags) > 0 do %>tagged
+        <%= Enum.map_intersperse(Enum.sort(@post.tags, fn t1, t2 -> t1.label <= t2.label end), ", ", fn t -> %>
+          <a {[href: Routes.labels_path(@conn, :show, t.label.slug)]}><%= t.label.title %></a><% end) %>
+      <% end %>
+    </div>
   </div>
 </article>

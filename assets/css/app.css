@@ -153,4 +153,26 @@
   td, th {
     @apply p-1;
   }
+
+  .post-content {
+    @apply my-4;
+  }
+  .post-attachments {
+    @apply flex flex-wrap gap-4 mt-4;
+  }
+  .post-attachment {
+    @apply max-w-[1024px];
+  }
+  .post-attachment img {
+    @apply rounded h-auto mt-4 mb-2;
+  }
+  .post-attachment-caption {
+    @apply mt-2 mb-4;
+  }
+  .post-byline {
+    @apply mt-4 py-4 border-t text-sm flex flex-wrap gap-1 items-center; 
+  }
+  .post-avatar {
+    @apply rounded w-[32px] min-w-[32px] h-auto;
+  }
 }
