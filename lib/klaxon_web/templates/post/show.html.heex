@@ -1,13 +1,13 @@
-<article class="h-entry">
+<article class="post h-entry">
   <%= unless is_nil(@post.title) do %>
-    <h1 class="p-name"><%= @post.title %></h1>
+    <h1 class="post-title p-name"><%= @post.title %></h1>
   <% else %>
     <h1 style="display: none;" class="p-name">Untitled Article</h1>
   <% end %>
 
   <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
     <%= if @post.origin == :local do %>
-      <div>
+      <div class="post-actions">
         <%= link to: Routes.post_path(@conn, :edit, @post) do %>Edit<% end %>
         | <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %>Attachments<% end %>
         | <%= link to: Routes.trace_path(@conn, :index, @post.id) do %>Traces<% end %>
@@ -15,15 +15,15 @@
     <% end %>
   <% end %>
 
-  <div class="e-content my-4">
+  <div class="post-content e-content my-4">
     <%= raw @post.content_html %>
   </div>
   <%= if length(@post.attachments) > 0 do %>
     <div class="flex flex-wrap gap-4 mt-4">
       <%= for attachment <- @post.attachments do %>
-        <div>
+        <div class="post-attachment max-w-[1024px]">
           <img {[src: Routes.media_path(@conn, :show, :post, :full, attachment.media.id), class: "rounded h-auto mt-4 mb-2", alt: htmlify_caption(attachment) ]}/>
-          <div class="mt-2 mb-4"><%= raw htmlify_caption(attachment) %></div>
+          <div class="post-attachment-caption mt-2 mb-4"><%= raw htmlify_caption(attachment) %></div>
         </div>
       <% end %>
     </div>
@@ -44,7 +44,7 @@ if (description.length > 0) {
 }
   </script>
   <% end %>
-  <div class="mt-4 py-4 border-t text-sm">
+  <div class="post-byline mt-4 py-4 border-t text-sm">
       <div class="flex flex-wrap gap-1 items-center">
         <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "rounded w-[32px] min-w-[32px] h-auto", alt: @post.profile.display_name ]}/></div>
         <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author h-card"]}><%= @post.profile.display_name %></a></div>
