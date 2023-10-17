@@ -20,7 +20,10 @@ defmodule KlaxonWeb.Endpoint do
     at: "/",
     from: :klaxon,
     gzip: false,
-    only: ~w(assets fonts klaxon images favicon.ico robots.txt style.css)
+    only: ~w(assets fonts klaxon images android-chrome-192x192.png
+      android-chrome-512x512.png apple-touch-icon.png favicon.ico
+      favicon-16x16.png favicon-32x32.png robots.txt site.webmanifest
+      style.css)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
