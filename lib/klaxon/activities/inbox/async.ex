@@ -124,7 +124,7 @@ defmodule Klaxon.Activities.Inbox.Async do
         object |> Map.put(key, id)
       end || object
     else
-      Logger.debug("Unable to normalize `id` of #{key} from: #{inspect(object)}")
+      Logger.info("Unable to normalize `id` of #{key} from: #{inspect(object)}")
       throw(:reject)
     end
   end
@@ -133,12 +133,12 @@ defmodule Klaxon.Activities.Inbox.Async do
     case URI.new(id) do
       {:ok, uri} ->
         unless uri.scheme in ["http", "https"] and uri.host do
-          Logger.debug("Scheme '#{uri.scheme}' not a publicly dereferencable URI: #{id}")
+          Logger.info("Scheme '#{uri.scheme}' not a publicly dereferencable URI: #{id}")
           throw(:reject)
         end || id
 
       _ ->
-        Logger.debug("Not a valid URI: #{id}")
+        Logger.info("Not a valid URI: #{id}")
         throw(:reject)
     end
   end
@@ -148,7 +148,7 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   defp validate_publicly_dereferencable_uri(%{} = obj) do
-    Logger.debug("Unable to validate as publicly dereferencable: #{inspect(obj)}")
+    Logger.info("Unable to validate as publicly dereferencable: #{inspect(obj)}")
     throw(:reject)
   end
 
@@ -170,7 +170,7 @@ defmodule Klaxon.Activities.Inbox.Async do
 
     # TODO: Make this configurable.
     if abs(diff) > 30 do
-      Logger.debug("Timestamps different by greater than allowed tolerance")
+      Logger.info("Timestamps different by greater than allowed tolerance")
       throw(:reject)
     end
 
@@ -228,7 +228,7 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"id" => profile_id}} = _args
        ) do
     if Blocks.actor_blocked?(actor_uri, profile_id) do
-      Logger.debug("Actor blocked: #{actor_uri}")
+      Logger.info("Actor blocked: #{actor_uri}")
       throw(:reject)
     end || activity
   end
@@ -238,7 +238,7 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"id" => profile_id}} = _args
        ) do
     if Blocks.object_blocked?(object, profile_id) do
-      Logger.debug("Object blocked: #{inspect(object)}")
+      Logger.info("Object blocked: #{inspect(object)}")
       throw(:reject)
     end || activity
   end
@@ -247,13 +247,13 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"actor" => %{uri: actor_uri}, "object" => %{attributed_to: attributed_to}} = activity
        ) do
     unless actor_uri == attributed_to do
-      Logger.debug("Failed to verify `attributed_to` against `actor`: #{activity}")
+      Logger.info("Failed to verify `attributed_to` against `actor`: #{activity}")
       throw(:reject)
     end || activity
   end
 
   defp validate_attributed_to_against_actor(activity) do
-    Logger.debug("Unable to verify `attributed_to` against `actor`: #{activity}")
+    Logger.info("Unable to verify `attributed_to` against `actor`: #{activity}")
     throw(:reject)
   end
 
@@ -283,6 +283,7 @@ defmodule Klaxon.Activities.Inbox.Async do
        ) do
     unless apparent_direct_message?(object, endpoint) do
       Logger.info("Not apparently a direct message")
+
       activity
       |> maybe_normalize_id("object")
       |> dereference_object(args)
@@ -347,7 +348,7 @@ defmodule Klaxon.Activities.Inbox.Async do
 
   defp throw_reject_if_false(arg) do
     unless arg do
-      Logger.debug("false object rejected")
+      Logger.info("false object rejected: #{inspect(arg)}")
       throw(:reject)
     end || arg
   end
