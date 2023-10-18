@@ -282,10 +282,14 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"uri" => endpoint}} = args
        ) do
     unless apparent_direct_message?(object, endpoint) do
+      Logger.info("Not apparently a direct message")
       activity
       |> maybe_normalize_id("object")
       |> dereference_object(args)
-    end || activity
+    else
+      Logger.info("Apparently a direct message")
+      activity
+    end
   end
 
   defp dereference_object(%{"object" => object_uri} = activity, _args)
