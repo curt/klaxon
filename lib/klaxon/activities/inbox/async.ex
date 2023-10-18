@@ -36,7 +36,11 @@ defmodule Klaxon.Activities.Inbox.Async do
       :ok
     rescue
       ex ->
-        Logger.error("Failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}" <> Exception.format(:error, ex, __STACKTRACE__))
+        Logger.error(
+          "Failed inbound activity: #{inspect(activity)}\n#{inspect(ex)}" <>
+            Exception.format(:error, ex, __STACKTRACE__)
+        )
+
         {:cancel, inspect(ex)}
     catch
       :reject ->
@@ -57,8 +61,7 @@ defmodule Klaxon.Activities.Inbox.Async do
       ) do
     activity =
       activity
-      |> maybe_normalize_id("object")
-      |> dereference_object(args)
+      |> maybe_dereference_object(args)
       |> maybe_block_object(args)
       |> validate_attributed_to_against_actor()
       |> validate_acceptability("object")
@@ -91,7 +94,8 @@ defmodule Klaxon.Activities.Inbox.Async do
   def process(
         %{"type" => "Pong", "to" => _to, "object" => object} = activity,
         %{"profile" => %{"uri" => endpoint}} = _args
-      ) when is_binary(object) do
+      )
+      when is_binary(object) do
     activity
     |> maybe_normalize_id("to")
     |> Activities.receive_pong(endpoint)
@@ -273,6 +277,17 @@ defmodule Klaxon.Activities.Inbox.Async do
     Map.put(activity, "actor", profile)
   end
 
+  defp maybe_dereference_object(
+         %{"object" => object} = activity,
+         %{"profile" => %{"uri" => endpoint}} = args
+       ) do
+    unless apparent_direct_message?(object, endpoint) do
+      activity
+      |> maybe_normalize_id("object")
+      |> dereference_object(args)
+    end || activity
+  end
+
   defp dereference_object(%{"object" => object_uri} = activity, _args)
        when is_binary(object_uri) do
     post =
@@ -284,6 +299,31 @@ defmodule Klaxon.Activities.Inbox.Async do
 
     Logger.debug("Dereferenced object: #{object_uri}\n  post: #{inspect(post)}")
     Map.put(activity, "object", post)
+  end
+
+  defp apparent_direct_message?(object, endpoint) do
+    Enum.any?(
+      for n <- ["to", "cc", "bto", "bcc"] do
+        attribute_contains?(object[n], endpoint) &&
+          Enum.all?(
+            for m <- ["https://www.w3.org/ns/activitystreams#Public", "Public", "as:Public"] do
+              !attribute_contains?(object[n], m)
+            end
+          )
+      end
+    )
+  end
+
+  defp attribute_contains?(attr, endpoint) when is_binary(attr) do
+    attr == endpoint
+  end
+
+  defp attribute_contains?(attr, endpoint) when is_list(attr) do
+    Enum.any?(attr, fn x -> x == endpoint end)
+  end
+
+  defp attribute_contains?(_attr, _endpoint) do
+    false
   end
 
   defp maybe_re_dereference(%{id: _id} = entity, _entity_uri, _fun) do
