@@ -127,7 +127,7 @@
     @apply text-lg;
   }
   body {
-    @apply font-serif bg-slate-800 text-slate-200;
+    @apply font-serif bg-slate-900 text-slate-300;
   }
   input, textarea, button, select {
     @apply font-mono text-slate-900;
@@ -136,7 +136,7 @@
   [type='button'],
   [type='reset'],
   [type='submit'] {
-    @apply p-2 rounded bg-slate-200 hover:bg-french-fuchsia;
+    @apply p-2 rounded bg-slate-300 hover:bg-french-fuchsia;
   }
   h1 {
     @apply text-4xl my-4 pb-4 font-extrabold border-b;
@@ -148,7 +148,7 @@
     @apply my-2;
   }
   a {
-    @apply text-french-fuchsia cursor-pointer border-b border-french-fuchsia hover:bg-french-fuchsia hover:text-slate-200;
+    @apply text-french-fuchsia cursor-pointer border-b border-french-fuchsia hover:bg-french-fuchsia hover:text-slate-300;
   }
   td, th {
     @apply p-1;
