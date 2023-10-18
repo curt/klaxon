@@ -234,7 +234,7 @@ defmodule Klaxon.Contents do
   end
 
   @spec new_public_post_from_response(map) :: map
-  defp new_public_post_from_response(%{"id" => post_uri} = body) do
+  def new_public_post_from_response(%{"id" => post_uri} = body) do
     profile_id = Map.get(body, "attributedTo")
 
     unless profile_id do
@@ -255,7 +255,7 @@ defmodule Klaxon.Contents do
     |> Map.put(:attributed_to, profile_id)
   end
 
-  defp new_public_post_from_response(body) do
+  def new_public_post_from_response(body) do
     Logger.info("public post #{inspect(body)} does not have required attributes")
     nil
   end

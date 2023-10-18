@@ -289,7 +289,9 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> dereference_object(args)
     else
       Logger.info("Apparently a direct message")
+
       activity
+      |> Map.put("object", Contents.new_public_post_from_response(object))
     end
   end
 
