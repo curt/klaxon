@@ -247,13 +247,13 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"actor" => %{uri: actor_uri}, "object" => %{attributed_to: attributed_to}} = activity
        ) do
     unless actor_uri == attributed_to do
-      Logger.info("Failed to verify `attributed_to` against `actor`: #{activity}")
+      Logger.info("Failed to verify `attributed_to` against `actor`: #{inspect(activity)}")
       throw(:reject)
     end || activity
   end
 
   defp validate_attributed_to_against_actor(activity) do
-    Logger.info("Unable to verify `attributed_to` against `actor`: #{activity}")
+    Logger.info("Unable to verify `attributed_to` against `actor`: #{inspect(activity)}")
     throw(:reject)
   end
 
