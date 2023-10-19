@@ -17,7 +17,7 @@ defmodule Klaxon.Activities.Inbox.Worker do
 
   @impl Oban.Worker
   def perform(args) do
-    Logger.warn("bad args in worker: #{inspect(args)}")
+    Logger.warning("bad args in worker: #{inspect(args)}")
     {:cancel, "no matching args pattern: #{inspect(args)}"}
   end
 end

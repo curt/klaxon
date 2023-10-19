@@ -15,14 +15,14 @@ defmodule Klaxon.Syndication.Scheduler do
         end
         :ok
       _ ->
-        Logger.warn("no subscriptions found: #{inspect(args)}")
+        Logger.warning("no subscriptions found: #{inspect(args)}")
         {:cancel, "no subscriptions found: #{inspect(args)}"}
     end
   end
 
   @impl Oban.Worker
   def perform(args) do
-    Logger.warn("no matching args in worker: #{inspect(args)}")
+    Logger.warning("no matching args in worker: #{inspect(args)}")
     {:cancel, "no matching args in worker: #{inspect(args)}"}
   end
 end

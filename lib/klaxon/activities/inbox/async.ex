@@ -118,7 +118,7 @@ defmodule Klaxon.Activities.Inbox.Async do
 
   defp maybe_normalize_id(%{} = object, key) do
     if attr = Map.get(object, key) do
-      id = validate_publicly_dereferencable_uri(attr)
+      id = validate_publicly_dereferenceable_uri(attr)
 
       unless id == attr do
         object |> Map.put(key, id)
@@ -129,11 +129,11 @@ defmodule Klaxon.Activities.Inbox.Async do
     end
   end
 
-  defp validate_publicly_dereferencable_uri(id) when is_binary(id) do
+  defp validate_publicly_dereferenceable_uri(id) when is_binary(id) do
     case URI.new(id) do
       {:ok, uri} ->
         unless uri.scheme in ["http", "https"] and uri.host do
-          Logger.info("Scheme '#{uri.scheme}' not a publicly dereferencable URI: #{id}")
+          Logger.info("Scheme '#{uri.scheme}' not a publicly dereferenceable URI: #{id}")
           throw(:reject)
         end || id
 
@@ -143,12 +143,12 @@ defmodule Klaxon.Activities.Inbox.Async do
     end
   end
 
-  defp validate_publicly_dereferencable_uri(%{"id" => id}) when is_binary(id) do
-    validate_publicly_dereferencable_uri(id)
+  defp validate_publicly_dereferenceable_uri(%{"id" => id}) when is_binary(id) do
+    validate_publicly_dereferenceable_uri(id)
   end
 
-  defp validate_publicly_dereferencable_uri(%{} = obj) do
-    Logger.info("Unable to validate as publicly dereferencable: #{inspect(obj)}")
+  defp validate_publicly_dereferenceable_uri(%{} = obj) do
+    Logger.info("Unable to validate as publicly dereferenceable: #{inspect(obj)}")
     throw(:reject)
   end
 

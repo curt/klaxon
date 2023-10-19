@@ -15,14 +15,14 @@ defmodule Klaxon.Syndication.Mailer do
       :ok
     else
       _ ->
-        Logger.warn("subscription not found: #{inspect(args)}")
+        Logger.warning("subscription not found: #{inspect(args)}")
         {:cancel, "subscription not found: #{inspect(args)}"}
     end
   end
 
   @impl Oban.Worker
   def perform(args) do
-    Logger.warn("no matching args in worker: #{inspect(args)}")
+    Logger.warning("no matching args in worker: #{inspect(args)}")
     {:cancel, "no matching args in worker: #{inspect(args)}"}
   end
 end
