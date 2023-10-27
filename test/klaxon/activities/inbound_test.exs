@@ -97,6 +97,22 @@ defmodule Klaxon.Activities.InboundTest do
       assert unfollow.status == :undone
     end
 
+    test "with object id only" do
+      follow = follow_fixture()
+
+      {:ok, unfollow} =
+        Async.process(
+          %{
+            "type" => "Undo",
+            "actor" => %Profile{uri: follow.follower_uri},
+            "object" => follow.uri
+          },
+          %{"profile" => %{"uri" => "http://localhost:4002/"}}
+        )
+
+      assert unfollow.status == :undone
+    end
+
     test "with bad actor" do
       _follow = follow_fixture()
 

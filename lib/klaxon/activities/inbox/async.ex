@@ -1,6 +1,7 @@
 defmodule Klaxon.Activities.Inbox.Async do
   require Logger
   alias Klaxon.Activities
+  alias Klaxon.Activities.Follow
   alias Klaxon.Blocks
   alias Klaxon.Contents
   alias Klaxon.Profiles
@@ -129,6 +130,28 @@ defmodule Klaxon.Activities.Inbox.Async do
       |> validate_attribute_against_required_value("object", endpoint)
 
     Activities.receive_undo_follow(object["id"], follower_id, object["object"], endpoint)
+  end
+
+  def process(
+        %{
+          "type" => "Undo",
+          "actor" => %{uri: _follower_id},
+          "object" => object
+        } = activity,
+        %{"profile" => %{"uri" => _endpoint}} = args
+      )
+      when is_binary(object) do
+    case Activities.resolve_undoable(object) do
+      %Follow{} = follow ->
+        process(
+          Map.put(activity, "object", %{
+            "type" => "Follow",
+            "actor" => follow.follower_uri,
+            "object" => follow.followee_uri
+          }),
+          args
+        )
+    end
   end
 
   def process(activity, args) do

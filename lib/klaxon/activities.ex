@@ -175,6 +175,15 @@ defmodule Klaxon.Activities do
     end
   end
 
+  def resolve_undoable(uri) do
+    with {:error, _} <- get_follow(uri, nil, nil) do
+      nil
+    else
+      {:ok, struct} -> struct
+      _ -> :error
+    end
+  end
+
   @spec send_activity(map, String.t(), String.t()) :: any
   defp send_activity(%{} = activity, to, profile) do
     {:ok, from} = Profiles.get_local_profile_by_uri(profile)

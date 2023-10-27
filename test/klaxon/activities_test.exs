@@ -5,7 +5,6 @@ defmodule Klaxon.ActivitiesTest do
 
   describe "follows" do
     alias Klaxon.Activities.Follow
-
     import Klaxon.ActivitiesFixtures
 
     @invalid_attrs %{status: nil, uri: nil, follower_uri: nil, followee_uri: nil}
@@ -146,6 +145,21 @@ defmodule Klaxon.ActivitiesTest do
 
       assert updated.uri == follow.uri
       assert updated.status == :undone
+    end
+  end
+
+  describe "resolves_undoable" do
+    alias Klaxon.Activities.Follow
+    import Klaxon.ActivitiesFixtures
+
+    test "with nothing" do
+      assert is_nil(Activities.resolve_undoable("random uri"))
+    end
+
+    test "with follow" do
+      follow = follow_fixture()
+
+      assert %Follow{} = Activities.resolve_undoable(follow.uri)
     end
   end
 end
