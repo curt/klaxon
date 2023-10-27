@@ -1,6 +1,9 @@
 defmodule Klaxon.Activities.InboundTest do
-  use ExUnit.Case
+  use Klaxon.DataCase
+  alias Klaxon.Profiles.Profile
+  alias Klaxon.Activities.Follow
   alias Klaxon.Activities.Inbox.Sync
+  alias Klaxon.Activities.Inbox.Async
 
   @good_payload %{
     "actor" => "https://example.com/actor/joe",
@@ -14,6 +17,105 @@ defmodule Klaxon.Activities.InboundTest do
        "headers=\"(request-target) host date\",signature=\"HUxc9BS3P/kPhS\""},
     {"host", "example.com"}
   ]
+
+  describe "inbound follow" do
+    test "with all good arguments" do
+      {:ok, follow} =
+        Async.process(
+          %{
+            "type" => "Follow",
+            "actor" => %Profile{uri: "https://example.com/actor/joe"},
+            "object" => "http://localhost:4002/"
+          },
+          %{"profile" => %{"uri" => "http://localhost:4002/"}}
+        )
+
+      assert [follow] == Repo.all(Follow)
+    end
+
+    test "with an id" do
+      {:ok, follow} =
+        Async.process(
+          %{
+            "type" => "Follow",
+            "id" => "data:stuff beep boo",
+            "actor" => %Profile{uri: "https://example.com/actor/joe"},
+            "object" => "http://localhost:4002/"
+          },
+          %{"profile" => %{"uri" => "http://localhost:4002/"}}
+        )
+
+      assert [follow] == Repo.all(Follow)
+    end
+
+    test "with bad object or endpoint" do
+      assert catch_throw(
+               Async.process(
+                 %{
+                   "type" => "Follow",
+                   "actor" => %Profile{uri: "https://example.com/actor/joe"},
+                   "object" => "http://example.local:4002/"
+                 },
+                 %{"profile" => %{"uri" => "http://localhost:4002/"}}
+               )
+             ) == :reject
+    end
+
+    test "with missing actor" do
+      assert catch_throw(
+               Async.process(
+                 %{
+                   "type" => "Follow",
+                   "object" => "http://localhost:4002/"
+                 },
+                 %{"profile" => %{"uri" => "http://localhost:4002/"}}
+               )
+             ) == :reject
+    end
+  end
+
+  describe "inbound undo follow" do
+    import Klaxon.ActivitiesFixtures
+
+    test "with all good arguments" do
+      follow = follow_fixture()
+
+      {:ok, unfollow} =
+        Async.process(
+          %{
+            "type" => "Undo",
+            "actor" => %Profile{uri: follow.follower_uri},
+            "object" => %{
+              "type" => "Follow",
+              "actor" => follow.follower_uri,
+              "object" => follow.followee_uri
+            }
+          },
+          %{"profile" => %{"uri" => "http://localhost:4002/"}}
+        )
+
+      assert unfollow.status == :undone
+    end
+
+    test "with bad actor" do
+      _follow = follow_fixture()
+
+      assert catch_throw(
+               Async.process(
+                 %{
+                   "type" => "Undo",
+                   "actor" => %Profile{uri: "https://example.com/actor/joe"},
+                   "object" => %{
+                     "type" => "Follow",
+                     "actor" => "https://example.com/actor/jim",
+                     "object" => "http://localhost:4002/"
+                   }
+                 },
+                 %{"profile" => %{"uri" => "http://localhost:4002/"}}
+               )
+             ) == :reject
+    end
+  end
 
   describe "`Klaxon.Activities.Sync.request_well_formed?`" do
     test "with all good arguments" do

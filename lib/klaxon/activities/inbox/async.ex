@@ -101,6 +101,36 @@ defmodule Klaxon.Activities.Inbox.Async do
     |> Activities.receive_pong(endpoint)
   end
 
+  def process(
+        %{"type" => "Follow", "actor" => %Profile{uri: follower_id}} = activity,
+        %{"profile" => %{"uri" => endpoint}} = _args
+      ) do
+    activity =
+      activity
+      |> maybe_normalize_id("object")
+      |> validate_attribute_against_required_value("object", endpoint)
+
+    Activities.receive_follow(activity["id"], follower_id, activity["object"], endpoint)
+  end
+
+  def process(
+        %{
+          "type" => "Undo",
+          "actor" => %Profile{uri: follower_id},
+          "object" => %{"type" => "Follow"} = object
+        } = _activity,
+        %{"profile" => %{"uri" => endpoint}} = _args
+      ) do
+    object =
+      object
+      |> maybe_normalize_id("actor")
+      |> maybe_normalize_id("object")
+      |> validate_attribute_against_required_value("actor", follower_id)
+      |> validate_attribute_against_required_value("object", endpoint)
+
+    Activities.receive_undo_follow(object["id"], follower_id, object["object"], endpoint)
+  end
+
   def process(activity, args) do
     Logger.info("Unprocessable\n  activity: #{inspect(activity)}\n  args: #{inspect(args)}")
     throw(:reject)
@@ -154,6 +184,13 @@ defmodule Klaxon.Activities.Inbox.Async do
 
   defp validate_timestamps(
          activity,
+         %{"ignore_headers" => true} = _args
+       ) do
+    activity
+  end
+
+  defp validate_timestamps(
+         activity,
          %{"headers" => headers, "requested_at" => requested_at} = args
        )
        when is_list(headers) do
@@ -178,6 +215,10 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   # TODO: implement
+  defp validate_signature(activity, %{"ignore_headers" => true} = _args) do
+    activity
+  end
+
   defp validate_signature(activity, %{"headers" => headers} = args) do
     Logger.debug("verifying signature in args #{inspect(args)}")
 
@@ -239,6 +280,13 @@ defmodule Klaxon.Activities.Inbox.Async do
        ) do
     if Blocks.object_blocked?(object, profile_id) do
       Logger.info("Object blocked: #{inspect(object)}")
+      throw(:reject)
+    end || activity
+  end
+
+  defp validate_attribute_against_required_value(activity, attr, value) do
+    unless activity[attr] == value do
+      Logger.info("Failed to verify `#{attr}` equals #{inspect(value)}: #{inspect(activity)}")
       throw(:reject)
     end || activity
   end
