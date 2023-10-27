@@ -102,7 +102,7 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   def process(
-        %{"type" => "Follow", "actor" => %Profile{uri: follower_id}} = activity,
+        %{"type" => "Follow", "actor" => %{uri: follower_id}} = activity,
         %{"profile" => %{"uri" => endpoint}} = _args
       ) do
     activity =
@@ -116,7 +116,7 @@ defmodule Klaxon.Activities.Inbox.Async do
   def process(
         %{
           "type" => "Undo",
-          "actor" => %Profile{uri: follower_id},
+          "actor" => %{uri: follower_id},
           "object" => %{"type" => "Follow"} = object
         } = _activity,
         %{"profile" => %{"uri" => endpoint}} = _args
