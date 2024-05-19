@@ -93,6 +93,7 @@ defmodule KlaxonWeb.Router do
     get "/posts/:post_id/traces/new", TraceController, :new
     get "/posts/:post_id/traces/:id/edit", TraceController, :edit
     get "/posts/:post_id/traces/:id", TraceController, :show
+    get "/posts/:post_id/traces/:id/geo", TraceController, :geo
     put "/posts/:post_id/traces/:id", TraceController, :update
     patch "/posts/:post_id/traces/:id", TraceController, :update
     get "/pings", PingController, :index

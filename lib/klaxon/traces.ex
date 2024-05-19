@@ -1,6 +1,7 @@
 defmodule Klaxon.Traces do
   require Logger
   alias Klaxon.Repo
+  alias Klaxon.Contents.Post
   alias Klaxon.Traces.Trace
   alias Klaxon.Traces.Track
   alias Klaxon.Traces.Segment
@@ -20,6 +21,13 @@ defmodule Klaxon.Traces do
          )
          |> Repo.one() do
       %Trace{} = trace -> {:ok, trace}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def get_trace_for_post(%Post{} = post, id) do
+    case Enum.find(post.traces, fn x -> x.id == id end) do
+      %Trace{} -> get_trace(id)
       _ -> {:error, :not_found}
     end
   end

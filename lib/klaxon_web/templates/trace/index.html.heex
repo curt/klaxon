@@ -10,7 +10,8 @@
 <%= if length(@post.traces) > 0 do %>
   <%= for trace <- @post.traces do %>
     <article class="mb-2">
-      <%= prettify_date(trace.inserted_at) %> &ndash; <%= trace.name %>
+      <%= link to: Routes.trace_path(@conn, :geo, @post.id, trace.id) do %><%= prettify_date(trace.inserted_at) %><% end %>
+        &ndash; <%= trace.name %>
     </article>
   <% end %>
 <% else %>

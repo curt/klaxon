@@ -31,17 +31,29 @@
   <%= if @post.lat && @post.lon do %>
   <div id="map"></div>
   <script>
-const center = [<%= @post.lat %>, <%= @post.lon %>];
-const description = "<%= @post.location || "" %>";
-const map = L.map('map').setView(center, 13);
-const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+var center = [<%= @post.lat %>, <%= @post.lon %>];
+var description = "<%= @post.location || "" %>";
+var map = L.map('map').setView(center, 13);
+var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 16,
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
-const marker = L.marker(center).addTo(map);
+var marker = L.marker(center).addTo(map);
 if (description.length > 0) {
   marker.bindPopup(description).openPopup();
 }
+
+async function addGeoJson(geoJsonPath) {
+  let response = await fetch(geoJsonPath);
+  let data = await response.json();
+  let layer = L.geoJson(data)
+  let jsonLayer = map.addLayer(layer);
+  layer.bringToFront();
+}
+
+  <%= for trace <- @post.traces do %>
+addGeoJson('<%= Routes.trace_path(@conn, :geo, @post.id, trace.id) %>');
+  <% end %>
   </script>
   <% end %>
   <div class="post-byline">
