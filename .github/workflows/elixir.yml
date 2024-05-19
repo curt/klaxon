@@ -21,7 +21,7 @@ jobs:
   build:
 
     name: Build and test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     # Service containers to run with `runner-job`
     services:
@@ -45,8 +45,8 @@ jobs:
 
     strategy:
       matrix:
-        elixir: [1.14.2]
-        otp: [25.1.1]
+        elixir: [1.16.2]
+        otp: [26.2.5]
 
     steps:
     - uses: actions/checkout@v3
