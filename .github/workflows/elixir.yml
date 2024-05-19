@@ -21,7 +21,7 @@ jobs:
   build:
 
     name: Build and test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     # Service containers to run with `runner-job`
     services:
@@ -45,13 +45,13 @@ jobs:
 
     strategy:
       matrix:
-        elixir: [1.14.2]
-        otp: [25.1.1]
+        elixir: [1.16.2]
+        otp: [26.2.5]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Elixir
-      uses: erlef/setup-beam@988e02bfe678367a02564f65ca2e37726dc0268f
+      uses: erlef/setup-beam@v1
       with:
         elixir-version: ${{ matrix.elixir }} # Define the elixir version [required]
         otp-version: ${{ matrix.otp }} # Define the OTP version [required]
