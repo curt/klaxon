@@ -23,7 +23,7 @@ defmodule Klaxon.Contents.Post do
 
     belongs_to(:profile, Klaxon.Profiles.Profile, type: EctoBase58)
     has_many(:tags, Klaxon.Contents.Tag)
-    has_many(:attachments, Klaxon.Contents.Attachment)
+    has_many(:attachments, Klaxon.Contents.Attachment, preload_order: [:inserted_at])
     has_many(:traces, Klaxon.Traces.Trace)
 
     has_one(:in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri)
