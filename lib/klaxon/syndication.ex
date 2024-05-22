@@ -1,6 +1,5 @@
 defmodule Klaxon.Syndication do
   require Logger
-  alias Klaxon.Contents
   alias Klaxon.Repo
   alias Klaxon.Contents.Post
   alias Klaxon.Syndication.Subscription
@@ -159,10 +158,22 @@ defmodule Klaxon.Syndication do
     end
   end
 
+  def get_posts_for_limit(limit \\ 5) do
+    case Post.from_preloaded()
+         |> Post.where_status([:published])
+         |> Post.where_origin([:local])
+         |> Post.where_visibility([:public])
+         |> where([posts: p], not is_nil(p.published_at))
+         |> limit(^limit)
+         |> Repo.all() do
+      posts when is_list(posts) -> {:ok, Enum.sort_by(posts, & &1.published_at, DateTime)}
+      _ -> {:error, :not_found}
+    end
+  end
+
   def send_recent_posts_to_email(email, limit \\ 5) do
-    endpoint = URI.to_string(endpoint())
-    posts = Contents.get_posts(endpoint, nil, limit: limit)
-    subscriber = %Subscription{email: email}
+    {:ok, posts} = get_posts_for_limit(limit)
+    subscriber = %Subscription{email: email, id: "abcdef", key: "abcdefghijkl"}
     send_digest_to_subscriber(subscriber, posts)
   end
 
