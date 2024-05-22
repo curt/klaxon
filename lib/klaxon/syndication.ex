@@ -1,5 +1,6 @@
 defmodule Klaxon.Syndication do
   require Logger
+  alias Klaxon.Contents
   alias Klaxon.Repo
   alias Klaxon.Contents.Post
   alias Klaxon.Syndication.Subscription
@@ -156,6 +157,13 @@ defmodule Klaxon.Syndication do
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     end
+  end
+
+  def send_recent_posts_to_email(email, limit \\ 5) do
+    endpoint = URI.to_string(endpoint())
+    posts = Contents.get_posts(endpoint, nil, limit: limit)
+    subscriber = %Subscription{email: email}
+    send_digest_to_subscriber(subscriber, posts)
   end
 
   def update_subscriber_from_posts(%Subscription{} = subscriber, posts) do
