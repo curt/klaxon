@@ -158,6 +158,25 @@ defmodule Klaxon.Syndication do
     end
   end
 
+  def get_posts_for_limit(limit \\ 5) do
+    case Post.from_preloaded()
+         |> Post.where_status([:published])
+         |> Post.where_origin([:local])
+         |> Post.where_visibility([:public])
+         |> where([posts: p], not is_nil(p.published_at))
+         |> limit(^limit)
+         |> Repo.all() do
+      posts when is_list(posts) -> {:ok, Enum.sort_by(posts, & &1.published_at, DateTime)}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def send_recent_posts_to_email(email, limit \\ 5) do
+    {:ok, posts} = get_posts_for_limit(limit)
+    subscriber = %Subscription{email: email, id: "abcdef", key: "abcdefghijkl"}
+    send_digest_to_subscriber(subscriber, posts)
+  end
+
   def update_subscriber_from_posts(%Subscription{} = subscriber, posts) do
     last_post = List.last(posts)
     changeset = Subscription.changeset(subscriber, %{last_published_at: last_post.published_at})
