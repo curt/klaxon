@@ -38,7 +38,7 @@ FROM alpine AS dist
 
 ARG MIX_ENV
 
-RUN apk --no-cache add postgresql-client libstdc++ openssl ncurses-libs file imagemagick
+RUN apk --no-cache add postgresql-client libstdc++ openssl ncurses-libs imagemagick imagemagick-jpeg imagemagick-heic
 
 RUN addgroup -g 1000 klaxon && \
     adduser -u 1000 -G klaxon -D -h /opt/klaxon klaxon
