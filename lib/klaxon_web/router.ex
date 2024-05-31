@@ -14,14 +14,12 @@ defmodule KlaxonWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_user
     plug :fetch_current_profile
-    # plug :require_profile
   end
 
   pipeline :api do
     plug :accepts, ["json", "activity+json"]
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_current_profile
-    # plug :require_profile
   end
 
   # These routes have higher priority due to potential matches below.
