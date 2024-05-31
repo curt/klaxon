@@ -81,4 +81,13 @@ defmodule KlaxonWeb.SubscriptionController do
       |> redirect(to: Routes.profile_path(conn, :index))
     end
   end
+
+  def unsubscribe(conn, %{"id" => id, "key" => key}) do
+    case Syndication.delete_subscriber(id, key) do
+      {:ok, _subscription} -> :noop
+      {:error, :not_found} -> :noop
+    end
+
+    conn |> text(nil)
+  end
 end
