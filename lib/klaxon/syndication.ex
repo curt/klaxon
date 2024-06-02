@@ -149,6 +149,11 @@ defmodule Klaxon.Syndication do
       Email.new()
       |> Email.to(subscriber.email)
       |> Email.from(sender())
+      |> Email.header(
+        "List-Unsubscribe",
+        "<#{unsubscribe_subscription_url(subscriber.id, subscriber.key)}>"
+      )
+      |> Email.header("List-Unsubscribe-Post", "List-Unsubscribe=One-Click")
       |> Email.subject("Your latest digest from #{host()}")
       |> Email.html_body(digest_html(subscriber, posts))
       |> Email.text_body(digest_text(subscriber, posts))
@@ -281,6 +286,10 @@ defmodule Klaxon.Syndication do
 
   defp delete_subscription_url(id, key) do
     KlaxonWeb.Router.Helpers.subscription_url(endpoint(), :delete, id, key)
+  end
+
+  defp unsubscribe_subscription_url(id, key) do
+    KlaxonWeb.Router.Helpers.subscription_url(endpoint(), :unsubscribe, id, key)
   end
 
   defp sender(), do: {"Klaxon", "klaxon@#{host()}"}
