@@ -4,6 +4,10 @@ defmodule KlaxonWeb.Router do
   import KlaxonWeb.UserAuth
   import KlaxonWeb.Plugs
 
+  pipeline :none do
+    plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
+  end
+
   pipeline :browser do
     plug :accepts, ["html", "json", "activity+json"]
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
@@ -14,14 +18,12 @@ defmodule KlaxonWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_user
     plug :fetch_current_profile
-    # plug :require_profile
   end
 
   pipeline :api do
     plug :accepts, ["json", "activity+json"]
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_current_profile
-    # plug :require_profile
   end
 
   # These routes have higher priority due to potential matches below.
@@ -102,6 +104,12 @@ defmodule KlaxonWeb.Router do
     get "/pongs", PongController, :index
     get "/pongs/:id", PongController, :show
     get "/media/:scope", MediaController, :index
+  end
+
+  scope "/", KlaxonWeb do
+    pipe_through :none
+
+    post "/subscriptions/:id/:key/unsubscribe", SubscriptionController, :unsubscribe
   end
 
   # Other scopes may use custom stacks.
