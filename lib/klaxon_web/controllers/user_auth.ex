@@ -19,22 +19,33 @@ defmodule KlaxonWeb.UserAuth do
   It renews the session ID and clears the whole session
   to avoid fixation attacks. See the renew_session
   function to customize this behaviour.
-
-  It also sets a `:live_socket_id` key in the session,
-  so LiveView sessions are identified and automatically
-  disconnected on log out. The line can be safely removed
-  if you are not using LiveView.
   """
   def log_in_user(conn, user, params \\ %{}) do
-    token = Auth.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
+    {conn, token} = do_log_in(conn, user, params)
 
     conn
-    |> renew_session()
-    |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
-    |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: user_return_to || signed_in_path(conn))
+  end
+
+  @spec log_in_user_api(Plug.Conn.t(), atom() | %{:id => any(), optional(any()) => any()}, any()) ::
+          Plug.Conn.t()
+  def log_in_user_api(conn, user, params \\ %{}) do
+    {conn, _token} = do_log_in(conn, user, params)
+    conn
+  end
+
+  defp do_log_in(conn, user, params) do
+    token = Auth.generate_user_session_token(user)
+
+    conn =
+      conn
+      |> renew_session()
+      |> put_session(:user_token, token)
+      |> maybe_write_remember_me_cookie(token, params)
+
+    {conn, token}
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -72,17 +83,23 @@ defmodule KlaxonWeb.UserAuth do
   It clears all session data for safety. See renew_session.
   """
   def log_out_user(conn) do
-    user_token = get_session(conn, :user_token)
-    user_token && Auth.delete_session_token(user_token)
+    conn
+    |> do_log_out()
+    |> redirect(to: "/")
+  end
 
-    if live_socket_id = get_session(conn, :live_socket_id) do
-      KlaxonWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+  def log_out_user_api(conn) do
+    do_log_out(conn)
+  end
+
+  defp do_log_out(conn) do
+    if user_token = get_session(conn, :user_token) do
+      Auth.delete_session_token(user_token)
     end
 
     conn
     |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
-    |> redirect(to: "/")
   end
 
   @doc """
@@ -128,7 +145,10 @@ defmodule KlaxonWeb.UserAuth do
   If you want to enforce the user email is confirmed before
   they use the application at all, here would be a good place.
   """
-  def require_authenticated_user(%Plug.Conn{assigns: %{current_user: %User{} = _user}} = conn, _opts) do
+  def require_authenticated_user(
+        %Plug.Conn{assigns: %{current_user: %User{} = _user}} = conn,
+        _opts
+      ) do
     conn
   end
 

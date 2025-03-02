@@ -1,4 +1,19 @@
 defmodule Klaxon.Profiles.Profile do
+  @derive {Jason.Encoder,
+           only: [
+             :name,
+             :uri,
+             :display_name,
+             :icon_media_type,
+             :icon,
+             :image_media_type,
+             :image,
+             :site_tag,
+             :site_text,
+             :site_title,
+             :summary,
+             :url
+           ]}
   use Klaxon.Schema
   alias Klaxon.Auth.User
 

@@ -23,6 +23,8 @@ defmodule KlaxonWeb.Router do
   pipeline :api do
     plug :accepts, ["json", "activity+json"]
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
+    plug :fetch_session
+    plug :fetch_current_user
     plug :fetch_current_profile
   end
 
@@ -110,6 +112,19 @@ defmodule KlaxonWeb.Router do
     pipe_through :none
 
     post "/subscriptions/:id/:key/unsubscribe", SubscriptionController, :unsubscribe
+  end
+
+  scope "/api", KlaxonWeb.Api, as: :api do
+    pipe_through :api
+
+    post "/session", SessionController, :create
+  end
+
+  scope "/api", KlaxonWeb.Api, as: :api do
+    pipe_through [:api, :require_owner]
+
+    get "/session", SessionController, :show
+    delete "/session", SessionController, :delete
   end
 
   # Other scopes may use custom stacks.
