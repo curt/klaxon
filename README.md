@@ -19,7 +19,7 @@ Klaxon is written and maintained by [Curt Gilman](https://github.com/curt).
 
 ## License
 
-Copyright &copy; 2023 Curt Gilman
+Copyright &copy; 2023-2025 Curt Gilman
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
