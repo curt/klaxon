@@ -2,7 +2,7 @@ defmodule Klaxon.Snippet do
   @tags ~w(p em strong ol ul li)
 
   def snippify(markdown, max) do
-    with {:ok, ast, _} <- EarmarkParser.as_ast(preprocess(markdown)) do
+    with {:ok, ast, _} <- Earmark.as_ast(preprocess(markdown)) do
       reduce(ast) |> take(max) |> postprocess()
     end
   end
@@ -18,7 +18,7 @@ defmodule Klaxon.Snippet do
   defp take(list, max) do
     String.trim(
       Enum.reduce_while(list, "", fn x, acc ->
-        if (String.length(acc) + String.length(x) + 1) <= max do
+        if String.length(acc) + String.length(x) + 1 <= max do
           {:cont, acc <> x <> " "}
         end || {:halt, acc <> " ..."}
       end)

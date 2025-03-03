@@ -62,7 +62,7 @@ defmodule Klaxon.MixProject do
       {:timex, "~> 3.7"},
       {:ecto_base58, git: "https://github.com/curt/ecto_base58.git"},
       {:x509, "~> 0.8.5"},
-      {:earmark, "~> 1.4"},
+      {:earmark, "~> 1.4.47"},
       {:slugify, "~> 1.3"},
       {:mogrify, "~> 0.9.2"},
       {:excon, "~> 4.0"},
