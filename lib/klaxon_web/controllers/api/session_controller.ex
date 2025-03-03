@@ -25,7 +25,7 @@ defmodule KlaxonWeb.Api.SessionController do
 
   def show(conn, _params) do
     conn
-    |> json(%{user: conn.assigns.current_user, profile: conn.assigns.current_profile})
+    |> json(conn.assigns.current_profile)
   end
 
   def delete(conn, _params) do

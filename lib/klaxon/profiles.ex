@@ -18,7 +18,11 @@ defmodule Klaxon.Profiles do
   end
 
   def get_local_profile_by_uri(profile_uri) do
-    case Repo.one(profile_query_uri(profile_uri) |> profile_query_where_local()) do
+    case Repo.one(
+           profile_query_uri(profile_uri)
+           |> profile_query_where_local()
+           |> preload(:owner)
+         ) do
       %Profile{} = profile -> {:ok, profile}
       _ -> {:error, :not_found}
     end
