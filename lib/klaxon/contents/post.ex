@@ -1,4 +1,25 @@
 defmodule Klaxon.Contents.Post do
+  @derive {Jason.Encoder,
+           only: [
+             :content_html,
+             :context_uri,
+             :ele,
+             :in_reply_to_uri,
+             :inserted_at,
+             :lat,
+             :location,
+             :lon,
+             :origin,
+             :profile_id,
+             :published_at,
+             :slug,
+             :source,
+             :status,
+             :title,
+             :updated_at,
+             :uri,
+             :visibility
+           ]}
   use Klaxon.Schema
   alias Ecto.Changeset
   alias TagUri

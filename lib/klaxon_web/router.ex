@@ -125,6 +125,8 @@ defmodule KlaxonWeb.Router do
 
     get "/session", SessionController, :show
     delete "/session", SessionController, :delete
+    get "/posts", PostController, :index
+    get "/posts/:id", PostController, :show
   end
 
   # Other scopes may use custom stacks.
