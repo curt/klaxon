@@ -114,6 +114,12 @@ defmodule KlaxonWeb.Router do
     post "/subscriptions/:id/:key/unsubscribe", SubscriptionController, :unsubscribe
   end
 
+  scope "/gpx", KlaxonWeb do
+    pipe_through :api
+
+    get "/trace/:id", GpxController, :show
+  end
+
   scope "/api", KlaxonWeb.Api, as: :api do
     pipe_through :api
 

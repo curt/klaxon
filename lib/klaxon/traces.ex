@@ -113,4 +113,73 @@ defmodule Klaxon.Traces do
   def delete_trace(trace) do
     Repo.delete(trace)
   end
+
+  def render_trace_as_gpx(trace_id) do
+    case get_trace(trace_id) do
+      {:ok, trace} ->
+        gpx = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <gpx version="1.1" creator="Klaxon">
+          <metadata>
+            <name>#{trace.name}</name>
+          </metadata>
+          #{render_waypoints(trace.waypoints)}
+          #{render_tracks(trace.tracks)}
+        </gpx>
+        """
+
+        {:ok, gpx}
+
+      {:error, :not_found} ->
+        {:error, :not_found}
+    end
+  end
+
+  defp render_waypoints(waypoints) do
+    Enum.map(waypoints, fn waypoint ->
+      """
+      <wpt lat="#{waypoint.lat}" lon="#{waypoint.lon}">
+        <name>#{waypoint.name}</name>
+        <ele>#{waypoint.ele}</ele>
+        <time>#{DateTime.to_iso8601(waypoint.created_at)}</time>
+      </wpt>
+      """
+    end)
+    |> Enum.join("\n")
+  end
+
+  defp render_tracks(tracks) do
+    Enum.map(tracks, fn track ->
+      """
+      <trk>
+        <name>#{track.name}</name>
+        #{render_segments(track.segments)}
+      </trk>
+      """
+    end)
+    |> Enum.join("\n")
+  end
+
+  defp render_segments(segments) do
+    Enum.map(segments, fn segment ->
+      """
+      <trkseg>
+        #{render_trackpoints(segment.trackpoints)}
+      </trkseg>
+      """
+    end)
+    |> Enum.join("\n")
+  end
+
+  defp render_trackpoints(trackpoints) do
+    Enum.map(trackpoints, fn trackpoint ->
+      """
+      <trkpt lat="#{trackpoint.lat}" lon="#{trackpoint.lon}">
+        <ele>#{trackpoint.ele}</ele>
+        <time>#{DateTime.to_iso8601(trackpoint.created_at)}</time>
+      </trkpt>
+      """
+    end)
+    |> Enum.join("\n")
+  end
 end
