@@ -19,7 +19,7 @@ defmodule KlaxonWeb.TraceController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <-
            Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
-      changeset = Trace.changeset(%Trace{post: post})
+      changeset = Trace.changeset(%Trace{})
       render(conn, "new.html", changeset: changeset, post: post)
     end
   end

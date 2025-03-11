@@ -42,3 +42,4 @@ npm-debug.log
 /.vscode/
 .DS_Store
 /.elixir_ls
+/.local/

@@ -4,7 +4,6 @@ defmodule Klaxon.Traces.Trace do
   schema "traces" do
     field :name, :string
 
-    belongs_to :post, Klaxon.Contents.Post, type: EctoBase58
     has_many :tracks, Klaxon.Traces.Track
     has_many :waypoints, Klaxon.Traces.Waypoint
 
@@ -14,6 +13,6 @@ defmodule Klaxon.Traces.Trace do
   @doc false
   def changeset(trace, attrs \\ %{}) do
     trace
-    |> cast(attrs, [:name, :post_id])
+    |> cast(attrs, [:name])
   end
 end
