@@ -4,6 +4,7 @@ defmodule Klaxon.Traces.Trace do
   schema "traces" do
     field :name, :string
 
+    belongs_to :profile, Klaxon.Profiles.Profile
     has_many :tracks, Klaxon.Traces.Track
     has_many :waypoints, Klaxon.Traces.Waypoint
 
@@ -13,6 +14,6 @@ defmodule Klaxon.Traces.Trace do
   @doc false
   def changeset(trace, attrs \\ %{}) do
     trace
-    |> cast(attrs, [:name])
+    |> cast(attrs, [:name, :profile_id])
   end
 end
