@@ -6,7 +6,7 @@ defmodule Klaxon.Traces.Trace do
 
     belongs_to :profile, Klaxon.Profiles.Profile
     has_many :tracks, Klaxon.Traces.Track
-    has_many :waypoints, Klaxon.Traces.Waypoint
+    has_many :waypoints, Klaxon.Traces.Waypoint, preload_order: [:created_at]
 
     timestamps()
   end

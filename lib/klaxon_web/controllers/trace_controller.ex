@@ -44,4 +44,11 @@ defmodule KlaxonWeb.TraceController do
         {:error, reason}
     end
   end
+
+  def show(conn, %{"id" => id}) do
+    case Traces.get_trace(id) do
+      {:ok, trace} ->
+        render(conn, "show.html", trace: trace)
+    end
+  end
 end

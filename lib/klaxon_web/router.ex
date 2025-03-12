@@ -56,6 +56,7 @@ defmodule KlaxonWeb.Router do
     get "/subscriptions/:id/:key/delete", SubscriptionController, :delete?
     post "/subscriptions/:id/:key/delete", SubscriptionController, :delete
     get "/rss", RssController, :index
+    get "/traces/:id", TraceController, :show
   end
 
   scope "/", KlaxonWeb do
@@ -96,7 +97,7 @@ defmodule KlaxonWeb.Router do
     post "/posts/:post_id/traces", TraceController, :create
     get "/posts/:post_id/traces/new", TraceController, :new
     get "/posts/:post_id/traces/:id/edit", TraceController, :edit
-    get "/posts/:post_id/traces/:id", TraceController, :show
+    # get "/posts/:post_id/traces/:id", TraceController, :show
     put "/posts/:post_id/traces/:id", TraceController, :update
     patch "/posts/:post_id/traces/:id", TraceController, :update
     get "/pings", PingController, :index

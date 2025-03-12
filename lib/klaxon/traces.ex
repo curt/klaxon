@@ -11,12 +11,8 @@ defmodule Klaxon.Traces do
 
   def get_trace(id) do
     case from(t in Trace,
-           left_join: x in assoc(t, :tracks),
-           left_join: w in assoc(t, :waypoints),
-           left_join: s in assoc(x, :segments),
-           left_join: p in assoc(s, :trackpoints),
            where: t.id == ^id,
-           preload: [tracks: {x, segments: {s, trackpoints: p}}, waypoints: w]
+           preload: [:waypoints, tracks: [segments: :trackpoints]]
          )
          |> Repo.one() do
       %Trace{} = trace -> {:ok, trace}

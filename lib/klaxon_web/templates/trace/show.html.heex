@@ -1,0 +1,22 @@
+<h1>Trace: <%= @trace.name %></h1>
+
+<div id="map"></div>
+
+<h2>Waypoints</h2>
+<p><ul>
+  <%= for waypoint <- @trace.waypoints do %>
+    <li>
+      <strong><%= waypoint.name %></strong> - Lat: <%= waypoint.lat %>, Lon: <%= waypoint.lon %>, Ele: <%= waypoint.ele %>, Time: <%= DateTime.to_iso8601(waypoint.created_at) %>
+    </li>
+  <% end %>
+</ul>
+</p>
+
+<!-- Load the custom GPX map script -->
+<script type="module">
+  import { initializeGPXMap } from '/klaxon/gpx-map.js';
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initializeGPXMap("map", "<%= Routes.gpx_path(@conn, :show, @trace.id) %>");
+  });
+</script>
