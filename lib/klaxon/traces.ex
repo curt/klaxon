@@ -80,6 +80,8 @@ defmodule Klaxon.Traces do
     |> Path.join("*.gpx")
     |> Path.wildcard()
     |> Enum.each(&import_trace(&1, %{name: Path.basename(&1, ".gpx"), profile_id: profile_id}))
+
+    :ok
   end
 
   @doc """
@@ -149,7 +151,7 @@ defmodule Klaxon.Traces do
       end
     end
 
-    get_trace(trace.id)
+    :ok
   end
 
   def insert_trace(attrs) do
