@@ -34,6 +34,21 @@ defmodule Klaxon.Traces do
     end
   end
 
+  @doc """
+  Fetches a trace by its ID.
+
+  ## Parameters
+
+    - id: The ID of the trace to fetch.
+
+  ## Returns
+
+    - `{:ok, %Trace{}}` if the trace is found.
+    - `{:error, :not_found}` if the trace is not found.
+
+  The trace is preloaded with its associated waypoints and tracks,
+  where each track includes its segments and trackpoints.
+  """
   def get_trace(id) do
     case from(t in Trace,
            where: t.id == ^id,
@@ -45,6 +60,42 @@ defmodule Klaxon.Traces do
     end
   end
 
+  @doc """
+  Imports GPX traces from the specified folder path and associates them with the given profile ID.
+
+  ## Parameters
+
+    - folder_path: The path to the folder containing the trace files.
+    - profile_id: The ID of the profile to associate the traces with.
+
+  ## Examples
+
+      iex> Klaxon.Traces.import_traces("/path/to/traces", "CM2DgoNgqeH18NQy37g9s")
+      :ok
+
+  """
+  def import_traces(folder_path, profile_id) do
+    folder_path
+    |> Path.expand()
+    |> Path.join("*.gpx")
+    |> Path.wildcard()
+    |> Enum.each(&import_trace(&1, %{name: Path.basename(&1, ".gpx"), profile_id: profile_id}))
+  end
+
+  @doc """
+  Imports a GPX trace from the specified file path and attributes.
+
+  ## Parameters
+
+    - path: The file path from which to import the trace.
+    - attrs: A map of attributes related to the trace.
+
+  ## Examples
+
+      iex> Klaxon.Traces.import_trace("/path/to/trace.gpx", %{profile_id: "CM2DgoNgqeH18NQy37g9s"})
+      :ok
+
+  """
   def import_trace(path, attrs) do
     doc = parse(File.stream!(path))
 
