@@ -3,6 +3,7 @@ defmodule Klaxon.Traces.Trace do
 
   schema "traces" do
     field :name, :string
+    field :created_at, :utc_datetime_usec, virtual: true
 
     belongs_to :profile, Klaxon.Profiles.Profile
     has_many :tracks, Klaxon.Traces.Track

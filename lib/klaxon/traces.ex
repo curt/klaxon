@@ -10,10 +10,27 @@ defmodule Klaxon.Traces do
   import SweetXml
 
   def get_traces do
-    case from(t in Trace, preload: [:waypoints, tracks: [segments: :trackpoints]])
-         |> Repo.all() do
-      [] -> {:ok, []}
-      traces -> {:ok, traces}
+    subquery =
+      from(w in Waypoint,
+        group_by: w.trace_id,
+        select: %{trace_id: w.trace_id, min_created_at: min(w.created_at)}
+      )
+
+    query =
+      from(t in Trace,
+        join: w in subquery(subquery),
+        on: t.id == w.trace_id,
+        preload: :waypoints,
+        order_by: w.min_created_at,
+        select_merge: %{created_at: w.min_created_at}
+      )
+
+    case Repo.all(query) do
+      [] ->
+        {:ok, []}
+
+      traces ->
+        {:ok, traces}
     end
   end
 
