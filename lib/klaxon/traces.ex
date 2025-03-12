@@ -9,6 +9,14 @@ defmodule Klaxon.Traces do
   import Ecto.Query
   import SweetXml
 
+  def get_traces do
+    case from(t in Trace, preload: [:waypoints, tracks: [segments: :trackpoints]])
+         |> Repo.all() do
+      [] -> {:ok, []}
+      traces -> {:ok, traces}
+    end
+  end
+
   def get_trace(id) do
     case from(t in Trace,
            where: t.id == ^id,

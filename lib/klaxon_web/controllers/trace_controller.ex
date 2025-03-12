@@ -7,11 +7,10 @@ defmodule KlaxonWeb.TraceController do
 
   action_fallback(KlaxonWeb.FallbackController)
 
-  def index(conn, %{"post_id" => post_id}) do
-    with {:ok, profile} <- current_profile(conn),
-         {:ok, post} <-
-           Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
-      render(conn, post: post)
+  def index(conn, _params) do
+    with {:ok, traces} <-
+           Traces.get_traces() do
+      render(conn, "index.html", traces: traces)
     end
   end
 
@@ -46,9 +45,9 @@ defmodule KlaxonWeb.TraceController do
   end
 
   def show(conn, %{"id" => id}) do
-    case Traces.get_trace(id) do
-      {:ok, trace} ->
-        render(conn, "show.html", trace: trace)
+    with {:ok, trace} <-
+           Traces.get_trace(id) do
+      render(conn, "show.html", trace: trace)
     end
   end
 end
