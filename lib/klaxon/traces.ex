@@ -99,59 +99,83 @@ defmodule Klaxon.Traces do
 
   """
   def import_trace(path, attrs) do
-    doc = parse(File.stream!(path))
+    doc =
+      path
+      |> File.stream!()
+      |> parse()
 
-    # trace
     {:ok, trace} = insert_trace(attrs)
 
-    # waypoints
-    for waypoint_element <- xpath(doc, ~x"//wpt"el) do
-      name = xpath(waypoint_element, ~x"//name/text()"s)
-      lat = String.to_float(xpath(waypoint_element, ~x"@lat"s))
-      lon = String.to_float(xpath(waypoint_element, ~x"@lon"s))
-      ele = String.to_float(xpath(waypoint_element, ~x"//ele/text()"s))
-      {:ok, time, 0} = DateTime.from_iso8601(xpath(waypoint_element, ~x"//time/text()"s))
+    waypoints = extract_waypoints(doc)
+    tracks = extract_tracks(doc)
+
+    import_waypoints(waypoints, trace.id)
+    import_tracks(tracks, trace.id)
+
+    :ok
+  end
+
+  defp extract_waypoints(doc) do
+    xpath(doc, ~x"//wpt"el,
+      name: ~x"./name/text()"s,
+      lat: ~x"@lat"f,
+      lon: ~x"@lon"f,
+      ele: ~x"./ele/text()"f,
+      time: ~x"./time/text()"s
+    )
+  end
+
+  defp extract_tracks(doc) do
+    xpath(doc, ~x"//trk"el,
+      name: ~x"./name/text()"s,
+      segments: [
+        ~x"./trkseg"el,
+        trackpoints: [
+          ~x"./trkpt"el,
+          lat: ~x"@lat"f,
+          lon: ~x"@lon"f,
+          ele: ~x"./ele/text()"f,
+          time: ~x"./time/text()"s
+        ]
+      ]
+    )
+  end
+
+  defp import_waypoints(waypoints, trace_id) do
+    for waypoint <- waypoints do
+      {:ok, created_at, 0} = DateTime.from_iso8601(waypoint.time)
 
       insert_waypoint(%{
-        trace_id: trace.id,
-        name: name,
-        lat: lat,
-        lon: lon,
-        ele: ele,
-        created_at: time
+        trace_id: trace_id,
+        name: waypoint.name,
+        lat: waypoint.lat,
+        lon: waypoint.lon,
+        ele: waypoint.ele,
+        created_at: created_at
       })
     end
+  end
 
-    # tracks
-    for track_element <- xpath(doc, ~x"//trk"el) do
-      name = xpath(track_element, ~x"//name/text()"s)
-      {:ok, track} = insert_track(%{trace_id: trace.id, name: name})
+  defp import_tracks(tracks, trace_id) do
+    for track <- tracks do
+      {:ok, inserted_track} = insert_track(%{trace_id: trace_id, name: track.name})
 
-      # segments
-      for segment_element <- xpath(track_element, ~x"//trkseg"el) do
-        {:ok, segment} = insert_segment(%{track_id: track.id})
+      for segment <- track.segments do
+        {:ok, inserted_segment} = insert_segment(%{track_id: inserted_track.id})
 
-        # trackpoints
-        for trackpoint_element <- xpath(segment_element, ~x"//trkpt"el) do
-          name = xpath(trackpoint_element, ~x"//name/text()"s)
-          lat = String.to_float(xpath(trackpoint_element, ~x"@lat"s))
-          lon = String.to_float(xpath(trackpoint_element, ~x"@lon"s))
-          ele = String.to_float(xpath(trackpoint_element, ~x"//ele/text()"s))
-          {:ok, time, 0} = DateTime.from_iso8601(xpath(trackpoint_element, ~x"//time/text()"s))
+        for trackpoint <- segment.trackpoints do
+          {:ok, created_at, 0} = DateTime.from_iso8601(trackpoint.time)
 
           insert_trackpoint(%{
-            segment_id: segment.id,
-            name: name,
-            lat: lat,
-            lon: lon,
-            ele: ele,
-            created_at: time
+            segment_id: inserted_segment.id,
+            lat: trackpoint.lat,
+            lon: trackpoint.lon,
+            ele: trackpoint.ele,
+            created_at: created_at
           })
         end
       end
     end
-
-    :ok
   end
 
   def insert_trace(attrs) do
