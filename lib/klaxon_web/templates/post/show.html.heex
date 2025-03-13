@@ -10,7 +10,6 @@
       <div class="post-actions">
         <%= link to: Routes.post_path(@conn, :edit, @post) do %>Edit<% end %>
         | <%= link to: Routes.attachment_path(@conn, :index, @post.id) do %>Attachments<% end %>
-        | <%= link to: Routes.trace_path(@conn, :index, @post.id) do %>Traces<% end %>
       </div>
     <% end %>
   <% end %>

@@ -23,26 +23,26 @@ defmodule KlaxonWeb.TraceController do
     end
   end
 
-  def create(conn, %{
-        "post_id" => post_id,
-        "trace" => %{"upload" => %Plug.Upload{path: path}} = trace_params
-      }) do
-    with {:ok, _post} <-
-           Traces.import_trace(
-             path,
-             Map.put(trace_params, "post_id", post_id)
-           ) do
-      conn
-      |> put_flash(:info, "Trace created successfully.")
-      |> redirect(to: Routes.trace_path(conn, :index, post_id))
-    else
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
+  # def create(conn, %{
+  #       "post_id" => post_id,
+  #       "trace" => %{"upload" => %Plug.Upload{path: path}} = trace_params
+  #     }) do
+  #   with {:ok, _post} <-
+  #          Traces.import_trace(
+  #            path,
+  #            Map.put(trace_params, "post_id", post_id)
+  #          ) do
+  #     conn
+  #     |> put_flash(:info, "Trace created successfully.")
+  #     |> redirect(to: Routes.trace_path(conn, :index, post_id))
+  #   else
+  #     {:error, %Ecto.Changeset{} = changeset} ->
+  #       render(conn, "new.html", changeset: changeset)
 
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
+  #     {:error, reason} ->
+  #       {:error, reason}
+  #   end
+  # end
 
   def show(conn, %{"id" => id}) do
     with {:ok, trace} <-
