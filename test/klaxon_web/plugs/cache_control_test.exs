@@ -24,7 +24,7 @@ defmodule KlaxonWeb.Plugs.CacheControlTest do
   end
 
   test "sets no-store headers for :none cache level" do
-    conn = call_plug(cache: :none)
+    conn = call_plug(%{cache: :none})
 
     assert get_resp_header(conn, "cache-control") == [
              "no-store, no-cache, must-revalidate, max-age=0"
@@ -34,7 +34,7 @@ defmodule KlaxonWeb.Plugs.CacheControlTest do
   end
 
   test "sets appropriate cache headers for :gentle cache level" do
-    conn = call_plug(cache: :gentle)
+    conn = call_plug(%{cache: :gentle})
     expected_max_age = @cache_durations[:gentle]
 
     assert get_resp_header(conn, "cache-control") == ["public, max-age=#{expected_max_age}"]
@@ -42,7 +42,7 @@ defmodule KlaxonWeb.Plugs.CacheControlTest do
   end
 
   test "sets appropriate cache headers for :moderate cache level" do
-    conn = call_plug(cache: :moderate)
+    conn = call_plug(%{cache: :moderate})
     expected_max_age = @cache_durations[:moderate]
 
     assert get_resp_header(conn, "cache-control") == ["public, max-age=#{expected_max_age}"]
@@ -50,7 +50,7 @@ defmodule KlaxonWeb.Plugs.CacheControlTest do
   end
 
   test "sets appropriate cache headers for :aggressive cache level" do
-    conn = call_plug(cache: :aggressive)
+    conn = call_plug(%{cache: :aggressive})
     expected_max_age = @cache_durations[:aggressive]
 
     assert get_resp_header(conn, "cache-control") == ["public, max-age=#{expected_max_age}"]
@@ -58,7 +58,7 @@ defmodule KlaxonWeb.Plugs.CacheControlTest do
   end
 
   test "sets appropriate cache headers for :static cache level" do
-    conn = call_plug(cache: :static)
+    conn = call_plug(%{cache: :static})
     expected_max_age = @cache_durations[:static]
 
     assert get_resp_header(conn, "cache-control") == ["public, max-age=#{expected_max_age}"]
@@ -67,6 +67,16 @@ defmodule KlaxonWeb.Plugs.CacheControlTest do
 
   test "defaults to :none when cache level is not set" do
     conn = call_plug()
+
+    assert get_resp_header(conn, "cache-control") == [
+             "no-store, no-cache, must-revalidate, max-age=0"
+           ]
+
+    assert get_resp_header(conn, "expires") == ["0"]
+  end
+
+  test "disables caching when a user is signed in" do
+    conn = call_plug(%{current_user: %{id: 1}})
 
     assert get_resp_header(conn, "cache-control") == [
              "no-store, no-cache, must-revalidate, max-age=0"
