@@ -66,25 +66,38 @@ config :klaxon, Oban,
   repo: Klaxon.Repo,
   plugins: [
     Oban.Plugins.Pruner,
-    {Oban.Plugins.Cron, crontab: [
-      {"7 * * * *", Klaxon.Syndication.Scheduler, args: %{"schedule" => "hourly"}},
-      {"12 15 * * *", Klaxon.Syndication.Scheduler, args: %{"schedule" => "daily"}},
-      {"17 15 * * MON", Klaxon.Syndication.Scheduler, args: %{"schedule" => "weekly"}}
-    ]}],
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"7 * * * *", Klaxon.Syndication.Scheduler, args: %{"schedule" => "hourly"}},
+       {"12 15 * * *", Klaxon.Syndication.Scheduler, args: %{"schedule" => "daily"}},
+       {"17 15 * * MON", Klaxon.Syndication.Scheduler, args: %{"schedule" => "weekly"}}
+     ]}
+  ],
   queues: [default: 10]
 
 config :tesla, adapter: Tesla.Adapter.Hackney
 
-config :tailwind, version: "3.2.7", default: [
-  args: ~w(
+config :tailwind,
+  version: "3.2.7",
+  default: [
+    args: ~w(
     --config=tailwind.config.js
     --input=css/app.css
     --output=../priv/static/assets/app.css
   ),
-  cd: Path.expand("../assets", __DIR__)
-]
+    cd: Path.expand("../assets", __DIR__)
+  ]
 
 config :klaxon, :git, revision: elem(System.cmd("git", ["rev-parse", "HEAD"]), 0)
+
+config :klaxon, KlaxonWeb.CacheConfig,
+  cache_durations: %{
+    none: 0,
+    gentle: 60,
+    moderate: 300,
+    aggressive: 3_600,
+    static: 31_536_000
+  }
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
