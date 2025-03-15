@@ -18,6 +18,7 @@ defmodule KlaxonWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_user
     plug :fetch_current_profile
+    plug KlaxonWeb.Plugs.CacheControl
   end
 
   pipeline :api do
@@ -26,6 +27,7 @@ defmodule KlaxonWeb.Router do
     plug :fetch_session
     plug :fetch_current_user
     plug :fetch_current_profile
+    plug KlaxonWeb.Plugs.CacheControl
   end
 
   # These routes have higher priority due to potential matches below.
@@ -38,14 +40,14 @@ defmodule KlaxonWeb.Router do
   scope "/", KlaxonWeb do
     pipe_through :browser
 
-    get "/", ProfileController, :index
-    get "/posts", PostController, :index
-    get "/posts/:id", PostController, :show
+    get "/", ProfileController, :index, assigns: %{cache: :moderate}
+    get "/posts", PostController, :index, assigns: %{cache: :moderate}
+    get "/posts/:id", PostController, :show, assigns: %{cache: :aggressive}
     get "/labels/:slug", LabelsController, :show
-    get "/media/:scope/:usage/:id", MediaController, :show
-    get "/.well-known/webfinger", WebfingerController, :show
-    get "/.well-known/nodeinfo", NodeInfoController, :well_known
-    get "/nodeinfo/:version", NodeInfoController, :version
+    get "/media/:scope/:usage/:id", MediaController, :show, assigns: %{cache: :static}
+    get "/.well-known/webfinger", WebfingerController, :show, assigns: %{cache: :gentle}
+    get "/.well-known/nodeinfo", NodeInfoController, :well_known, assigns: %{cache: :gentle}
+    get "/nodeinfo/:version", NodeInfoController, :version, assigns: %{cache: :gentle}
     get "/subscriptions/new", SubscriptionController, :new
     post "/subscriptions", SubscriptionController, :create
     get "/subscriptions/:id/:key/confirm", SubscriptionController, :confirm?
@@ -55,9 +57,9 @@ defmodule KlaxonWeb.Router do
     patch "/subscriptions/:id/:key", SubscriptionController, :update
     get "/subscriptions/:id/:key/delete", SubscriptionController, :delete?
     post "/subscriptions/:id/:key/delete", SubscriptionController, :delete
-    get "/rss", RssController, :index
-    get "/traces", TraceController, :index
-    get "/traces/:id", TraceController, :show
+    get "/rss", RssController, :index, assigns: %{cache: :moderate}
+    get "/traces", TraceController, :index, assigns: %{cache: :moderate}
+    get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
   end
 
   scope "/", KlaxonWeb do
@@ -119,8 +121,8 @@ defmodule KlaxonWeb.Router do
   scope "/gpx", KlaxonWeb do
     pipe_through :api
 
-    get "/traces", GpxController, :index
-    get "/traces/:id", GpxController, :show
+    get "/traces", GpxController, :index, assigns: %{cache: :moderate}
+    get "/traces/:id", GpxController, :show, assigns: %{cache: :aggressive}
   end
 
   scope "/api", KlaxonWeb.Api, as: :api do
