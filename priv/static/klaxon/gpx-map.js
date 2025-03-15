@@ -85,6 +85,18 @@ function initializeGPXMap(mapId, infoId, sliderId, gpxUrl) {
         return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} UTC`;
     };
 
+    // Function to calculate time elapsed
+    const calculateTimeElapsed = (startTime, currentTime) => {
+        if (!startTime || !currentTime) return "N/A";
+
+        const elapsedMs = currentTime - startTime;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        const hours = Math.floor(elapsedSeconds / 3600);
+        const minutes = Math.floor((elapsedSeconds % 3600) / 60).toString().padStart(2, '0');
+        const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+    };
+
     // Update marker position based on slider
     document.getElementById(sliderId).addEventListener('input', function () {
         if (trackpoints.length === 0) return;
@@ -97,7 +109,14 @@ function initializeGPXMap(mapId, infoId, sliderId, gpxUrl) {
 
         var latlng = trackpoints[index];
         const formattedTime = latlng.meta?.time ? formatDate(new Date(latlng.meta.time)) : "N/A";
-        const message = `Lat: ${latlng.lat.toFixed(6)}, Lng: ${latlng.lng.toFixed(6)}, Distance: ${(targetDistance / 1000).toFixed(2)}km, Time: ${formattedTime}`;
+        const elevation = latlng.meta?.ele ? latlng.meta.ele.toFixed(2) : "N/A";
+
+        // Calculate time elapsed
+        const startTime = trackpoints[0].meta?.time ? new Date(trackpoints[0].meta.time) : null;
+        const currentTime = latlng.meta?.time ? new Date(latlng.meta.time) : null;
+        const timeElapsed = calculateTimeElapsed(startTime, currentTime);
+
+        const message = `Lat: ${latlng.lat.toFixed(6)}, Lng: ${latlng.lng.toFixed(6)}, Elevation: ${elevation}m, Distance: ${(targetDistance / 1000).toFixed(2)}km, Time: ${formattedTime}, Elapsed: ${timeElapsed}`;
         marker.setLatLng(latlng).bindPopup(message).openPopup();
         document.getElementById(infoId).innerHTML = message;
     });
