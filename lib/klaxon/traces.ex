@@ -9,6 +9,7 @@ defmodule Klaxon.Traces do
   import Ecto.Query
   import SweetXml
 
+  @spec get_traces() :: {:ok, list(Trace.t())} | {:error, any()}
   def get_traces do
     subquery =
       from(w in Waypoint,
@@ -20,7 +21,8 @@ defmodule Klaxon.Traces do
       from(t in Trace,
         join: w in subquery(subquery),
         on: t.id == w.trace_id,
-        preload: :waypoints,
+        # Ensure waypoints also preload their trace
+        preload: [waypoints: [:trace]],
         order_by: w.min_created_at,
         select_merge: %{created_at: w.min_created_at}
       )
@@ -49,10 +51,12 @@ defmodule Klaxon.Traces do
   The trace is preloaded with its associated waypoints and tracks,
   where each track includes its segments and trackpoints.
   """
+  @spec get_trace(binary()) :: {:ok, Trace.t()} | {:error, :not_found}
   def get_trace(id) do
     case from(t in Trace,
            where: t.id == ^id,
-           preload: [:waypoints, tracks: [segments: :trackpoints]]
+           # Ensure waypoints also preload their trace
+           preload: [waypoints: [:trace], tracks: [segments: :trackpoints]]
          )
          |> Repo.one() do
       %Trace{} = trace -> {:ok, trace}
@@ -74,6 +78,7 @@ defmodule Klaxon.Traces do
       :ok
 
   """
+  @spec import_traces(binary(), binary()) :: :ok
   def import_traces(folder_path, profile_id) do
     folder_path
     |> Path.expand()
@@ -98,6 +103,7 @@ defmodule Klaxon.Traces do
       :ok
 
   """
+  @spec import_trace(Path.t(), map()) :: :ok
   def import_trace(path, attrs) do
     doc =
       path
@@ -178,66 +184,85 @@ defmodule Klaxon.Traces do
     end
   end
 
-  def insert_trace(attrs) do
+  defp insert_trace(attrs) do
     %Trace{}
     |> Trace.changeset(attrs)
     |> Repo.insert()
   end
 
-  def insert_track(attrs) do
+  defp insert_track(attrs) do
     %Track{}
     |> Track.changeset(attrs)
     |> Repo.insert()
   end
 
-  def insert_segment(attrs) do
+  defp insert_segment(attrs) do
     %Segment{}
     |> Segment.changeset(attrs)
     |> Repo.insert()
   end
 
-  def insert_trackpoint(attrs) do
+  defp insert_trackpoint(attrs) do
     %Trackpoint{}
     |> Trackpoint.changeset(attrs)
     |> Repo.insert()
   end
 
-  def insert_waypoint(attrs) do
+  defp insert_waypoint(attrs) do
     %Waypoint{}
     |> Waypoint.changeset(attrs)
     |> Repo.insert()
   end
 
+  @spec delete_trace(Trace.t()) :: :ok
   def delete_trace(trace) do
     Repo.delete(trace)
   end
 
-  def render_trace_as_gpx(trace_id) do
-    case get_trace(trace_id) do
-      {:ok, trace} ->
-        gpx = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <gpx version="1.1" creator="Klaxon">
-          <metadata>
-            <name>#{trace.name}</name>
-          </metadata>
-          #{render_waypoints(trace.waypoints)}
-          #{render_tracks(trace.tracks)}
-        </gpx>
-        """
-
-        {:ok, gpx}
-
-      {:error, :not_found} ->
-        {:error, :not_found}
+  @spec render_traces_as_gpx((binary() -> binary())) :: {:ok, binary()} | {:error, any()}
+  def render_traces_as_gpx(url_fun) do
+    with {:ok, traces} <- get_traces() do
+      waypoints = Enum.flat_map(traces, fn trace -> trace.waypoints end)
+      trace = %Trace{name: "Traces", waypoints: waypoints, tracks: []}
+      render_trace_as_gpx(trace, url_fun)
     end
   end
 
-  defp render_waypoints(waypoints) do
+  @spec render_trace_as_gpx(struct() | binary(), (binary() -> binary())) ::
+          {:ok, binary()} | {:error, :not_found}
+  def render_trace_as_gpx(%Trace{} = trace, url_fun) do
+    gpx = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <gpx version="1.1" creator="Klaxon">
+      <metadata>
+        <name>#{trace.name}</name>
+      </metadata>
+      #{render_waypoints(trace.waypoints, url_fun)}
+      #{render_tracks(trace.tracks)}
+    </gpx>
+    """
+
+    {:ok, gpx}
+  end
+
+  def render_trace_as_gpx(trace_id, url_fun) do
+    with {:ok, trace} <- get_trace(trace_id) do
+      render_trace_as_gpx(trace, url_fun)
+    end
+  end
+
+  defp render_waypoints(waypoints, url_fun) do
     Enum.map(waypoints, fn waypoint ->
       """
       <wpt lat="#{waypoint.lat}" lon="#{waypoint.lon}">
         <name>#{waypoint.name}</name>
+        <desc>
+          <![CDATA[
+            <div class="title">#{waypoint.name}</div>
+            <div class="subtitle"><a href="#{url_fun.(waypoint.trace.id)}">#{waypoint.trace.name}</a></div>
+            <div class="time">#{Calendar.strftime(waypoint.created_at, "%Y-%m-%d %H:%M UTC")}</div>
+          ]]>
+        </desc>
         <ele>#{waypoint.ele}</ele>
         <time>#{DateTime.to_iso8601(waypoint.created_at)}</time>
       </wpt>

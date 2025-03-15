@@ -1,5 +1,9 @@
 <h1>Traces</h1>
 
+<div id="map"></div>
+<input type="range" id="slider" min="0" max="100" value="0" step="0.1" style="width: 100%;display: none;">
+<div id="info" style="display: none;"></div>
+
 <%= if length(@traces) > 0 do %>
   <%= for trace <- @traces do %>
     <article class="mb-2">
@@ -9,3 +13,12 @@
 <% else %>
   <p>No traces found.</p>
 <% end %>
+
+<!-- Load the custom GPX map script -->
+<script type="module">
+  import { initializeGPXMap } from '/klaxon/gpx-map.js';
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initializeGPXMap("map", "info", "slider", "<%= Routes.gpx_path(@conn, :index) %>");
+  });
+</script>

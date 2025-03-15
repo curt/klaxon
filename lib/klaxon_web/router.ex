@@ -119,7 +119,8 @@ defmodule KlaxonWeb.Router do
   scope "/gpx", KlaxonWeb do
     pipe_through :api
 
-    get "/trace/:id", GpxController, :show
+    get "/traces", GpxController, :index
+    get "/traces/:id", GpxController, :show
   end
 
   scope "/api", KlaxonWeb.Api, as: :api do

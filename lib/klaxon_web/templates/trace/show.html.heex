@@ -1,6 +1,8 @@
 <h1>Trace: <%= @trace.name %></h1>
 
 <div id="map"></div>
+<input type="range" id="slider" min="0" max="100" value="0" step="0.1" style="width: 100%;">
+<div id="info" style="display: none;"></div>
 
 <h2>Waypoints</h2>
 <p><ul>
@@ -17,6 +19,6 @@
   import { initializeGPXMap } from '/klaxon/gpx-map.js';
 
   document.addEventListener("DOMContentLoaded", () => {
-    initializeGPXMap("map", "<%= Routes.gpx_path(@conn, :show, @trace.id) %>");
+    initializeGPXMap("map", "info", "slider", "<%= Routes.gpx_path(@conn, :show, @trace.id) %>");
   });
 </script>

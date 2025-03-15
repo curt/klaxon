@@ -198,7 +198,7 @@
   }
 
   #map {
-    @apply my-4 h-[384px] max-w-[1024px];
+    @apply my-4 h-[384px] w-full;
   }
 
   .post-content {
@@ -227,5 +227,9 @@
 
   .post-avatar {
     @apply rounded w-[32px] min-w-[32px] h-auto;
+  }
+
+  .leaflet-popup-content .title {
+    @apply text-lg font-bold;
   }
 }

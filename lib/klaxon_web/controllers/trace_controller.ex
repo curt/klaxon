@@ -1,9 +1,9 @@
 defmodule KlaxonWeb.TraceController do
   use KlaxonWeb, :controller
 
-  alias Klaxon.Contents
+  # alias Klaxon.Contents
   alias Klaxon.Traces
-  alias Klaxon.Traces.Trace
+  # alias Klaxon.Traces.Trace
 
   action_fallback(KlaxonWeb.FallbackController)
 
@@ -14,14 +14,14 @@ defmodule KlaxonWeb.TraceController do
     end
   end
 
-  def new(conn, %{"post_id" => post_id}) do
-    with {:ok, profile} <- current_profile(conn),
-         {:ok, post} <-
-           Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
-      changeset = Trace.changeset(%Trace{})
-      render(conn, "new.html", changeset: changeset, post: post)
-    end
-  end
+  # def new(conn, %{"post_id" => post_id}) do
+  #   with {:ok, profile} <- current_profile(conn),
+  #        {:ok, post} <-
+  #          Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
+  #     changeset = Trace.changeset(%Trace{})
+  #     render(conn, "new.html", changeset: changeset, post: post)
+  #   end
+  # end
 
   # def create(conn, %{
   #       "post_id" => post_id,
