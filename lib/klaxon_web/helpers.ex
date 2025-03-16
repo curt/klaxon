@@ -2,7 +2,7 @@ defmodule KlaxonWeb.Helpers do
   import KlaxonWeb.Titles
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
-  alias Klaxon.Contents.Attachment
+  alias Klaxon.Contents.PostAttachment
   alias Klaxon.Snippet
   alias KlaxonWeb.Router.Helpers, as: Routes
 
@@ -56,8 +56,8 @@ defmodule KlaxonWeb.Helpers do
   @doc """
   Returns an attachment caption with Markdown processed for HTML.
   """
-  @spec htmlify_caption(%Attachment{:caption => String.t()}) :: String.t()
-  def htmlify_caption(%Attachment{} = attachment) do
+  @spec htmlify_caption(%PostAttachment{:caption => String.t()}) :: String.t()
+  def htmlify_caption(%PostAttachment{} = attachment) do
     htmlify_markdown_string(attachment.caption)
   end
 
@@ -118,7 +118,7 @@ defmodule KlaxonWeb.Helpers do
     {"Klaxon", "klaxon@#{conn.host}"}
   end
 
-  @spec snippet(%Attachment{} | %Post{}) :: nil | binary
+  @spec snippet(%PostAttachment{} | %Post{}) :: nil | binary
   def snippet(%Post{} = post) do
     post.title ||
       Snippet.snippify(
@@ -130,7 +130,7 @@ defmodule KlaxonWeb.Helpers do
       )
   end
 
-  def snippet(%Attachment{} = attachment) do
+  def snippet(%PostAttachment{} = attachment) do
     Snippet.snippify(attachment.caption, 140)
   end
 

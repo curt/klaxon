@@ -8,7 +8,7 @@ defmodule Klaxon.Contents do
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
   alias Klaxon.Contents.Post
-  alias Klaxon.Contents.Attachment
+  alias Klaxon.Contents.PostAttachment
   alias Klaxon.Media
   import Ecto.Query
 
@@ -102,8 +102,8 @@ defmodule Klaxon.Contents do
   end
 
   def get_local_post_attachment(attachment_id) do
-    case Attachment |> Repo.get(attachment_id) do
-      %Attachment{} = attachment -> {:ok, attachment}
+    case PostAttachment |> Repo.get(attachment_id) do
+      %PostAttachment{} = attachment -> {:ok, attachment}
       _ -> {:error, :not_found}
     end
   end
@@ -282,8 +282,8 @@ defmodule Klaxon.Contents do
   def insert_local_post_attachment(post_id, attrs, path, content_type, url_fun)
       when is_function(url_fun, 3) do
     with {:ok, media} <- Media.insert_local_media(path, content_type, :post, url_fun) do
-      %Attachment{post_id: post_id, media_id: media.id}
-      |> Attachment.changeset(attrs)
+      %PostAttachment{post_id: post_id, media_id: media.id}
+      |> PostAttachment.changeset(attrs)
       |> Repo.insert()
     end
   end
@@ -296,7 +296,7 @@ defmodule Klaxon.Contents do
 
   def update_local_post_attachment(attachment, attrs) do
     attachment
-    |> Attachment.changeset(attrs)
+    |> PostAttachment.changeset(attrs)
     |> Repo.update()
   end
 

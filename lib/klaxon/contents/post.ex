@@ -43,8 +43,8 @@ defmodule Klaxon.Contents.Post do
     field(:location, :string)
 
     belongs_to(:profile, Klaxon.Profiles.Profile, type: EctoBase58)
-    has_many(:tags, Klaxon.Contents.Tag)
-    has_many(:attachments, Klaxon.Contents.Attachment, preload_order: [:inserted_at])
+    has_many(:tags, Klaxon.Contents.PostTag)
+    has_many(:attachments, Klaxon.Contents.PostAttachment, preload_order: [:inserted_at])
 
     has_one(:in_reply_to, __MODULE__, references: :in_reply_to_uri, foreign_key: :uri)
     has_many(:replies, __MODULE__, references: :uri, foreign_key: :in_reply_to_uri)

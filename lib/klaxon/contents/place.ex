@@ -35,6 +35,8 @@ defmodule Klaxon.Contents.Place do
     field(:ele, :float)
 
     belongs_to(:profile, Klaxon.Profiles.Profile, type: EctoBase58)
+    has_many(:tags, Klaxon.Contents.PlaceTag)
+    has_many(:attachments, Klaxon.Contents.PlaceAttachment)
 
     timestamps()
   end

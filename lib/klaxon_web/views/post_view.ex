@@ -1,7 +1,7 @@
 defmodule KlaxonWeb.PostView do
   use KlaxonWeb, :view
   alias Klaxon.Contents.Post
-  alias Klaxon.Contents.Attachment
+  alias Klaxon.Contents.PostAttachment
 
   def render("show.activity+json", %{
         conn: conn,
@@ -52,8 +52,8 @@ defmodule KlaxonWeb.PostView do
     end
   end
 
-  @spec post_attachment(any, %Attachment{}) :: map
-  def post_attachment(conn, %Attachment{} = attachment) do
+  @spec post_attachment(any, %PostAttachment{}) :: map
+  def post_attachment(conn, %PostAttachment{} = attachment) do
     %{
       "mediaType" => attachment.media.mime_type,
       "name" => snippet(attachment),

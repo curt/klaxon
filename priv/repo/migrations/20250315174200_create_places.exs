@@ -2,7 +2,8 @@ defmodule Klaxon.Repo.Migrations.CreatePlaces do
   use Ecto.Migration
 
   def change do
-    create table(:places) do
+    create table(:places, primary_key: false) do
+      add :id, :binary_id, primary_key: true
       add :content_html, :string
       add :origin, :string, null: false, default: "remote"
       add :published_at, :utc_datetime_usec

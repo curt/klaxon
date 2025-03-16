@@ -2,7 +2,7 @@ defmodule KlaxonWeb.AttachmentController do
   use KlaxonWeb, :controller
 
   alias Klaxon.Contents
-  alias Klaxon.Contents.Attachment
+  alias Klaxon.Contents.PostAttachment
 
   action_fallback(KlaxonWeb.FallbackController)
 
@@ -18,14 +18,14 @@ defmodule KlaxonWeb.AttachmentController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <-
            Contents.get_post(profile.uri, post_id, conn.assigns[:current_user]) do
-      changeset = Attachment.changeset(%Attachment{post: post})
+      changeset = PostAttachment.changeset(%PostAttachment{post: post})
       render(conn, "new.html", changeset: changeset, post: post)
     end
   end
 
   def create(conn, %{
         "post_id" => post_id,
-        "attachment" =>
+        "post_attachment" =>
           %{"upload" => %Plug.Upload{path: path, content_type: content_type}} = attachment_params
       }) do
     with {:ok, _post} <-
@@ -50,7 +50,7 @@ defmodule KlaxonWeb.AttachmentController do
 
   def edit(conn, %{"post_id" => post_id, "id" => id}) do
     with {:ok, post, attachment} <- get_post_attachment(conn, post_id, id) do
-      changeset = Attachment.changeset(attachment)
+      changeset = PostAttachment.changeset(attachment)
 
       render(conn, "edit.html",
         changeset: changeset,
@@ -60,7 +60,7 @@ defmodule KlaxonWeb.AttachmentController do
     end
   end
 
-  def update(conn, %{"post_id" => post_id, "id" => id, "attachment" => params}) do
+  def update(conn, %{"post_id" => post_id, "id" => id, "post_attachment" => params}) do
     with {:ok, _post, attachment} <- get_post_attachment(conn, post_id, id),
          {:ok, _attachment} <- Contents.update_local_post_attachment(attachment, params) do
       conn

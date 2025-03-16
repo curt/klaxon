@@ -1,7 +1,7 @@
-defmodule Klaxon.Contents.Attachment do
+defmodule Klaxon.Contents.PostAttachment do
   use Klaxon.Schema
 
-  schema "attachments" do
+  schema "post_attachments" do
     field :caption, :string
 
     belongs_to :post, Klaxon.Contents.Post, type: EctoBase58
@@ -11,8 +11,8 @@ defmodule Klaxon.Contents.Attachment do
   end
 
   @doc false
-  def changeset(attachment, attrs \\ %{}) do
-    attachment
+  def changeset(post_attachment, attrs \\ %{}) do
+    post_attachment
     |> cast(attrs, [:caption])
     |> validate_required([:caption])
   end
