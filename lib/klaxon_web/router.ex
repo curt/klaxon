@@ -138,6 +138,7 @@ defmodule KlaxonWeb.Router do
     delete "/session", SessionController, :delete
     get "/posts", PostController, :index
     get "/posts/:id", PostController, :show
+    resources "/places", PlaceController
   end
 
   # Other scopes may use custom stacks.
