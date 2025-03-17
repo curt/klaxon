@@ -10,7 +10,7 @@ defmodule Klaxon.Contents.Label do
     field :slug, :string
     field :title, :string
 
-    has_many :tags, Klaxon.Contents.Tag
+    has_many :tags, Klaxon.Contents.PostTag
 
     timestamps()
   end
