@@ -9,6 +9,7 @@ defmodule Klaxon.Contents do
   alias Klaxon.Profiles
   alias Klaxon.Contents.Post
   alias Klaxon.Contents.PostAttachment
+  alias Klaxon.Contents.Place
   alias Klaxon.Media
   import Ecto.Query
 
@@ -327,5 +328,70 @@ defmodule Klaxon.Contents do
     from(posts in Post, as: :posts)
     |> Post.where_origin([:local])
     |> Post.where_status([:published])
+  end
+
+  @doc """
+  Returns a list of places filtered by the given profile URI.
+  """
+  @spec get_places(String.t(), map()) :: {:ok, list(Place.t())}
+  def get_places(profile_uri, _current_user) do
+    places =
+      Place.from_preloaded()
+      |> Place.where_profile_uri(profile_uri)
+      |> Place.order_by_default()
+      |> Repo.all()
+
+    {:ok, places}
+  end
+
+  @doc """
+  Retrieves a single place belonging to the given profile URI.
+  """
+  @spec get_place(String.t(), String.t(), map()) ::
+          {:ok, Place.t()} | {:error, :not_found}
+  def get_place(profile_uri, place_id, _current_user) do
+    case Place.from_preloaded()
+         |> Place.where_profile_uri(profile_uri)
+         |> Place.where_place_id(place_id)
+         |> Repo.one() do
+      nil -> {:error, :not_found}
+      place -> {:ok, place}
+    end
+  end
+
+  @doc """
+  Creates a new place associated with the given profile.
+  """
+  @spec create_place(map(), map()) :: {:ok, Place.t()} | {:error, Ecto.Changeset.t()}
+  def create_place(profile, attrs) do
+    %Place{}
+    |> Place.changeset(Map.put(attrs, :profile_id, profile.id))
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates an existing place belonging to the given profile.
+  """
+  @spec update_place(map(), Place.t(), map()) :: {:ok, Place.t()} | {:error, Ecto.Changeset.t()}
+  def update_place(profile, %Place{} = place, attrs) do
+    if place.profile_id == profile.id do
+      place
+      |> Place.changeset(attrs)
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Deletes a place if it belongs to the given profile.
+  """
+  @spec delete_place(map(), Place.t()) :: {:ok, Place.t()} | {:error, :unauthorized}
+  def delete_place(profile, %Place{} = place) do
+    if place.profile_id == profile.id do
+      Repo.delete(place)
+    else
+      {:error, :unauthorized}
+    end
   end
 end
