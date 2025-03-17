@@ -48,6 +48,15 @@ defmodule KlaxonWeb.Endpoint do
 
   plug Plug.MethodOverride
   plug Plug.Head
+
   plug Plug.Session, @session_options
+
+  if Mix.env() == :test do
+    plug Plug.Session,
+      store: :cookie,
+      key: "_klaxon_key",
+      signing_salt: "some_salt"
+  end
+
   plug KlaxonWeb.Router
 end
