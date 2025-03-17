@@ -1,6 +1,30 @@
 defmodule Klaxon.Contents.Place do
+  @moduledoc """
+  Defines a Place schema and associated functions.
+  """
+
+  @type t :: %__MODULE__{
+          id: String.t(),
+          content_html: String.t() | nil,
+          origin: :local | :remote,
+          published_at: DateTime.t() | nil,
+          slug: String.t() | nil,
+          source: String.t() | nil,
+          status: :draft | :published | :deleted,
+          title: String.t(),
+          uri: String.t(),
+          visibility: :private | :unlisted | :public,
+          lat: float(),
+          lon: float(),
+          ele: float() | nil,
+          profile_id: String.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   @derive {Jason.Encoder,
            only: [
+             :id,
              :content_html,
              :inserted_at,
              :lat,
@@ -17,6 +41,7 @@ defmodule Klaxon.Contents.Place do
              :uri,
              :visibility
            ]}
+
   use Klaxon.Schema
   import Klaxon.Contents.Helpers
 
@@ -139,7 +164,7 @@ defmodule Klaxon.Contents.Place do
       #Ecto.Query<from p in Klaxon.Contents.Place, as: :places, where: p.id == ^1>
 
   """
-  @spec where_place_id(Ecto.Query.t(), integer()) :: Ecto.Query.t()
+  @spec where_place_id(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
   def where_place_id(query, place_id) do
     where(query, [places: p], p.id == ^place_id)
   end
