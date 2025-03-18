@@ -69,6 +69,7 @@ defmodule Klaxon.MixProject do
       {:gen_smtp, "~> 1.0"},
       {:ex_aws, "~> 2.1"},
       {:atomex, "~> 0.5.1"},
+      {:mox, "~> 1.0", only: :test},
 
       # Dependency of `:ex_aws`
       {:sweet_xml, "~> 0.6"},

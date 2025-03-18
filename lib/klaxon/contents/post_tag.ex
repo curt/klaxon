@@ -1,4 +1,12 @@
 defmodule Klaxon.Contents.PostTag do
+  @type t :: %__MODULE__{
+          id: binary(),
+          post_id: binary(),
+          label_id: binary(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   use Ecto.Schema
   import Ecto.Changeset
   @timestamps_opts [type: :utc_datetime_usec]

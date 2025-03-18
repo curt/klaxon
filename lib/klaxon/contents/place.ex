@@ -62,6 +62,8 @@ defmodule Klaxon.Contents.Place do
     belongs_to(:profile, Klaxon.Profiles.Profile, type: EctoBase58)
     has_many(:tags, Klaxon.Contents.PlaceTag)
     has_many(:attachments, Klaxon.Contents.PlaceAttachment)
+    has_many(:post_places, Klaxon.Contents.PostPlace)
+    has_many(:posts, through: [:post_places, :post])
 
     timestamps()
   end

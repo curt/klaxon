@@ -1,4 +1,13 @@
 defmodule Klaxon.Contents.PostAttachment do
+  @type t :: %__MODULE__{
+          id: binary(),
+          caption: binary() | nil,
+          post_id: binary(),
+          media_id: binary(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   use Klaxon.Schema
 
   schema "post_attachments" do

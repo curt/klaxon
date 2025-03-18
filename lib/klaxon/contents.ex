@@ -9,9 +9,13 @@ defmodule Klaxon.Contents do
   alias Klaxon.Profiles
   alias Klaxon.Contents.Post
   alias Klaxon.Contents.PostAttachment
+  alias Klaxon.Contents.PostPlace
   alias Klaxon.Contents.Place
   alias Klaxon.Media
   import Ecto.Query
+
+  @callback maybe_associate_post_with_place(Post.t(), (binary() -> binary())) ::
+              {:ok, PostPlace.t()} | {:error, Ecto.Changeset.t() | :missing_fields}
 
   @doc """
   Gets posts from repo for given endpoint and user (if specified).
@@ -392,6 +396,69 @@ defmodule Klaxon.Contents do
       Repo.delete(place)
     else
       {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Associates posts with places where a post does not have any.
+  """
+  @spec maybe_associate_posts_with_post_place((binary() -> binary())) ::
+          [
+            {binary(), :ok, PostPlace.t() | nil}
+            | {binary(), :error, Ecto.Changeset.t() | :missing_fields}
+          ]
+  def maybe_associate_posts_with_post_place(uri_fun) do
+    module = Application.get_env(:klaxon, :contents_module, __MODULE__)
+
+    posts = Repo.all(from p in Post, preload: [:post_places])
+
+    for post <- posts do
+      if Enum.empty?(post.post_places) do
+        case module.maybe_associate_post_with_place(post, uri_fun) do
+          {:ok, %PostPlace{place_id: place_id}} -> {post.id, :ok, place_id}
+          {:error, :missing_fields} -> {post.id, :ok, nil}
+          {:error, changeset} -> {post.id, :error, changeset}
+        end
+      else
+        {post.id, :ok, nil}
+      end
+    end
+  end
+
+  @doc """
+  Associates a post with a place if the post has location, lat, and lon fields.
+  """
+  @spec maybe_associate_post_with_place(Post.t(), (binary() -> binary())) ::
+          {:ok, PostPlace.t()} | {:error, Ecto.Changeset.t() | :missing_fields}
+  def maybe_associate_post_with_place(%Post{} = post, uri_fun) do
+    if post.location && post.lat && post.lon do
+      place = Repo.one(from p in Place, where: p.title == ^post.location)
+
+      place =
+        case place do
+          nil ->
+            id = EctoBase58.generate()
+            uri = uri_fun.(id)
+
+            %Place{}
+            |> Place.changeset(%{
+              id: id,
+              uri: uri,
+              title: post.location,
+              lat: post.lat,
+              lon: post.lon
+            })
+            |> Repo.insert!()
+
+          place ->
+            place
+        end
+
+      %PostPlace{}
+      |> PostPlace.changeset(%{post_id: post.id, place_id: place.id})
+      |> Repo.insert()
+    else
+      {:error, :missing_fields}
     end
   end
 end
