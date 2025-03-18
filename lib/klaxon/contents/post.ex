@@ -1,6 +1,37 @@
 defmodule Klaxon.Contents.Post do
+  @type t :: %__MODULE__{
+          id: binary(),
+          attributed_to: binary() | nil,
+          content_html: binary() | nil,
+          context_uri: binary() | nil,
+          in_reply_to_uri: binary() | nil,
+          origin: :local | :remote,
+          published_at: DateTime.t() | nil,
+          slug: binary() | nil,
+          source: binary() | nil,
+          status: :draft | :published | :deleted,
+          title: binary() | nil,
+          uri: binary(),
+          visibility: :private | :unlisted | :public,
+          lat: float() | nil,
+          lon: float() | nil,
+          ele: float() | nil,
+          location: binary() | nil,
+          profile_id: binary(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t(),
+          post_places: [Klaxon.Contents.PostPlace.t()],
+          places: [Klaxon.Contents.Place.t()],
+          tags: [Klaxon.Contents.PostTag.t()],
+          attachments: [Klaxon.Contents.PostAttachment.t()],
+          in_reply_to: t() | nil,
+          replies: [t()],
+          conversation: [t()]
+        }
+
   @derive {Jason.Encoder,
            only: [
+             :id,
              :content_html,
              :context_uri,
              :ele,
@@ -20,6 +51,7 @@ defmodule Klaxon.Contents.Post do
              :uri,
              :visibility
            ]}
+
   use Klaxon.Schema
   alias Ecto.Changeset
   alias TagUri
@@ -83,7 +115,7 @@ defmodule Klaxon.Contents.Post do
     |> apply_published_at()
   end
 
-  @spec apply_context_uri(Changeset.t(), String.t()) :: Changeset.t()
+  @spec apply_context_uri(Changeset.t(), binary()) :: Changeset.t()
   def apply_context_uri(changeset, host) do
     changeset
     |> apply_tag(host, :context_uri, "context")
