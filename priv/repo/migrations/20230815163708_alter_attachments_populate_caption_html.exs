@@ -3,14 +3,9 @@ defmodule Klaxon.Repo.Migrations.AlterAttachmentsPopulateCaptionHtml do
   use Ecto.Migration
 
   def up do
-    for attachment <- Klaxon.Repo.all(Klaxon.Contents.Attachment) do
-      if attachment.caption do
-        Klaxon.Contents.Attachment.changeset(attachment, %{
-          caption_html: String.trim(Earmark.as_html!(attachment.caption, inner_html: true))
-        })
-        |> Klaxon.Repo.update()
-      end
-    end
+    # This migration is not needed anymore.
+    # It was used as a one-off to populate the caption_html field in the attachments table,
+    # which has since had its name changed.
   end
 
   def down do
