@@ -1,6 +1,10 @@
 defmodule Klaxon.Contents.PlaceTest do
+  alias Ecto.UUID
   use Klaxon.DataCase, async: true
+  import Mox
   alias Klaxon.Contents
+  alias Klaxon.Contents.Post
+  alias Klaxon.Contents.PostPlace
   alias Klaxon.Contents.Place
   alias Klaxon.Repo
   alias Klaxon.Profiles.Profile
@@ -30,6 +34,22 @@ defmodule Klaxon.Contents.PlaceTest do
 
     place
   end
+
+  defp create_post(profile, attrs) do
+    {:ok, post} =
+      Repo.insert(%Post{
+        context_uri: UUID.generate(),
+        uri: Map.get(attrs, :uri, UUID.generate()),
+        location: Map.get(attrs, :location, nil),
+        lat: Map.get(attrs, :lat, nil),
+        lon: Map.get(attrs, :lon, nil),
+        profile_id: profile.id
+      })
+
+    post
+  end
+
+  setup :verify_on_exit!
 
   describe "get_places/2" do
     test "returns places for a given profile URI" do
@@ -116,6 +136,109 @@ defmodule Klaxon.Contents.PlaceTest do
       place = create_place(profile1)
 
       assert {:error, :unauthorized} == Contents.delete_place(profile2, place)
+    end
+  end
+
+  describe "maybe_associate_posts_with_post_place/1" do
+    setup do
+      Mox.stub(Klaxon.ContentsMock, :maybe_associate_post_with_place, fn _post, _uri_fun ->
+        {:ok, %Klaxon.Contents.PostPlace{}}
+      end)
+
+      Application.put_env(:klaxon, :contents_module, Klaxon.ContentsMock)
+
+      profile = create_profile()
+      post_without_place = create_post(profile, %{location: "Test Place", lat: 10.0, lon: 20.0})
+      post_with_place = create_post(profile, %{location: "Another Place", lat: 30.0, lon: 40.0})
+
+      {:ok, post_without_place: post_without_place, post_with_place: post_with_place}
+    end
+
+    test "associates a post without a post_place", %{post_without_place: post} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+
+      # Mock maybe_associate_post_with_place/2 to return a new PostPlace
+      Klaxon.ContentsMock
+      |> stub(:maybe_associate_post_with_place, fn _post, _uri_fun ->
+        {:ok, %PostPlace{place_id: "new_place"}}
+      end)
+
+      result = Contents.maybe_associate_posts_with_post_place(uri_fun)
+      assert {post.id, :ok, "new_place"} in result
+    end
+
+    test "does not modify posts that already have post_places", %{post_with_place: post} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+      result = Contents.maybe_associate_posts_with_post_place(uri_fun)
+      assert {post.id, :ok, nil} in result
+    end
+
+    test "handles missing fields error", %{post_without_place: post} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+
+      Klaxon.ContentsMock
+      |> stub(:maybe_associate_post_with_place, fn _post, _uri_fun ->
+        {:error, :missing_fields}
+      end)
+
+      result = Contents.maybe_associate_posts_with_post_place(uri_fun)
+      assert {post.id, :ok, nil} in result
+    end
+
+    test "handles changeset errors", %{post_without_place: post} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+      changeset = %Ecto.Changeset{valid?: false}
+
+      Klaxon.ContentsMock
+      |> stub(:maybe_associate_post_with_place, fn _post, _uri_fun ->
+        {:error, changeset}
+      end)
+
+      result = Contents.maybe_associate_posts_with_post_place(uri_fun)
+      assert {post.id, :error, changeset} in result
+    end
+  end
+
+  describe "maybe_associate_post_with_place/2" do
+    setup do
+      profile = create_profile()
+      place = create_place(profile, %{title: "Test Place"})
+
+      post_with_location =
+        create_post(profile, %{
+          uri: "http://example.com/with",
+          location: "Test Place",
+          lat: 10.0,
+          lon: 20.0
+        })
+
+      post_without_location =
+        create_post(profile, %{uri: "http://example.com/without", lat: 10.0, lon: 20.0})
+
+      {:ok,
+       place: place,
+       post_with_location: post_with_location,
+       post_without_location: post_without_location}
+    end
+
+    test "associates post with existing place", %{post_with_location: post, place: _place} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+      result = Contents.maybe_associate_post_with_place(post, uri_fun)
+      assert {:ok, %PostPlace{}} = result
+    end
+
+    test "creates a new place if no matching place exists", %{post_with_location: post} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+      # Ensure no place exists
+      Repo.delete_all(Place)
+      result = Contents.maybe_associate_post_with_place(post, uri_fun)
+      assert {:ok, %PostPlace{}} = result
+    end
+
+    test "returns error when post lacks location", %{post_without_location: post} do
+      uri_fun = fn x -> "http://example.com/#{x}" end
+      result = Contents.maybe_associate_post_with_place(post, uri_fun)
+      assert {:error, :missing_fields} = result
     end
   end
 end
