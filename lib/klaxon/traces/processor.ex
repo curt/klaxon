@@ -202,46 +202,46 @@ defmodule Klaxon.Traces.Processor do
   # This function determines how to handle each incoming trackpoint based on the current accumulator.
   defp chunk_step(p, [] = _acc, _radius) do
     # Start a new "go" group if there is no accumulator.
-    {:cont, {:go, [p]}}
+    {:cont, {:go, [p], p}}
   end
 
-  defp chunk_step(p, {:go, trkpts} = _acc, radius) do
-    chunk_handle_go_group(p, trkpts, radius)
+  defp chunk_step(p, {:go, trkpts, last} = _acc, radius) do
+    chunk_handle_go_group(p, trkpts, last, radius)
   end
 
-  defp chunk_step(p, {:stop, trkpts} = _acc, radius) do
-    chunk_handle_stop_group(p, trkpts, radius)
+  defp chunk_step(p, {:stop, trkpts, first} = _acc, radius) do
+    chunk_handle_stop_group(p, trkpts, first, radius)
   end
 
   # Emits the final group when the input is exhausted.
-  defp chunk_after({group_type, trkpts}) do
-    {:cont, {group_type, trkpts}, nil}
+  defp chunk_after({group_type, trkpts, _}) do
+    {:cont, {group_type, Enum.reverse(trkpts)}, nil}
   end
 
   # Helper function for handling a "go" group.
-  defp chunk_handle_go_group(p, [last | rest] = trkpts, radius) do
+  defp chunk_handle_go_group(p, [last | rest] = trkpts, last, radius) do
     d = distance(p, last)
 
     if d < radius do
       # When the distance exceeds the radius, remove the last trackpoint from the go group,
       # emit the group (without that last trackpoint) and start a new "stop" group with both the removed point and the current point.
-      {:cont, {:go, Enum.reverse(rest)}, {:stop, [last, p]}}
+      {:cont, {:go, Enum.reverse(rest)}, {:stop, [last, p], p}}
     else
       # Otherwise, continue adding the point to the go group.
-      {:cont, {:go, [p | trkpts]}}
+      {:cont, {:go, [p | trkpts], p}}
     end
   end
 
   # Helper function for handling a "stop" group.
-  defp chunk_handle_stop_group(p, trkpts, radius) do
-    d = distance(p, hd(trkpts))
+  defp chunk_handle_stop_group(p, trkpts, first, radius) do
+    d = distance(p, first)
 
     if d < radius do
       # Continue the stop group.
-      {:cont, {:stop, [p | trkpts]}}
+      {:cont, {:stop, [p | trkpts], first}}
     else
       # End the current stop group and start a new go group.
-      {:cont, {:stop, Enum.reverse(trkpts)}, {:go, [p]}}
+      {:cont, {:stop, Enum.reverse(trkpts)}, {:go, [p], p}}
     end
   end
 
@@ -258,30 +258,28 @@ defmodule Klaxon.Traces.Processor do
 
   def remap_trackpoint_groups_by_duration(trackpoint_groups, duration) do
     trackpoint_groups
-    |> Enum.map(fn
-      # Handle a go group by re-emitting.
-      {:go, _trkpts} = elem ->
+    |> Enum.map(&remap_step(&1, duration))
+  end
+
+  defp remap_step({:go, trkpts}, _duration), do: {:go, trkpts}
+
+  defp remap_step({:stop, trkpts} = elem, duration) do
+    if length(trkpts) == 1 do
+      # If the stop group only has one trackpoint, re-emit it as a go group.
+      {:go, trkpts}
+    else
+      start_time = hd(trkpts).created_at
+      end_time = List.last(trkpts).created_at
+      time_diff = abs(DateTime.diff(start_time, end_time, :second))
+
+      if time_diff < duration do
+        # If the stop group is less than the duration, re-emit it as a go group.
+        {:go, trkpts}
+      else
+        # If the stop group is greater than or equal to the duration, re-emit.
         elem
-
-      # Handle a stop group.
-      {:stop, trkpts} = elem ->
-        if length(trkpts) == 1 do
-          # If the stop group only has one trackpoint, re-emit it as a go group.
-          {:go, trkpts}
-        else
-          start_time = hd(trkpts).created_at
-          end_time = List.last(trkpts).created_at
-          time_diff = abs(DateTime.diff(start_time, end_time, :second))
-
-          if time_diff < duration do
-            # If the stop group is less than the duration, re-emit it as a go group.
-            {:go, trkpts}
-          else
-            # If the stop group is greater than or equal to the duration, re-emit.
-            elem
-          end
-        end
-    end)
+      end
+    end
   end
 
   @doc """
@@ -305,30 +303,20 @@ defmodule Klaxon.Traces.Processor do
 
   def recombine_trackpoint_groups_by_type(trackpoint_groups) do
     trackpoint_groups
-    |> Enum.chunk_while(
-      [],
-      fn
-        # Handle first group
-        elem, [] ->
-          {:cont, elem}
-
-        # Handle subsequent groups
-        {go_or_stop, trkpts}, {go_or_stop_acc, trkpts_acc} ->
-          if go_or_stop == go_or_stop_acc do
-            # If the group type is the same, add the trackpoints to the accumulator.
-            {:cont, {go_or_stop_acc, trkpts_acc ++ trkpts}}
-          else
-            # If the group type is different, emit the accumulator and start a new group.
-            {:cont, {go_or_stop_acc, trkpts_acc}, {go_or_stop, trkpts}}
-          end
-      end,
-      fn
-        # Emit the last group.
-        {go_or_stop_acc, trkpts_acc} ->
-          {:cont, {go_or_stop_acc, trkpts_acc}, nil}
-      end
-    )
+    |> Enum.chunk_while([], &recombine_step/2, &recombine_after/1)
   end
+
+  defp recombine_step(elem, []), do: {:cont, elem}
+
+  defp recombine_step({group_type, trkpts}, {group_type_acc, trkpts_acc}) do
+    if group_type == group_type_acc do
+      {:cont, {group_type_acc, trkpts_acc ++ trkpts}}
+    else
+      {:cont, {group_type_acc, trkpts_acc}, {group_type, trkpts}}
+    end
+  end
+
+  defp recombine_after({group_type, trkpts}), do: {:cont, {group_type, trkpts}, nil}
 
   @doc """
   Apply the centerpoint to stop groups.
