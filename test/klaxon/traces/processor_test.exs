@@ -9,7 +9,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
   describe "preprocess_trace/2" do
     test "keeps empty trace" do
-      trace = %Trace{tracks: []}
+      trace = %Trace{tracks: [], waypoints: []}
       preprocessed = Processor.preprocess_trace(trace)
       assert length(preprocessed.tracks) == 0
     end
@@ -24,7 +24,8 @@ defmodule Klaxon.Traces.ProcessorTest do
               }
             ]
           }
-        ]
+        ],
+        waypoints: []
       }
 
       preprocessed = Processor.preprocess_trace(trace)
@@ -448,6 +449,40 @@ defmodule Klaxon.Traces.ProcessorTest do
       assert length(stop_trkpts) == 1
       assert lat == 40.1
       assert lon == -105.1
+    end
+  end
+
+  describe "elevation_of_trackpoints/1" do
+    test "returns nil for empty list" do
+      trackpoints = []
+
+      assert Processor.elevation_of_trackpoints(trackpoints) == nil
+    end
+
+    test "returns nil for trackpoints without elevation" do
+      trackpoints = [
+        %Trackpoint{lat: 40.1, lon: -105.1}
+      ]
+
+      assert Processor.elevation_of_trackpoints(trackpoints) == nil
+    end
+
+    test "returns elevation of single trackpoint" do
+      trackpoints = [
+        %Trackpoint{lat: 40.1, lon: -105.1, ele: 100.0}
+      ]
+
+      assert Processor.elevation_of_trackpoints(trackpoints) == 100.0
+    end
+
+    test "returns elevation of mulitple trackpoints, weighted average" do
+      trackpoints = [
+        %Trackpoint{lat: 40.1, lon: -105.1, ele: 100.0},
+        %Trackpoint{lat: 40.2, lon: -105.2, ele: 100.0},
+        %Trackpoint{lat: 40.3, lon: -105.3, ele: 190.0}
+      ]
+
+      assert Processor.elevation_of_trackpoints(trackpoints) == 130.0
     end
   end
 end

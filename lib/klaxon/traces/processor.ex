@@ -10,6 +10,7 @@ defmodule Klaxon.Traces.Processor do
   alias Klaxon.Traces.Waypoint
 
   @type go_or_stop() :: :go | :stop
+  @type trace() :: %Trace{tracks: [Track.t()], waypoints: [Waypoint.t()]}
   @type trackpoint() :: %Trackpoint{lon: float(), lat: float(), created_at: DateTime.t()}
   @type trackpoints() :: [Trackpoint.t()]
   @type trackpoint_group() :: {go_or_stop(), trackpoints()}
@@ -40,20 +41,48 @@ defmodule Klaxon.Traces.Processor do
       iex> preprocess_trace(trace)
       %Trace{tracks: [%Track{segments: [%Segment{trackpoints: trackpoints}]}}}
   """
-  def preprocess_trace(%Trace{tracks: tracks} = trace, opts \\ []) do
+  @spec preprocess_trace(trace()) :: trace()
+  @spec preprocess_trace(trace(), keyword()) :: trace()
+  def preprocess_trace(%Trace{} = trace, opts \\ []) do
     time_gap = Keyword.get(opts, :time_gap, @default_time_gap)
     distance_gap = Keyword.get(opts, :distance_gap, @default_distance_gap)
 
-    %{trace | tracks: Enum.map(tracks, &preprocess_track(&1, time_gap, distance_gap))}
+    %Trace{
+      name: trace.name,
+      tracks: Enum.map(trace.tracks, &preprocess_track(&1, time_gap, distance_gap)),
+      waypoints: Enum.map(trace.waypoints, &preprocess_waypoint/1)
+    }
   end
 
-  def preprocess_track(%Track{segments: segments} = track, time_gap, distance_gap) do
-    %{track | segments: Enum.map(segments, &preprocess_segment(&1, time_gap, distance_gap))}
+  defp preprocess_track(%Track{} = track, time_gap, distance_gap) do
+    %Track{
+      name: track.name,
+      segments: Enum.map(track.segments, &preprocess_segment(&1, time_gap, distance_gap))
+    }
   end
 
-  def preprocess_segment(%Segment{trackpoints: trackpoints}, time_gap, distance_gap) do
-    filtered_trackpoints = filter_trackpoints(trackpoints, time_gap, distance_gap)
-    %Segment{trackpoints: filtered_trackpoints}
+  defp preprocess_segment(%Segment{} = segment, time_gap, distance_gap) do
+    trackpoints = filter_trackpoints(segment.trackpoints, time_gap, distance_gap)
+    %Segment{trackpoints: Enum.map(trackpoints, &preprocess_trackpoint/1)}
+  end
+
+  defp preprocess_trackpoint(%Trackpoint{} = trackpoint) do
+    %Trackpoint{
+      lat: trackpoint.lat,
+      lon: trackpoint.lon,
+      ele: trackpoint.ele,
+      created_at: trackpoint.created_at
+    }
+  end
+
+  defp preprocess_waypoint(%Waypoint{} = waypoint) do
+    %Waypoint{
+      name: waypoint.name,
+      lon: waypoint.lon,
+      lat: waypoint.lat,
+      ele: waypoint.ele,
+      created_at: waypoint.created_at
+    }
   end
 
   @doc """
@@ -78,7 +107,7 @@ defmodule Klaxon.Traces.Processor do
   def filter_trackpoints([], _time_gap, _distance_gap), do: []
 
   def filter_trackpoints(rest, _time_gap, _distance_gap) when is_list(rest) and length(rest) == 1,
-    do: [rest]
+    do: rest
 
   def filter_trackpoints([first | rest], time_gap, distance_gap) do
     # Split the list into all but the last element and the last element.
@@ -172,6 +201,7 @@ defmodule Klaxon.Traces.Processor do
           name: "Stop",
           lon: lon,
           lat: lat,
+          ele: elevation_of_trackpoints(trkpts),
           created_at: datetime_of_trackpoints(trkpts)
         }
     end)
@@ -496,10 +526,50 @@ defmodule Klaxon.Traces.Processor do
   defp deg2rad(deg), do: deg * :math.pi() / 180.0
   defp rad2deg(rad), do: rad * 180.0 / :math.pi()
 
+  @doc """
+  Calculate the datetime of a list of trackpoints.
+  ## Parameters
+  - trackpoints: The list of trackpoints to process.
+  ## Examples
+      iex> trackpoints = [
+      ...>   %Trackpoint{created_at: DateTime.utc_now()},
+      ...>   %Trackpoint{created_at: DateTime.add(DateTime.utc_now(), 2)}
+      ...> ]
+      iex> datetime_of_trackpoints(trackpoints)
+      %DateTime{...}
+  """
   def datetime_of_trackpoints([%{created_at: first} | _] = trackpoints) do
     last = List.last(trackpoints).created_at
     seconds_diff = DateTime.diff(last, first, :second)
     DateTime.add(first, div(seconds_diff, 2), :second)
+  end
+
+  @doc """
+  Calculate the elevation of a list of trackpoints.
+  ## Parameters
+  - trackpoints: The list of trackpoints to process.
+  ## Examples
+      iex> trackpoints = [
+      ...>   %Trackpoint{ele: 100.0},
+      ...>   %Trackpoint{ele: 200.0}
+      ...> ]
+      iex> elevation_of_trackpoints(trackpoints)
+      150.0
+  """
+  @spec elevation_of_trackpoints(trackpoints()) :: float()
+  def elevation_of_trackpoints([]), do: nil
+
+  def elevation_of_trackpoints(trackpoints) do
+    trackpoints = trackpoints |> Enum.filter(&(&1.ele != nil))
+
+    if length(trackpoints) == 0 do
+      nil
+    else
+      trackpoints
+      |> Enum.map(& &1.ele)
+      |> Enum.reduce(&Kernel.+/2)
+      |> Kernel./(length(trackpoints))
+    end
   end
 
   @doc """
