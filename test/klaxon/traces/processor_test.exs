@@ -409,4 +409,45 @@ defmodule Klaxon.Traces.ProcessorTest do
       assert length(go_trkpts) == 1
     end
   end
+
+  describe "filter_stop_groups/1" do
+    test "filters stop groups, empty list" do
+      groups = []
+
+      results = Processor.filter_stop_groups(groups)
+      assert length(results) == 0
+    end
+
+    test "filters stop groups, one go group" do
+      groups = [
+        {:go,
+         [
+           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+         ]}
+      ]
+
+      results = Processor.filter_stop_groups(groups)
+      assert length(results) == 0
+    end
+
+    test "filters stop groups, one go group, one stop group" do
+      groups = [
+        {:go,
+         [
+           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+         ]},
+        {:stop,
+         [
+           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+         ], {40.1, -105.1}}
+      ]
+
+      results = Processor.filter_stop_groups(groups)
+      assert length(results) == 1
+      {:stop, stop_trkpts, {lat, lon}} = Enum.at(results, 0)
+      assert length(stop_trkpts) == 1
+      assert lat == 40.1
+      assert lon == -105.1
+    end
+  end
 end
