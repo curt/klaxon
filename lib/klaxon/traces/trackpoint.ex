@@ -12,6 +12,14 @@ defmodule Klaxon.Traces.Trackpoint do
           segment: Klaxon.Traces.Segment.t()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :created_at,
+             :lat,
+             :lon,
+             :ele
+           ]}
+
   schema "trackpoints" do
     field :name, :string
     field :created_at, :utc_datetime_usec
