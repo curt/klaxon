@@ -15,12 +15,17 @@ defmodule Klaxon.Traces.ProcessorTest do
     end
 
     test "keeps trackpoints" do
+      now = DateTime.utc_now()
+
       trace = %Trace{
         tracks: [
           %Track{
             segments: [
               %Segment{
-                trackpoints: [%Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}]
+                trackpoints: [
+                  %Trackpoint{lat: 40.2, lon: -105.2, created_at: now},
+                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 1200)}
+                ]
               }
             ]
           }
@@ -33,7 +38,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       first_track = List.first(preprocessed.tracks)
       assert length(first_track.segments) == 1
       first_segment = List.first(first_track.segments)
-      assert length(first_segment.trackpoints) == 1
+      assert length(first_segment.trackpoints) == 2
     end
   end
 
@@ -51,6 +56,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
       assert length(filtered) == 1
+      assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
 
     test "keeps last trackpoint even if it does not meet time or distance requirement" do
@@ -61,6 +67,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
       assert length(filtered) == 2
+      assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
 
     test "discards trackpoint that does not meet time or distance requirement" do
@@ -72,6 +79,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
       assert length(filtered) == 2
+      assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
 
     test "retains trackpoint that does meet time requirement" do
@@ -83,6 +91,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
       assert length(filtered) == 3
+      assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
 
     test "retains trackpoint that does meet distance requirement" do
@@ -94,6 +103,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
       assert length(filtered) == 3
+      assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
   end
 

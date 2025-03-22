@@ -126,7 +126,7 @@ defmodule Klaxon.Traces.Processor do
     |> elem(0)
     # The list of trackpoints to keep is reversed and concatenated with the last trackpoint.
     |> Enum.reverse()
-    |> Enum.concat([last])
+    |> Enum.concat(last)
   end
 
   # Determine if a trackpoint should be kept based on time and distance gaps.
