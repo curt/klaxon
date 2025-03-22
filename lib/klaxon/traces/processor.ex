@@ -199,7 +199,7 @@ defmodule Klaxon.Traces.Processor do
     )
   end
 
-  # This function determines how to handle each incoming trackpoint based on the current accumulator.
+  # Handles each incoming trackpoint based on the current accumulator.
   defp chunk_step(p, [] = _acc, _radius) do
     # Start a new "go" group if there is no accumulator.
     {:cont, {:go, [p], p}}
@@ -250,6 +250,16 @@ defmodule Klaxon.Traces.Processor do
   ## Parameters
   - trackpoint_groups: The list of trackpoint groups to process.
   - duration: The minimum duration (in seconds) for a stop group.
+  ## Examples
+      iex> trackpoint_groups = [
+      ...>   {:go, [trackpoint1, trackpoint2]},
+      ...>   {:stop, [trackpoint3, trackpoint4]} # Where duration is less than specified
+      ...> ]
+      iex> remap_trackpoint_groups_by_duration(trackpoint_groups)
+      [
+        {:go, [trackpoint1, trackpoint2]},
+        {:go, [trackpoint3, trackpoint4]}
+      ]
   """
   @spec remap_trackpoint_groups_by_duration(trackpoint_groups()) :: trackpoint_groups()
   @spec remap_trackpoint_groups_by_duration(trackpoint_groups(), float()) :: trackpoint_groups()
@@ -261,6 +271,7 @@ defmodule Klaxon.Traces.Processor do
     |> Enum.map(&remap_step(&1, duration))
   end
 
+  # Handles each incoming trackpoint group.
   defp remap_step({:go, trkpts}, _duration), do: {:go, trkpts}
 
   defp remap_step({:stop, trkpts} = elem, duration) do
@@ -273,7 +284,7 @@ defmodule Klaxon.Traces.Processor do
       time_diff = abs(DateTime.diff(start_time, end_time, :second))
 
       if time_diff < duration do
-        # If the stop group is less than the duration, re-emit it as a go group.
+        # If the stop group is less than the duration, re-emit as a go group.
         {:go, trkpts}
       else
         # If the stop group is greater than or equal to the duration, re-emit.
@@ -366,50 +377,50 @@ defmodule Klaxon.Traces.Processor do
   def apply_assumed_trackpoints(trackpoint_groups, factor, speed \\ @default_speed) do
     trackpoint_groups
     |> Enum.chunk_every(2, 1)
-    |> Enum.map(fn
-      [{:go, go_trkpts}, {:stop, _stop_trkpts, {lon, lat} = _ctrpt}] ->
-        # Assume travel from last trackpoint in go group to centerpoint in stop group
-        {:go,
-         go_trkpts ++
-           [
-             %Trackpoint{
-               lon: lon,
-               lat: lat,
-               created_at:
-                 estimate_time_based_on_speed(
-                   List.last(go_trkpts),
-                   %{lon: lon, lat: lat},
-                   factor,
-                   speed
-                 )
-             }
-           ]}
-
-      [{:stop, _stop_trkpts, _ctrpt} = p, _] ->
-        p
-
-      [p] ->
-        p
-    end)
+    |> Enum.map(&apply_assumed_step(&1, factor, speed))
     |> List.flatten()
   end
 
+  # Handles each incoming list of trackpoint groups, in pairs, except the last.
+  defp apply_assumed_step(
+         [{:go, go_trkpts}, {:stop, _stop_trkpts, {lon, lat} = _ctrpt}],
+         factor,
+         speed
+       ) do
+    # Assume travel from last trackpoint in go group to centerpoint in stop group
+    {:go,
+     go_trkpts ++
+       [
+         %Trackpoint{
+           lon: lon,
+           lat: lat,
+           created_at:
+             estimate_time_based_on_speed(
+               List.last(go_trkpts),
+               %{lon: lon, lat: lat},
+               factor,
+               speed
+             )
+         }
+       ]}
+  end
+
+  defp apply_assumed_step([{:stop, _stop_trkpts, _ctrpt} = p, _], _factor, _speed), do: p
+  defp apply_assumed_step([p], _factor, _speed), do: p
+
   @doc """
-  Reject stop groups from a list of trackpoint groups.
+  Filter go groups from a list of trackpoint groups.
   ## Parameters
   - trackpoint_groups: The list of trackpoint groups to process.
   ## Examples
       iex> trackpoint_groups = [
       ...>   {:go, [trackpoint1, trackpoint2]},
-      ...>   {:stop, [trackpoint3, trackpoint4], centerpoint},
-      ...>   {:go, [trackpoint5, trackpoint6]}
+      ...>   {:stop, [trackpoint3, trackpoint4]}
       ...> ]
-      iex> reject_stop_groups(trackpoint_groups)
-      [
-        {:go, [trackpoint1, trackpoint2]},
-        {:go, [trackpoint5, trackpoint6]}
-      ]
+      iex> filter_go_groups(trackpoint_groups)
+      [{:go, [trackpoint1, trackpoint2]}]
   """
+  @spec filter_go_groups(trackpoint_groups()) :: trackpoint_groups()
   def filter_go_groups(trackpoint_groups) do
     trackpoint_groups
     |> Enum.filter(&is_go_group/1)
