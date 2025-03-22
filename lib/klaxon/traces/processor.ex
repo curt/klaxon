@@ -190,44 +190,59 @@ defmodule Klaxon.Traces.Processor do
   def chunk_trackpoints_by_radius(trackpoints, radius \\ @default_radius)
   def chunk_trackpoints_by_radius([], _radius), do: []
 
-  def chunk_trackpoints_by_radius(trackpoints, radius)
-      when is_float(radius) do
+  def chunk_trackpoints_by_radius(trackpoints, radius) when is_float(radius) do
     trackpoints
     |> Enum.chunk_while(
       [],
-      fn
-        # Start a new go group if there’s no accumulator.
-        p, [] ->
-          {:cont, {:go, [p]}}
-
-        # For a go group, pattern-match the accumulator into the most recent point and the rest.
-        p, {:go, [last | rest] = acc} ->
-          d = distance(p, last)
-
-          if d < radius do
-            # Emit the go group without its last trackpoint (i.e. [last]) and
-            # start a stop group with the removed point and the current point.
-            {:cont, {:go, Enum.reverse(rest)}, {:stop, [last, p]}}
-          else
-            # Continue adding to the current go group.
-            {:cont, {:go, [p | acc]}}
-          end
-
-        # For a stop group, keep adding points if the distance condition holds.
-        p, {:stop, trkpts} ->
-          d = distance(p, hd(trkpts))
-
-          if d < radius do
-            {:cont, {:stop, [p | trkpts]}}
-          else
-            {:cont, {:stop, Enum.reverse(trkpts)}, {:go, [p]}}
-          end
-      end,
-      # When finished, simply emit the last accumulated group.
-      fn {group_type, trkpts} ->
-        {:cont, {group_type, trkpts}, nil}
-      end
+      &chunk_step(&1, &2, radius),
+      &chunk_after/1
     )
+  end
+
+  # This function determines how to handle each incoming trackpoint based on the current accumulator.
+  defp chunk_step(p, [] = _acc, _radius) do
+    # Start a new "go" group if there is no accumulator.
+    {:cont, {:go, [p]}}
+  end
+
+  defp chunk_step(p, {:go, trkpts} = _acc, radius) do
+    chunk_handle_go_group(p, trkpts, radius)
+  end
+
+  defp chunk_step(p, {:stop, trkpts} = _acc, radius) do
+    chunk_handle_stop_group(p, trkpts, radius)
+  end
+
+  # Emits the final group when the input is exhausted.
+  defp chunk_after({group_type, trkpts}) do
+    {:cont, {group_type, trkpts}, nil}
+  end
+
+  # Helper function for handling a "go" group.
+  defp chunk_handle_go_group(p, [last | rest] = trkpts, radius) do
+    d = distance(p, last)
+
+    if d < radius do
+      # When the distance exceeds the radius, remove the last trackpoint from the go group,
+      # emit the group (without that last trackpoint) and start a new "stop" group with both the removed point and the current point.
+      {:cont, {:go, Enum.reverse(rest)}, {:stop, [last, p]}}
+    else
+      # Otherwise, continue adding the point to the go group.
+      {:cont, {:go, [p | trkpts]}}
+    end
+  end
+
+  # Helper function for handling a "stop" group.
+  defp chunk_handle_stop_group(p, trkpts, radius) do
+    d = distance(p, hd(trkpts))
+
+    if d < radius do
+      # Continue the stop group.
+      {:cont, {:stop, [p | trkpts]}}
+    else
+      # End the current stop group and start a new go group.
+      {:cont, {:stop, Enum.reverse(trkpts)}, {:go, [p]}}
+    end
   end
 
   @doc """
