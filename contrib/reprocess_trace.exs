@@ -13,5 +13,6 @@ defmodule ReprocessTrace do
       Repo.get(Trace, trace_id)
       |> Repo.preload([:waypoints, tracks: [segments: :trackpoints]])
       |> Processor.preprocess_trace()
+      |> Processor.process_trace()
   end
 end

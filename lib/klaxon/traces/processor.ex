@@ -140,6 +140,31 @@ defmodule Klaxon.Traces.Processor do
     distance >= distance_gap or time_diff >= time_gap
   end
 
+  def process_trace(trace, opts \\ []) do
+    {tracks, waypoints} = process_tracks(trace.tracks, opts)
+    Map.merge(trace, %{tracks: tracks, waypoints: trace.waypoints ++ waypoints})
+  end
+
+  def process_tracks(tracks, opts \\ []) do
+    Enum.reduce(tracks, {[], []}, fn track, {acc_tracks, acc_waypoints} ->
+      {segments, waypoints} =
+        Enum.reduce(
+          track.segments,
+          {[], []},
+          fn segment, {acc_segments, acc_waypoints} ->
+            {trackpoints_lists, waypoints} = process_trackpoints(segment.trackpoints, opts)
+
+            segments =
+              Enum.map(trackpoints_lists, fn trackpoints -> %Segment{trackpoints: trackpoints} end)
+
+            {acc_segments ++ segments, acc_waypoints ++ waypoints}
+          end
+        )
+
+      {acc_tracks ++ [%Track{segments: segments}], acc_waypoints ++ waypoints}
+    end)
+  end
+
   @doc """
   Process a list of trackpoints to generate trackpoints and waypoints.
   ## Parameters
@@ -157,9 +182,9 @@ defmodule Klaxon.Traces.Processor do
       iex> process_trackpoints(trackpoints)
       {trackpoints, waypoints}
   """
-  @spec process_trackpoints([Klaxon.Traces.Trackpoint.t()]) :: {trackpoints(), waypoints()}
+  @spec process_trackpoints([Klaxon.Traces.Trackpoint.t()]) :: {list(trackpoints()), waypoints()}
   @spec process_trackpoints([Klaxon.Traces.Trackpoint.t()], keyword()) ::
-          {trackpoints(), waypoints()}
+          {list(trackpoints()), waypoints()}
   def process_trackpoints(trackpoints, opts \\ []) do
     radius = Keyword.get(opts, :radius, @default_radius)
     duration = Keyword.get(opts, :duration, @default_duration)
@@ -181,14 +206,12 @@ defmodule Klaxon.Traces.Processor do
       |> apply_assumed_trackpoints(-1, speed)
       |> Enum.reverse()
 
-    trackpoints =
+    trackpoints_lists =
       trackpoint_groups
       |> filter_go_groups()
-      |> Enum.map(&emit_trackpoints/1)
-      |> List.flatten()
-      |> Enum.sort(&(DateTime.to_unix(&1.created_at) < DateTime.to_unix(&2.created_at)))
+      |> Enum.map(&emit_sorted_trackpoints/1)
 
-    {trackpoints, waypoints}
+    {trackpoints_lists, waypoints}
   end
 
   @spec generate_waypoints_from_trackpoint_groups(trackpoints()) :: waypoints()
@@ -416,7 +439,8 @@ defmodule Klaxon.Traces.Processor do
          [{:go, go_trkpts}, {:stop, _stop_trkpts, {lon, lat} = _ctrpt}],
          factor,
          speed
-       ) do
+       )
+       when factor >= 0 do
     # Assume travel from last trackpoint in go group to centerpoint in stop group
     {:go,
      go_trkpts ++
@@ -433,6 +457,29 @@ defmodule Klaxon.Traces.Processor do
              )
          }
        ]}
+  end
+
+  defp apply_assumed_step(
+         [{:go, go_trkpts}, {:stop, _stop_trkpts, {lon, lat} = _ctrpt}],
+         factor,
+         speed
+       )
+       when factor < 0 do
+    # Assume travel from last trackpoint in go group to centerpoint in stop group
+    {:go,
+     [
+       %Trackpoint{
+         lon: lon,
+         lat: lat,
+         created_at:
+           estimate_time_based_on_speed(
+             List.first(go_trkpts),
+             %{lon: lon, lat: lat},
+             factor,
+             speed
+           )
+       }
+     ] ++ go_trkpts}
   end
 
   defp apply_assumed_step([{:stop, _stop_trkpts, _ctrpt} = p, _], _factor, _speed), do: p
@@ -468,7 +515,10 @@ defmodule Klaxon.Traces.Processor do
   defp is_stop_group({:stop, _trkpts, _ctrpt}), do: true
   defp is_stop_group(_), do: false
 
-  defp emit_trackpoints({:go, trkpts}), do: trkpts
+  defp emit_sorted_trackpoints({:go, trkpts}) do
+    trkpts
+    |> Enum.sort(&(DateTime.to_unix(&1.created_at) < DateTime.to_unix(&2.created_at)))
+  end
 
   # Compute center of a list of trackpoints.
   @doc """

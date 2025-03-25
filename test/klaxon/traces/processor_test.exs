@@ -107,6 +107,72 @@ defmodule Klaxon.Traces.ProcessorTest do
     end
   end
 
+  describe "process_trace/2" do
+    test "keeps empty trace" do
+      trace = %Trace{tracks: [], waypoints: []}
+      processed = Processor.process_trace(trace)
+      assert length(processed.tracks) == 0
+    end
+
+    test "keeps trackpoints" do
+      now = DateTime.utc_now()
+
+      trace = %Trace{
+        tracks: [
+          %Track{
+            segments: [
+              %Segment{
+                trackpoints: [
+                  %Trackpoint{lat: 40.2, lon: -105.2, created_at: now},
+                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 1200)}
+                ]
+              }
+            ]
+          }
+        ],
+        waypoints: [%Waypoint{lat: 40.1, lon: -105.1, created_at: now}]
+      }
+
+      processed = Processor.process_trace(trace)
+      assert length(processed.tracks) == 1
+      first_track = List.first(processed.tracks)
+      assert length(first_track.segments) == 1
+      first_segment = List.first(first_track.segments)
+      assert length(first_segment.trackpoints) == 2
+      assert length(processed.waypoints) == 1
+    end
+
+    test "obvioous stop splits segment and adds waypoint" do
+      now = DateTime.utc_now()
+
+      trace = %Trace{
+        tracks: [
+          %Track{
+            segments: [
+              %Segment{
+                trackpoints: [
+                  %Trackpoint{lat: 40.2, lon: -105.2, created_at: now},
+                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 200)},
+                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 3200)},
+                  %Trackpoint{lat: 40.0, lon: -105.0, created_at: DateTime.add(now, 3400)}
+                ]
+              }
+            ]
+          }
+        ],
+        waypoints: [%Waypoint{lat: 40.1, lon: -105.1, created_at: now}]
+      }
+
+      processed = Processor.process_trace(trace)
+      assert length(processed.tracks) == 1
+      first_track = List.first(processed.tracks)
+      assert length(first_track.segments) == 2
+      first_segment = List.first(first_track.segments)
+      assert length(first_segment.trackpoints) == 2
+      assert length(processed.waypoints) == 2
+    end
+  end
+
   describe "process_trackpoints/2" do
     test "keeps empty list" do
       trackpoints = []
@@ -123,7 +189,8 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       {processed, _} = Processor.process_trackpoints(trackpoints)
       assert length(processed) == 1
-      assert %Trackpoint{} = trkpt = Enum.at(processed, 0)
+      assert [%Trackpoint{}] = trkpts = Enum.at(processed, 0)
+      assert trkpt = Enum.at(trkpts, 0)
       assert trkpt.lat == 40.1
       assert trkpt.lon == -105.1
       assert trkpt.created_at == now
@@ -134,19 +201,33 @@ defmodule Klaxon.Traces.ProcessorTest do
 
       trackpoints = [
         %Trackpoint{lat: 40.1, lon: -105.1, created_at: now},
+        %Trackpoint{lat: 40.15, lon: -105.15, created_at: DateTime.add(now, 200)},
         %Trackpoint{lat: 40.2, lon: -105.2, created_at: DateTime.add(now, 400)},
         %Trackpoint{lat: 40.2, lon: -105.2, created_at: DateTime.add(now, 2400)},
+        %Trackpoint{lat: 40.25, lon: -105.25, created_at: DateTime.add(now, 2600)},
         %Trackpoint{lat: 40.3, lon: -105.3, created_at: DateTime.add(now, 2800)}
       ]
 
       {processed, waypts} =
         Processor.process_trackpoints(trackpoints, radius: 0.1, duration: 800, speed: 100.0)
 
-      assert length(processed) == 4
-      assert %Trackpoint{} = trkpt = Enum.at(processed, 0)
-      assert trkpt.lat == 40.1
-      assert trkpt.lon == -105.1
-      assert trkpt.created_at == now
+      assert length(processed) == 2
+      trkpts0 = Enum.at(processed, 0)
+      trkpt00 = Enum.at(trkpts0, 0)
+      assert trkpt00.lat == 40.1
+      assert trkpt00.lon == -105.1
+      assert trkpt00.created_at == now
+      trkpt01 = Enum.at(trkpts0, 1)
+      assert trkpt01.lat == 40.15
+      assert trkpt01.lon == -105.15
+      trkpts1 = Enum.at(processed, 1)
+      trkpt10 = Enum.at(trkpts1, 0)
+      assert trkpt10.lat == 40.2
+      assert trkpt10.lon == -105.2
+      assert DateTime.diff(now, trkpt10.created_at) < 2600
+      trkpt11 = Enum.at(trkpts1, 1)
+      assert trkpt11.lat == 40.25
+      assert trkpt11.lon == -105.25
 
       assert length(waypts) == 1
       assert %Waypoint{} = waypt = Enum.at(waypts, 0)
@@ -364,21 +445,39 @@ defmodule Klaxon.Traces.ProcessorTest do
       groups = [
         {:go,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: now}
+           %Trackpoint{lon: -105.1, lat: 40.1, created_at: now},
+           %Trackpoint{lon: -105.14, lat: 40.14, created_at: DateTime.add(now, 200)},
+           %Trackpoint{lon: -105.17, lat: 40.17, created_at: DateTime.add(now, 400)}
          ]},
         {:stop,
          [
-           %Trackpoint{lat: 40.2, lon: -105.2}
-         ], {40.2, -105.2}}
+           %Trackpoint{lon: -105.2, lat: 40.2, created_at: DateTime.add(now, 2400)}
+         ], {-105.2, 40.2}},
+        {:go,
+         [
+           %Trackpoint{lon: -105.23, lat: 40.23, created_at: DateTime.add(now, 4400)},
+           %Trackpoint{lon: -105.26, lat: 40.26, created_at: DateTime.add(now, 4600)},
+           %Trackpoint{lon: -105.3, lat: 40.3, created_at: DateTime.add(now, 4800)}
+         ]}
       ]
 
-      results = Processor.apply_assumed_trackpoints(groups, 1)
-      assert length(results) == 2
-      {:go, go_trkpts} = Enum.at(results, 0)
-      assert length(go_trkpts) == 2
-      last_go_trkpt = Enum.at(go_trkpts, -1)
-      assert %{lon: _, lat: _, created_at: last_go_created_at} = last_go_trkpt
-      assert DateTime.diff(last_go_created_at, now) > 0
+      results0 = groups |> Processor.apply_assumed_trackpoints(1)
+      assert length(results0) == 3
+
+      {:go, go_trkpts0} = Enum.at(results0, 0)
+      assert length(go_trkpts0) == 4
+      last_go_trkpt0 = List.last(go_trkpts0)
+      assert %{lon: _, lat: _, created_at: last_go_created_at} = last_go_trkpt0
+      assert DateTime.diff(last_go_created_at, now) > 400
+
+      results1 =
+        results0 |> Enum.reverse() |> Processor.apply_assumed_trackpoints(-1) |> Enum.reverse()
+
+      {:go, go_trkpts2} = Enum.at(results1, 2)
+      assert length(go_trkpts2) == 4
+      first_go_trkpt2 = List.first(go_trkpts2)
+      assert %{lat: 40.2, lon: -105.2, created_at: first_go_created_at} = first_go_trkpt2
+      assert DateTime.diff(first_go_created_at, now) < 4400
     end
   end
 
