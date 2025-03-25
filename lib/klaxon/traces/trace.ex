@@ -14,6 +14,13 @@ defmodule Klaxon.Traces.Trace do
           updated_at: DateTime.t()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :name,
+             :tracks,
+             :waypoints
+           ]}
+
   schema "traces" do
     field :name, :string
     field :created_at, :utc_datetime_usec, virtual: true

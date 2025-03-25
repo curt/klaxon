@@ -12,6 +12,15 @@ defmodule Klaxon.Traces.Waypoint do
           trace: Klaxon.Traces.Trace.t()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :name,
+             :created_at,
+             :lat,
+             :lon,
+             :ele
+           ]}
+
   schema "waypoints" do
     field :name, :string
     field :created_at, :utc_datetime_usec

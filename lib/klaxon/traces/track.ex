@@ -11,6 +11,12 @@ defmodule Klaxon.Traces.Track do
           updated_at: DateTime.t()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :name,
+             :segments
+           ]}
+
   schema "tracks" do
     field :name, :string
 
