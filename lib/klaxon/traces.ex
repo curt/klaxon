@@ -14,17 +14,18 @@ defmodule Klaxon.Traces do
     subquery =
       from(w in Waypoint,
         group_by: w.trace_id,
-        select: %{trace_id: w.trace_id, min_created_at: min(w.created_at)}
+        select: %{trace_id: w.trace_id, min_created_at: min(w.time)}
       )
 
     query =
       from(t in Trace,
         join: w in subquery(subquery),
         on: t.id == w.trace_id,
+        where: t.visibility == :public,
         # Ensure waypoints also preload their trace
         preload: [waypoints: [:trace]],
         order_by: w.min_created_at,
-        select_merge: %{created_at: w.min_created_at}
+        select_merge: %{time: w.min_created_at}
       )
 
     case Repo.all(query) do
@@ -54,7 +55,7 @@ defmodule Klaxon.Traces do
   @spec get_trace(binary()) :: {:ok, Trace.t()} | {:error, :not_found}
   def get_trace(id) do
     case from(t in Trace,
-           where: t.id == ^id,
+           where: t.id == ^id and t.visibility != :private,
            # Ensure waypoints also preload their trace
            preload: [waypoints: [:trace], tracks: [segments: :trackpoints]]
          )
@@ -149,7 +150,7 @@ defmodule Klaxon.Traces do
 
   defp import_waypoints(waypoints, trace_id) do
     for waypoint <- waypoints do
-      {:ok, created_at, 0} = DateTime.from_iso8601(waypoint.time)
+      {:ok, time, 0} = DateTime.from_iso8601(waypoint.time)
 
       insert_waypoint(%{
         trace_id: trace_id,
@@ -157,7 +158,7 @@ defmodule Klaxon.Traces do
         lat: waypoint.lat,
         lon: waypoint.lon,
         ele: waypoint.ele,
-        created_at: created_at
+        time: time
       })
     end
   end
@@ -170,14 +171,14 @@ defmodule Klaxon.Traces do
         {:ok, inserted_segment} = insert_segment(%{track_id: inserted_track.id})
 
         for trackpoint <- segment.trackpoints do
-          {:ok, created_at, 0} = DateTime.from_iso8601(trackpoint.time)
+          {:ok, time, 0} = DateTime.from_iso8601(trackpoint.time)
 
           insert_trackpoint(%{
             segment_id: inserted_segment.id,
             lat: trackpoint.lat,
             lon: trackpoint.lon,
             ele: trackpoint.ele,
-            created_at: created_at
+            time: time
           })
         end
       end
@@ -260,11 +261,11 @@ defmodule Klaxon.Traces do
           <![CDATA[
             <div class="title">#{waypoint.name}</div>
             <div class="subtitle"><a href="#{url_fun.(waypoint.trace.id)}">#{waypoint.trace.name}</a></div>
-            <div class="time">#{Calendar.strftime(waypoint.created_at, "%Y-%m-%d %H:%M UTC")}</div>
+            <div class="time">#{Calendar.strftime(waypoint.time, "%Y-%m-%d %H:%M UTC")}</div>
           ]]>
         </desc>
         <ele>#{waypoint.ele}</ele>
-        <time>#{DateTime.to_iso8601(waypoint.created_at)}</time>
+        <time>#{DateTime.to_iso8601(waypoint.time)}</time>
       </wpt>
       """
     end)
@@ -299,7 +300,7 @@ defmodule Klaxon.Traces do
       """
       <trkpt lat="#{trackpoint.lat}" lon="#{trackpoint.lon}">
         <ele>#{trackpoint.ele}</ele>
-        <time>#{DateTime.to_iso8601(trackpoint.created_at)}</time>
+        <time>#{DateTime.to_iso8601(trackpoint.time)}</time>
       </trkpt>
       """
     end)

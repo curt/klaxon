@@ -4,7 +4,7 @@ defmodule Klaxon.Traces.Waypoint do
   @type t :: %__MODULE__{
           id: integer(),
           name: String.t(),
-          created_at: DateTime.t(),
+          time: DateTime.t(),
           lat: float(),
           lon: float(),
           ele: float(),
@@ -12,9 +12,18 @@ defmodule Klaxon.Traces.Waypoint do
           trace: Klaxon.Traces.Trace.t()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :name,
+             :time,
+             :lat,
+             :lon,
+             :ele
+           ]}
+
   schema "waypoints" do
     field :name, :string
-    field :created_at, :utc_datetime_usec
+    field :time, :utc_datetime_usec
     field :lat, :float
     field :lon, :float
     field :ele, :float
@@ -26,6 +35,6 @@ defmodule Klaxon.Traces.Waypoint do
   @spec changeset(struct(), map()) :: Ecto.Changeset.t()
   def changeset(trace, attrs) do
     trace
-    |> cast(attrs, [:trace_id, :name, :created_at, :lat, :lon, :ele])
+    |> cast(attrs, [:trace_id, :name, :time, :lat, :lon, :ele])
   end
 end

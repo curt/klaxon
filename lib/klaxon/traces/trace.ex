@@ -4,7 +4,7 @@ defmodule Klaxon.Traces.Trace do
   @type t :: %__MODULE__{
           id: integer(),
           name: String.t(),
-          created_at: DateTime.t() | nil,
+          time: DateTime.t() | nil,
           profile_id: integer() | nil,
           # FIXME: Klaxon.Profiles.Profile.t()
           profile: struct() | nil,
@@ -14,13 +14,22 @@ defmodule Klaxon.Traces.Trace do
           updated_at: DateTime.t()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :name,
+             :tracks,
+             :waypoints
+           ]}
+
   schema "traces" do
     field :name, :string
-    field :created_at, :utc_datetime_usec, virtual: true
+    field :time, :utc_datetime_usec, virtual: true
+    field :status, Ecto.Enum, values: [:raw, :preprocessed, :processed], default: :raw
+    field :visibility, Ecto.Enum, values: [:private, :unlisted, :public], default: :private
 
     belongs_to :profile, Klaxon.Profiles.Profile
     has_many :tracks, Klaxon.Traces.Track
-    has_many :waypoints, Klaxon.Traces.Waypoint, preload_order: [:created_at]
+    has_many :waypoints, Klaxon.Traces.Waypoint, preload_order: [:time]
 
     timestamps()
   end

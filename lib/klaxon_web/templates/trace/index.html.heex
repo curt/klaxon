@@ -7,7 +7,7 @@
 <%= if length(@traces) > 0 do %>
   <%= for trace <- @traces do %>
     <article class="mb-2">
-      <%= prettify_date(trace.created_at) %> &ndash; <%= link to: Routes.trace_path(@conn, :show, trace.id) do %><%= trace.name || "Untitled" %><% end %>
+      <%= prettify_date(trace.time) %> &ndash; <%= link to: Routes.trace_path(@conn, :show, trace.id) do %><%= trace.name || "Untitled" %><% end %>
     </article>
   <% end %>
 <% else %>
