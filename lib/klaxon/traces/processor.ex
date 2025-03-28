@@ -434,6 +434,8 @@ defmodule Klaxon.Traces.Processor do
     |> List.flatten()
   end
 
+  defp apply_assumed_step([{:go, [] = _go_trkpts} = p, _], _factor, _speed), do: p
+
   # Handles each incoming list of trackpoint groups, in pairs, except the last.
   defp apply_assumed_step(
          [{:go, go_trkpts}, {:stop, _stop_trkpts, {lon, lat} = _ctrpt}],
