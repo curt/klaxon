@@ -11,7 +11,7 @@ defmodule Klaxon.Traces.Processor do
 
   @type go_or_stop() :: :go | :stop
   @type trace() :: %Trace{tracks: [Track.t()], waypoints: [Waypoint.t()]}
-  @type trackpoint() :: %Trackpoint{lon: float(), lat: float(), created_at: DateTime.t()}
+  @type trackpoint() :: %Trackpoint{lon: float(), lat: float(), time: DateTime.t()}
   @type trackpoints() :: [Trackpoint.t()]
   @type trackpoint_group() :: {go_or_stop(), trackpoints()}
   @type trackpoint_groups() :: [trackpoint_group()]
@@ -71,7 +71,7 @@ defmodule Klaxon.Traces.Processor do
       lat: trackpoint.lat,
       lon: trackpoint.lon,
       ele: trackpoint.ele,
-      created_at: trackpoint.created_at
+      time: trackpoint.time
     }
   end
 
@@ -81,7 +81,7 @@ defmodule Klaxon.Traces.Processor do
       lon: waypoint.lon,
       lat: waypoint.lat,
       ele: waypoint.ele,
-      created_at: waypoint.created_at
+      time: waypoint.time
     }
   end
 
@@ -95,13 +95,13 @@ defmodule Klaxon.Traces.Processor do
   - distance_gap: The minimum distance between trackpoints (in meters).
   ## Examples
       iex> trackpoints = [
-      ...>   %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-      ...>   %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 2)}
+      ...>   %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+      ...>   %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
       ...> ]
       iex> filter_trackpoints(trackpoints, 5, 10)
       [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 2)}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
       ]
   """
   def filter_trackpoints([], _time_gap, _distance_gap), do: []
@@ -135,7 +135,7 @@ defmodule Klaxon.Traces.Processor do
     # Calculate the distance between the two points in meters.
     distance = distance(point1, point2)
     # Calculate the time difference in seconds.
-    time_diff = abs(DateTime.diff(point1.created_at, point2.created_at, :second))
+    time_diff = abs(DateTime.diff(point1.time, point2.time, :second))
 
     distance >= distance_gap or time_diff >= time_gap
   end
@@ -176,8 +176,8 @@ defmodule Klaxon.Traces.Processor do
   - :speed: The speed (in meters/second) to use for estimating trackpoints.
   ## Examples
       iex> trackpoints = [
-      ...>   %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-      ...>   %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 2)}
+      ...>   %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+      ...>   %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
       ...> ]
       iex> process_trackpoints(trackpoints)
       {trackpoints, waypoints}
@@ -225,7 +225,7 @@ defmodule Klaxon.Traces.Processor do
           lon: lon,
           lat: lat,
           ele: elevation_of_trackpoints(trkpts),
-          created_at: datetime_of_trackpoints(trkpts)
+          time: datetime_of_trackpoints(trkpts)
         }
     end)
   end
@@ -332,8 +332,8 @@ defmodule Klaxon.Traces.Processor do
       # If the stop group only has one trackpoint, re-emit it as a go group.
       {:go, trkpts}
     else
-      start_time = hd(trkpts).created_at
-      end_time = List.last(trkpts).created_at
+      start_time = hd(trkpts).time
+      end_time = List.last(trkpts).time
       time_diff = abs(DateTime.diff(start_time, end_time, :second))
 
       if time_diff < duration do
@@ -434,6 +434,8 @@ defmodule Klaxon.Traces.Processor do
     |> List.flatten()
   end
 
+  defp apply_assumed_step([{:go, [] = _go_trkpts} = p, _], _factor, _speed), do: p
+
   # Handles each incoming list of trackpoint groups, in pairs, except the last.
   defp apply_assumed_step(
          [{:go, go_trkpts}, {:stop, _stop_trkpts, {lon, lat} = _ctrpt}],
@@ -448,7 +450,7 @@ defmodule Klaxon.Traces.Processor do
          %Trackpoint{
            lon: lon,
            lat: lat,
-           created_at:
+           time:
              estimate_time_based_on_speed(
                List.last(go_trkpts),
                %{lon: lon, lat: lat},
@@ -471,7 +473,7 @@ defmodule Klaxon.Traces.Processor do
        %Trackpoint{
          lon: lon,
          lat: lat,
-         created_at:
+         time:
            estimate_time_based_on_speed(
              List.first(go_trkpts),
              %{lon: lon, lat: lat},
@@ -517,7 +519,7 @@ defmodule Klaxon.Traces.Processor do
 
   defp emit_sorted_trackpoints({:go, trkpts}) do
     trkpts
-    |> Enum.sort(&(DateTime.to_unix(&1.created_at) < DateTime.to_unix(&2.created_at)))
+    |> Enum.sort(&(DateTime.to_unix(&1.time) < DateTime.to_unix(&2.time)))
   end
 
   # Compute center of a list of trackpoints.
@@ -582,14 +584,14 @@ defmodule Klaxon.Traces.Processor do
   - trackpoints: The list of trackpoints to process.
   ## Examples
       iex> trackpoints = [
-      ...>   %Trackpoint{created_at: DateTime.utc_now()},
-      ...>   %Trackpoint{created_at: DateTime.add(DateTime.utc_now(), 2)}
+      ...>   %Trackpoint{time: DateTime.utc_now()},
+      ...>   %Trackpoint{time: DateTime.add(DateTime.utc_now(), 2)}
       ...> ]
       iex> datetime_of_trackpoints(trackpoints)
       %DateTime{...}
   """
-  def datetime_of_trackpoints([%{created_at: first} | _] = trackpoints) do
-    last = List.last(trackpoints).created_at
+  def datetime_of_trackpoints([%{time: first} | _] = trackpoints) do
+    last = List.last(trackpoints).time
     seconds_diff = DateTime.diff(last, first, :second)
     DateTime.add(first, div(seconds_diff, 2), :second)
   end
@@ -630,7 +632,7 @@ defmodule Klaxon.Traces.Processor do
   - factor: The factor to apply to the travel time (an integer, usually 1 or -1).
   - speed: The speed to use for the travel time calculation.
   ## Examples
-      iex> trkpt1 = %Trackpoint{created_at: DateTime.utc_now(), lat: 40.1, lon: -105.1}
+      iex> trkpt1 = %Trackpoint{time: DateTime.utc_now(), lat: 40.1, lon: -105.1}
       iex> trkpt2 = %Trackpoint{lat: 40.2, lon: -105.2}
       iex> estimate_time_based_on_speed(trkpt1, trkpt2, 1, 1.4)
       %DateTime{...}
@@ -645,7 +647,7 @@ defmodule Klaxon.Traces.Processor do
         ) ::
           DateTime.t()
   def estimate_time_based_on_speed(
-        %{created_at: time, lat: _, lon: _} = trkpt1,
+        %{time: time, lat: _, lon: _} = trkpt1,
         %{lat: _, lon: _} = trkpt2,
         factor,
         speed \\ @default_speed

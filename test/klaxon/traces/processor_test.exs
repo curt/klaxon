@@ -23,8 +23,8 @@ defmodule Klaxon.Traces.ProcessorTest do
             segments: [
               %Segment{
                 trackpoints: [
-                  %Trackpoint{lat: 40.2, lon: -105.2, created_at: now},
-                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 1200)}
+                  %Trackpoint{lat: 40.2, lon: -105.2, time: now},
+                  %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(now, 1200)}
                 ]
               }
             ]
@@ -51,7 +51,7 @@ defmodule Klaxon.Traces.ProcessorTest do
 
     test "keeps only trackpoint" do
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
       ]
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
@@ -61,8 +61,8 @@ defmodule Klaxon.Traces.ProcessorTest do
 
     test "keeps last trackpoint even if it does not meet time or distance requirement" do
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 2)}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
       ]
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
@@ -72,9 +72,9 @@ defmodule Klaxon.Traces.ProcessorTest do
 
     test "discards trackpoint that does not meet time or distance requirement" do
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 2)},
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 4)}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)},
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 4)}
       ]
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
@@ -84,9 +84,9 @@ defmodule Klaxon.Traces.ProcessorTest do
 
     test "retains trackpoint that does meet time requirement" do
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 6)},
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 7)}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 6)},
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 7)}
       ]
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
@@ -96,9 +96,9 @@ defmodule Klaxon.Traces.ProcessorTest do
 
     test "retains trackpoint that does meet distance requirement" do
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-        %Trackpoint{lat: 40.1, lon: -105.2, created_at: DateTime.add(DateTime.utc_now(), 2)},
-        %Trackpoint{lat: 40.1, lon: -105.2, created_at: DateTime.add(DateTime.utc_now(), 4)}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+        %Trackpoint{lat: 40.1, lon: -105.2, time: DateTime.add(DateTime.utc_now(), 2)},
+        %Trackpoint{lat: 40.1, lon: -105.2, time: DateTime.add(DateTime.utc_now(), 4)}
       ]
 
       filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
@@ -123,14 +123,14 @@ defmodule Klaxon.Traces.ProcessorTest do
             segments: [
               %Segment{
                 trackpoints: [
-                  %Trackpoint{lat: 40.2, lon: -105.2, created_at: now},
-                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 1200)}
+                  %Trackpoint{lat: 40.2, lon: -105.2, time: now},
+                  %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(now, 1200)}
                 ]
               }
             ]
           }
         ],
-        waypoints: [%Waypoint{lat: 40.1, lon: -105.1, created_at: now}]
+        waypoints: [%Waypoint{lat: 40.1, lon: -105.1, time: now}]
       }
 
       processed = Processor.process_trace(trace)
@@ -151,16 +151,16 @@ defmodule Klaxon.Traces.ProcessorTest do
             segments: [
               %Segment{
                 trackpoints: [
-                  %Trackpoint{lat: 40.2, lon: -105.2, created_at: now},
-                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 200)},
-                  %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(now, 3200)},
-                  %Trackpoint{lat: 40.0, lon: -105.0, created_at: DateTime.add(now, 3400)}
+                  %Trackpoint{lat: 40.2, lon: -105.2, time: now},
+                  %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(now, 200)},
+                  %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(now, 3200)},
+                  %Trackpoint{lat: 40.0, lon: -105.0, time: DateTime.add(now, 3400)}
                 ]
               }
             ]
           }
         ],
-        waypoints: [%Waypoint{lat: 40.1, lon: -105.1, created_at: now}]
+        waypoints: [%Waypoint{lat: 40.1, lon: -105.1, time: now}]
       }
 
       processed = Processor.process_trace(trace)
@@ -184,7 +184,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       now = DateTime.utc_now()
 
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: now}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: now}
       ]
 
       {processed, _} = Processor.process_trackpoints(trackpoints)
@@ -193,19 +193,19 @@ defmodule Klaxon.Traces.ProcessorTest do
       assert trkpt = Enum.at(trkpts, 0)
       assert trkpt.lat == 40.1
       assert trkpt.lon == -105.1
-      assert trkpt.created_at == now
+      assert trkpt.time == now
     end
 
     test "correctly handles obvious stop" do
       now = DateTime.utc_now()
 
       trackpoints = [
-        %Trackpoint{lat: 40.1, lon: -105.1, created_at: now},
-        %Trackpoint{lat: 40.15, lon: -105.15, created_at: DateTime.add(now, 200)},
-        %Trackpoint{lat: 40.2, lon: -105.2, created_at: DateTime.add(now, 400)},
-        %Trackpoint{lat: 40.2, lon: -105.2, created_at: DateTime.add(now, 2400)},
-        %Trackpoint{lat: 40.25, lon: -105.25, created_at: DateTime.add(now, 2600)},
-        %Trackpoint{lat: 40.3, lon: -105.3, created_at: DateTime.add(now, 2800)}
+        %Trackpoint{lat: 40.1, lon: -105.1, time: now},
+        %Trackpoint{lat: 40.15, lon: -105.15, time: DateTime.add(now, 200)},
+        %Trackpoint{lat: 40.2, lon: -105.2, time: DateTime.add(now, 400)},
+        %Trackpoint{lat: 40.2, lon: -105.2, time: DateTime.add(now, 2400)},
+        %Trackpoint{lat: 40.25, lon: -105.25, time: DateTime.add(now, 2600)},
+        %Trackpoint{lat: 40.3, lon: -105.3, time: DateTime.add(now, 2800)}
       ]
 
       {processed, waypts} =
@@ -216,7 +216,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       trkpt00 = Enum.at(trkpts0, 0)
       assert trkpt00.lat == 40.1
       assert trkpt00.lon == -105.1
-      assert trkpt00.created_at == now
+      assert trkpt00.time == now
       trkpt01 = Enum.at(trkpts0, 1)
       assert trkpt01.lat == 40.15
       assert trkpt01.lon == -105.15
@@ -224,7 +224,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       trkpt10 = Enum.at(trkpts1, 0)
       assert trkpt10.lat == 40.2
       assert trkpt10.lon == -105.2
-      assert DateTime.diff(now, trkpt10.created_at) < 2600
+      assert DateTime.diff(now, trkpt10.time) < 2600
       trkpt11 = Enum.at(trkpts1, 1)
       assert trkpt11.lat == 40.25
       assert trkpt11.lon == -105.25
@@ -233,7 +233,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       assert %Waypoint{} = waypt = Enum.at(waypts, 0)
       assert waypt.lat == 40.2
       assert waypt.lon == -105.2
-      assert waypt.created_at == DateTime.add(now, 1400)
+      assert waypt.time == DateTime.add(now, 1400)
     end
   end
 
@@ -316,8 +316,8 @@ defmodule Klaxon.Traces.ProcessorTest do
       trackpoints = [
         {:stop,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 800)}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 800)}
          ]}
       ]
 
@@ -331,9 +331,9 @@ defmodule Klaxon.Traces.ProcessorTest do
       trackpoints = [
         {:stop,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()},
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 400)},
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.add(DateTime.utc_now(), 800)}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 400)},
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 800)}
          ]}
       ]
 
@@ -420,21 +420,21 @@ defmodule Klaxon.Traces.ProcessorTest do
 
   describe "estimate_time_based_on_speed/4" do
     test "estimates time based on speed, forward" do
-      start = %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+      start = %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
       stop = %Trackpoint{lat: 40.2, lon: -105.2}
       speed = 1.0
 
       time = Processor.estimate_time_based_on_speed(start, stop, 1, speed)
-      assert DateTime.diff(time, start.created_at) > 0
+      assert DateTime.diff(time, start.time) > 0
     end
 
     test "estimates time based on speed, back" do
-      stop = %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+      stop = %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
       start = %Trackpoint{lat: 40.2, lon: -105.2}
       speed = 1.0
 
       time = Processor.estimate_time_based_on_speed(stop, start, -1, speed)
-      assert DateTime.diff(time, stop.created_at) < 0
+      assert DateTime.diff(time, stop.time) < 0
     end
   end
 
@@ -445,19 +445,19 @@ defmodule Klaxon.Traces.ProcessorTest do
       groups = [
         {:go,
          [
-           %Trackpoint{lon: -105.1, lat: 40.1, created_at: now},
-           %Trackpoint{lon: -105.14, lat: 40.14, created_at: DateTime.add(now, 200)},
-           %Trackpoint{lon: -105.17, lat: 40.17, created_at: DateTime.add(now, 400)}
+           %Trackpoint{lon: -105.1, lat: 40.1, time: now},
+           %Trackpoint{lon: -105.14, lat: 40.14, time: DateTime.add(now, 200)},
+           %Trackpoint{lon: -105.17, lat: 40.17, time: DateTime.add(now, 400)}
          ]},
         {:stop,
          [
-           %Trackpoint{lon: -105.2, lat: 40.2, created_at: DateTime.add(now, 2400)}
+           %Trackpoint{lon: -105.2, lat: 40.2, time: DateTime.add(now, 2400)}
          ], {-105.2, 40.2}},
         {:go,
          [
-           %Trackpoint{lon: -105.23, lat: 40.23, created_at: DateTime.add(now, 4400)},
-           %Trackpoint{lon: -105.26, lat: 40.26, created_at: DateTime.add(now, 4600)},
-           %Trackpoint{lon: -105.3, lat: 40.3, created_at: DateTime.add(now, 4800)}
+           %Trackpoint{lon: -105.23, lat: 40.23, time: DateTime.add(now, 4400)},
+           %Trackpoint{lon: -105.26, lat: 40.26, time: DateTime.add(now, 4600)},
+           %Trackpoint{lon: -105.3, lat: 40.3, time: DateTime.add(now, 4800)}
          ]}
       ]
 
@@ -467,7 +467,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       {:go, go_trkpts0} = Enum.at(results0, 0)
       assert length(go_trkpts0) == 4
       last_go_trkpt0 = List.last(go_trkpts0)
-      assert %{lon: _, lat: _, created_at: last_go_created_at} = last_go_trkpt0
+      assert %{lon: _, lat: _, time: last_go_created_at} = last_go_trkpt0
       assert DateTime.diff(last_go_created_at, now) > 400
 
       results1 =
@@ -476,7 +476,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       {:go, go_trkpts2} = Enum.at(results1, 2)
       assert length(go_trkpts2) == 4
       first_go_trkpt2 = List.first(go_trkpts2)
-      assert %{lat: 40.2, lon: -105.2, created_at: first_go_created_at} = first_go_trkpt2
+      assert %{lat: 40.2, lon: -105.2, time: first_go_created_at} = first_go_trkpt2
       assert DateTime.diff(first_go_created_at, now) < 4400
     end
   end
@@ -493,7 +493,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       groups = [
         {:stop,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
          ], {40.1, -105.1}}
       ]
 
@@ -505,11 +505,11 @@ defmodule Klaxon.Traces.ProcessorTest do
       groups = [
         {:go,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
          ]},
         {:stop,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
          ], {40.1, -105.1}}
       ]
 
@@ -532,7 +532,7 @@ defmodule Klaxon.Traces.ProcessorTest do
       groups = [
         {:go,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
          ]}
       ]
 
@@ -544,11 +544,11 @@ defmodule Klaxon.Traces.ProcessorTest do
       groups = [
         {:go,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
          ]},
         {:stop,
          [
-           %Trackpoint{lat: 40.1, lon: -105.1, created_at: DateTime.utc_now()}
+           %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
          ], {40.1, -105.1}}
       ]
 

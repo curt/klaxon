@@ -8,7 +8,7 @@
 <p><ul>
   <%= for waypoint <- @trace.waypoints do %>
     <li>
-      <strong><%= waypoint.name %></strong> - Lat: <%= waypoint.lat %>, Lon: <%= waypoint.lon %>, Ele: <%= waypoint.ele %>, Time: <%= DateTime.to_iso8601(waypoint.created_at) %>
+      <strong><%= waypoint.name %></strong> - Lat: <%= waypoint.lat %>, Lon: <%= waypoint.lon %>, Ele: <%= waypoint.ele %>, Time: <%= DateTime.to_iso8601(waypoint.time) %>
     </li>
   <% end %>
 </ul>

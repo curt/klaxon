@@ -4,7 +4,7 @@ defmodule Klaxon.Traces.Trackpoint do
   @type t :: %__MODULE__{
           id: integer(),
           name: String.t(),
-          created_at: DateTime.t(),
+          time: DateTime.t(),
           lat: float(),
           lon: float(),
           ele: float(),
@@ -14,7 +14,7 @@ defmodule Klaxon.Traces.Trackpoint do
 
   @derive {Jason.Encoder,
            only: [
-             :created_at,
+             :time,
              :lat,
              :lon,
              :ele
@@ -22,7 +22,7 @@ defmodule Klaxon.Traces.Trackpoint do
 
   schema "trackpoints" do
     field :name, :string
-    field :created_at, :utc_datetime_usec
+    field :time, :utc_datetime_usec
     field :lat, :float
     field :lon, :float
     field :ele, :float
@@ -34,6 +34,6 @@ defmodule Klaxon.Traces.Trackpoint do
   @spec changeset(struct(), map()) :: Ecto.Changeset.t()
   def changeset(trace, attrs) do
     trace
-    |> cast(attrs, [:segment_id, :name, :created_at, :lat, :lon, :ele])
+    |> cast(attrs, [:segment_id, :name, :time, :lat, :lon, :ele])
   end
 end
