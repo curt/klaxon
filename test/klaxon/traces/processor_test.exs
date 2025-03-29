@@ -45,7 +45,7 @@ defmodule Klaxon.Traces.ProcessorTest do
   describe "filter_trackpoints/3" do
     test "keeps empty list" do
       trackpoints = []
-      filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
+      filtered = Processor.filter_trackpoints(trackpoints, 5, 10) |> Enum.to_list()
       assert length(filtered) == 0
     end
 
@@ -54,7 +54,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()}
       ]
 
-      filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
+      filtered = Processor.filter_trackpoints(trackpoints, 5, 10) |> Enum.to_list()
       assert length(filtered) == 1
       assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
@@ -65,7 +65,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
       ]
 
-      filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
+      filtered = Processor.filter_trackpoints(trackpoints, 5, 10) |> Enum.to_list()
       assert length(filtered) == 2
       assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
@@ -77,7 +77,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 4)}
       ]
 
-      filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
+      filtered = Processor.filter_trackpoints(trackpoints, 5, 10) |> Enum.to_list()
       assert length(filtered) == 2
       assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
@@ -89,7 +89,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 7)}
       ]
 
-      filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
+      filtered = Processor.filter_trackpoints(trackpoints, 5, 10) |> Enum.to_list()
       assert length(filtered) == 3
       assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
@@ -101,7 +101,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.1, lon: -105.2, time: DateTime.add(DateTime.utc_now(), 4)}
       ]
 
-      filtered = Processor.filter_trackpoints(trackpoints, 5, 10)
+      filtered = Processor.filter_trackpoints(trackpoints, 5, 10) |> Enum.to_list()
       assert length(filtered) == 3
       assert Enum.each(filtered, fn trkpt -> is_struct(trkpt) end)
     end
@@ -246,7 +246,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.4, lon: -105.4}
       ]
 
-      results = Processor.chunk_trackpoints_by_radius(trackpoints, 0.1)
+      results = Processor.chunk_trackpoints_by_radius(trackpoints, 0.1) |> Enum.to_list()
       assert length(results) == 1
       assert {:go, _} = Enum.at(results, 0)
     end
@@ -259,7 +259,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.2, lon: -105.2}
       ]
 
-      results = Processor.chunk_trackpoints_by_radius(trackpoints, 0.1)
+      results = Processor.chunk_trackpoints_by_radius(trackpoints, 0.1) |> Enum.to_list()
       assert length(results) == 2
       assert {:go, _} = Enum.at(results, 0)
       assert {:stop, _} = Enum.at(results, 1)
@@ -273,7 +273,7 @@ defmodule Klaxon.Traces.ProcessorTest do
         %Trackpoint{lat: 40.3, lon: -105.3}
       ]
 
-      results = Processor.chunk_trackpoints_by_radius(trackpoints, 0.1)
+      results = Processor.chunk_trackpoints_by_radius(trackpoints, 0.1) |> Enum.to_list()
       assert length(results) == 3
       assert {:go, _} = Enum.at(results, 0)
       assert {:stop, _} = Enum.at(results, 1)
@@ -293,7 +293,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 300)
+      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 300) |> Enum.to_list()
       assert length(results) == 1
       assert {:go, _} = Enum.at(results, 0)
     end
@@ -306,7 +306,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 1200)
+      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 1200) |> Enum.to_list()
       assert length(results) == 1
       {:go, trkpts} = Enum.at(results, 0)
       assert length(trkpts) == 1
@@ -321,7 +321,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 1200)
+      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 1200) |> Enum.to_list()
       assert length(results) == 1
       {:go, trkpts} = Enum.at(results, 0)
       assert length(trkpts) == 2
@@ -337,7 +337,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 600)
+      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 600) |> Enum.to_list()
       assert length(results) == 1
       {:stop, trkpts} = Enum.at(results, 0)
       assert length(trkpts) == 3
@@ -362,7 +362,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 600)
+      results = Processor.remap_trackpoint_groups_by_duration(trackpoints, 600) |> Enum.to_list()
       assert length(results) == 3
       assert Enum.all?(results, fn {:go, _} -> true end)
     end
@@ -384,7 +384,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.recombine_trackpoint_groups_by_type(trackpoints)
+      results = Processor.recombine_trackpoint_groups_by_type(trackpoints) |> Enum.to_list()
 
       assert length(results) == 1
       {:go, trkpts} = Enum.at(results, 0)
@@ -409,7 +409,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.apply_centerpoint_to_stop_groups(trackpoints)
+      results = Processor.apply_centerpoint_to_stop_groups(trackpoints) |> Enum.to_list()
       assert length(results) == 2
       {:stop, trkpts, {lon, lat} = _ctrpt} = Enum.at(results, 0)
       assert length(trkpts) == 3
@@ -485,7 +485,7 @@ defmodule Klaxon.Traces.ProcessorTest do
     test "filters go groups, empty list" do
       groups = []
 
-      results = Processor.filter_go_groups(groups)
+      results = Processor.filter_go_groups(groups) |> Enum.to_list()
       assert length(results) == 0
     end
 
@@ -497,7 +497,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ], {40.1, -105.1}}
       ]
 
-      results = Processor.filter_go_groups(groups)
+      results = Processor.filter_go_groups(groups) |> Enum.to_list()
       assert length(results) == 0
     end
 
@@ -513,7 +513,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ], {40.1, -105.1}}
       ]
 
-      results = Processor.filter_go_groups(groups)
+      results = Processor.filter_go_groups(groups) |> Enum.to_list()
       assert length(results) == 1
       {:go, go_trkpts} = Enum.at(results, 0)
       assert length(go_trkpts) == 1
@@ -524,7 +524,7 @@ defmodule Klaxon.Traces.ProcessorTest do
     test "filters stop groups, empty list" do
       groups = []
 
-      results = Processor.filter_stop_groups(groups)
+      results = Processor.filter_stop_groups(groups) |> Enum.to_list()
       assert length(results) == 0
     end
 
@@ -536,7 +536,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ]}
       ]
 
-      results = Processor.filter_stop_groups(groups)
+      results = Processor.filter_stop_groups(groups) |> Enum.to_list()
       assert length(results) == 0
     end
 
@@ -552,7 +552,7 @@ defmodule Klaxon.Traces.ProcessorTest do
          ], {40.1, -105.1}}
       ]
 
-      results = Processor.filter_stop_groups(groups)
+      results = Processor.filter_stop_groups(groups) |> Enum.to_list()
       assert length(results) == 1
       {:stop, stop_trkpts, {lat, lon}} = Enum.at(results, 0)
       assert length(stop_trkpts) == 1
