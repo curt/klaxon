@@ -12,9 +12,9 @@ defmodule Klaxon.Traces.Processor do
   @type go_or_stop() :: :go | :stop
   @type trace() :: %Trace{tracks: [Track.t()], waypoints: [Waypoint.t()]}
   @type trackpoint() :: %Trackpoint{lon: float(), lat: float(), time: DateTime.t()}
-  @type trackpoints() :: [Trackpoint.t()]
+  @type trackpoints() :: Enumerable.t(Trackpoint.t())
   @type trackpoint_group() :: {go_or_stop(), trackpoints()}
-  @type trackpoint_groups() :: [trackpoint_group()]
+  @type trackpoint_groups() :: Enumerable.t(trackpoint_group())
   @type waypoints() :: [Waypoint.t()]
 
   # meters
@@ -86,47 +86,51 @@ defmodule Klaxon.Traces.Processor do
   end
 
   @doc """
-  Filter trackpoints based on time and distance gaps.
-  Removes any trackpoints that are too close together in time or distance.
-  The first and last trackpoints are always kept.
-  ## Parameters
-  - trackpoints: The list of trackpoints to filter.
-  - time_gap: The minimum time gap between trackpoints (in seconds).
-  - distance_gap: The minimum distance between trackpoints (in meters).
-  ## Examples
-      iex> trackpoints = [
-      ...>   %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
-      ...>   %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
-      ...> ]
-      iex> filter_trackpoints(trackpoints, 5, 10)
-      [
-        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.utc_now()},
-        %Trackpoint{lat: 40.1, lon: -105.1, time: DateTime.add(DateTime.utc_now(), 2)}
-      ]
+    Filter trackpoints based on time and distance gaps.
+    ## Parameters
+    - trackpoints: The list of trackpoints to filter.
+    - time_gap: The minimum time gap between trackpoints (in seconds).
+    - distance_gap: The minimum distance between trackpoints (in meters).
   """
   def filter_trackpoints([], _time_gap, _distance_gap), do: []
 
   def filter_trackpoints(rest, _time_gap, _distance_gap) when is_list(rest) and length(rest) == 1,
     do: rest
 
-  def filter_trackpoints([first | rest], time_gap, distance_gap) do
-    # Split the list into all but the last element and the last element.
-    {rest, last} = rest |> Enum.split(-1)
+  def filter_trackpoints(trackpoints, time_gap, distance_gap) do
+    # Filter the trackpoints based on time and distance gaps.
+    trackpoints
+    # Chunk the trackpoints into pairs.
+    |> Stream.chunk_every(2, 1)
+    # Transform the stream to process each pair of trackpoints.
+    |> Stream.transform(nil, fn
+      [point1, point2], last_emitted ->
+        if last_emitted == nil do
+          # If there is no last emitted trackpoint, emit the first trackpoint.
+          if should_keep_trackpoint?(point1, point2, time_gap, distance_gap) do
+            # Emit the second trackpoint if it meets the criteria.
+            {[point1, point2], point2}
+          else
+            {[point1], point1}
+          end
+        else
+          # If there is a last emitted trackpoint, do not emit the first trackpoint.
+          if should_keep_trackpoint?(last_emitted, point2, time_gap, distance_gap) do
+            # Emit the second trackpoint if it meets the criteria.
+            {[point2], point2}
+          else
+            {[], last_emitted}
+          end
+        end
 
-    # The accumulator is a tuple containing the list of trackpoints to keep and the last trackpoint kept.
-    Enum.reduce(rest, {[first], first}, fn point, {acc, last_kept} ->
-      # The last trackpoint is kept if it meets the time and distance requirements.
-      if should_keep_trackpoint?(last_kept, point, time_gap, distance_gap) do
-        {[last_kept | acc], point}
-      else
-        {acc, last_kept}
-      end
+      # Emit the last trackpoint unless it was already emitted.
+      [point1], last_emitted ->
+        if same_trackpoint?(point1, last_emitted) do
+          {[], last_emitted}
+        else
+          {[point1], point1}
+        end
     end)
-    # The list of trackpoints to keep is extracted from the accumulator.
-    |> elem(0)
-    # The list of trackpoints to keep is reversed and concatenated with the last trackpoint.
-    |> Enum.reverse()
-    |> Enum.concat(last)
   end
 
   # Determine if a trackpoint should be kept based on time and distance gaps.
@@ -138,6 +142,11 @@ defmodule Klaxon.Traces.Processor do
     time_diff = abs(DateTime.diff(point1.time, point2.time, :second))
 
     distance >= distance_gap or time_diff >= time_gap
+  end
+
+  # Determine whether two trackpoints are the same based on their time.
+  defp same_trackpoint?(point1, point2) do
+    point1.time == point2.time and point1.time == point2.time
   end
 
   def process_trace(trace, opts \\ []) do
@@ -214,7 +223,7 @@ defmodule Klaxon.Traces.Processor do
     {trackpoints_lists, waypoints}
   end
 
-  @spec generate_waypoints_from_trackpoint_groups(trackpoints()) :: waypoints()
+  @spec generate_waypoints_from_trackpoint_groups(trackpoint_groups()) :: waypoints()
   def generate_waypoints_from_trackpoint_groups(trackpoint_groups) do
     trackpoint_groups
     |> filter_stop_groups()
@@ -245,7 +254,7 @@ defmodule Klaxon.Traces.Processor do
 
   def chunk_trackpoints_by_radius(trackpoints, radius) when is_float(radius) do
     trackpoints
-    |> Enum.chunk_while(
+    |> Stream.chunk_while(
       [],
       &chunk_step(&1, &2, radius),
       &chunk_after/1
@@ -308,7 +317,7 @@ defmodule Klaxon.Traces.Processor do
       ...>   {:go, [trackpoint1, trackpoint2]},
       ...>   {:stop, [trackpoint3, trackpoint4]} # Where duration is less than specified
       ...> ]
-      iex> remap_trackpoint_groups_by_duration(trackpoint_groups)
+      iex> remap_trackpoint_groups_by_duration(trackpoint_groups) |> Enum.to_list()
       [
         {:go, [trackpoint1, trackpoint2]},
         {:go, [trackpoint3, trackpoint4]}
@@ -321,7 +330,7 @@ defmodule Klaxon.Traces.Processor do
 
   def remap_trackpoint_groups_by_duration(trackpoint_groups, duration) do
     trackpoint_groups
-    |> Enum.map(&remap_step(&1, duration))
+    |> Stream.map(&remap_step(&1, duration))
   end
 
   # Handles each incoming trackpoint group.
@@ -356,7 +365,7 @@ defmodule Klaxon.Traces.Processor do
       ...>   {:go, [trackpoint3, trackpoint4]},
       ...>   {:stop, [trackpoint5, trackpoint6]}
       ...> ]
-      iex> recombine_trackpoint_groups_by_type(trackpoint_groups)
+      iex> recombine_trackpoint_groups_by_type(trackpoint_groups) |> Enum.to_list()
       [
         {:go, [trackpoint1, trackpoint2, trackpoint3, trackpoint4]},
         {:stop, [trackpoint5, trackpoint6]}
@@ -367,7 +376,7 @@ defmodule Klaxon.Traces.Processor do
 
   def recombine_trackpoint_groups_by_type(trackpoint_groups) do
     trackpoint_groups
-    |> Enum.chunk_while([], &recombine_step/2, &recombine_after/1)
+    |> Stream.chunk_while([], &recombine_step/2, &recombine_after/1)
   end
 
   defp recombine_step(elem, []), do: {:cont, elem}
@@ -391,7 +400,7 @@ defmodule Klaxon.Traces.Processor do
       ...>   {:go, [trackpoint1, trackpoint2]},
       ...>   {:stop, [trackpoint3, trackpoint4]}
       ...> ]
-      iex> apply_centerpoint_to_stop_groups(trackpoint_groups)
+      iex> apply_centerpoint_to_stop_groups(trackpoint_groups) |> Enum.to_list()
       [
         {:go, [trackpoint1, trackpoint2]},
         {:stop, [trackpoint3, trackpoint4], centerpoint}
@@ -400,7 +409,7 @@ defmodule Klaxon.Traces.Processor do
   @spec apply_centerpoint_to_stop_groups(trackpoint_groups()) :: trackpoint_groups()
   def apply_centerpoint_to_stop_groups(trackpoint_groups) do
     trackpoint_groups
-    |> Enum.map(fn
+    |> Stream.map(fn
       {:go, trkpts} -> {:go, trkpts}
       {:stop, trkpts} -> {:stop, trkpts, center_of_trackpoints(trkpts, :spherical)}
     end)
@@ -502,15 +511,16 @@ defmodule Klaxon.Traces.Processor do
   @spec filter_go_groups(trackpoint_groups()) :: trackpoint_groups()
   def filter_go_groups(trackpoint_groups) do
     trackpoint_groups
-    |> Enum.filter(&is_go_group/1)
+    |> Stream.filter(&is_go_group/1)
   end
 
   defp is_go_group({:go, _trkpts}), do: true
   defp is_go_group(_), do: false
 
+  @spec filter_stop_groups(trackpoint_groups()) :: trackpoint_groups()
   def filter_stop_groups(trackpoint_groups) do
     trackpoint_groups
-    |> Enum.filter(&is_stop_group/1)
+    |> Stream.filter(&is_stop_group/1)
   end
 
   defp is_stop_group({:stop, _trkpts}), do: true
