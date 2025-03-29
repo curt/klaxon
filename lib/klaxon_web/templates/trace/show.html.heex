@@ -1,4 +1,4 @@
-<h1>Trace: <%= @trace.name %></h1>
+<h1><%= @trace.name %></h1>
 
 <div id="map"></div>
 <input type="range" id="slider" min="0" max="100" value="0" step="0.1" style="width: 100%;">
@@ -8,7 +8,11 @@
 <p><ul>
   <%= for waypoint <- @trace.waypoints do %>
     <li>
-      <strong><%= waypoint.name %></strong> - Lat: <%= waypoint.lat %>, Lon: <%= waypoint.lon %>, Ele: <%= waypoint.ele %>, Time: <%= DateTime.to_iso8601(waypoint.time) %>
+      <strong><%= waypoint.name %></strong> &mdash;
+      <%= Float.round(waypoint.lat, 6) %>, <%= Float.round(waypoint.lon, 6) %> &mdash;
+      <%= Kernel.round(waypoint.ele) %> meters &mdash;
+      <%= DateTime.to_string(waypoint.time |> Map.put(:microsecond, {0, 0})) %> &mdash;
+      <a href={KlaxonWeb.Helpers.GoogleMaps.place_uri(waypoint)} target="_blank">Google Maps</a>
     </li>
   <% end %>
 </ul>

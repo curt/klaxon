@@ -47,7 +47,7 @@ defmodule KlaxonWeb.TraceController do
   def show(conn, %{"id" => id}) do
     with {:ok, trace} <-
            Traces.get_trace(id) do
-      render(conn, "show.html", trace: trace)
+      render(conn, "show.html", trace: trace, title: trace.name)
     end
   end
 end
