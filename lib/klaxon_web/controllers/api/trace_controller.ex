@@ -20,6 +20,20 @@ defmodule KlaxonWeb.Api.TraceController do
     end
   end
 
+  def update(conn, %{"id" => id} = params) do
+    with {:ok, %Trace{} = trace} <- Traces.get_trace_admin(id) do
+      case Traces.update_trace(trace, params) do
+        {:ok, %Trace{} = trace} ->
+          conn |> json(trace_map(trace))
+
+        {:error, changeset} ->
+          conn
+          |> put_status(:unprocessable_entity)
+          |> json(%{error: changeset})
+      end
+    end
+  end
+
   def reprocess(conn, %{"id" => id}) do
     with {:ok, %Trace{id: id, status: :raw}} <- Traces.get_trace_admin(id) do
       case Processor.reprocess_trace_by_id(id) do

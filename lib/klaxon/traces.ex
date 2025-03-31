@@ -262,6 +262,12 @@ defmodule Klaxon.Traces do
     |> Repo.insert()
   end
 
+  def update_trace(%Trace{} = trace, attrs) do
+    trace
+    |> Trace.update_changeset(attrs)
+    |> Repo.update()
+  end
+
   @spec delete_trace(Trace.t()) :: :ok
   def delete_trace(trace) do
     Repo.delete(trace)

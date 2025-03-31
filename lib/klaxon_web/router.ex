@@ -140,6 +140,7 @@ defmodule KlaxonWeb.Router do
     get "/posts/:id", PostController, :show
     get "/traces", TraceController, :index
     get "/traces/:id", TraceController, :show
+    put "/traces/:id", TraceController, :update
     post "/traces/:id/reprocess", TraceController, :reprocess
     resources "/places", PlaceController
   end
