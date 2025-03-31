@@ -112,6 +112,22 @@ defmodule Klaxon.Traces do
     end
   end
 
+  def get_waypoints_admin(trace_id) do
+    query =
+      from(w in Waypoint,
+        where: w.trace_id == ^trace_id,
+        order_by: w.time
+      )
+
+    case Repo.all(query) do
+      [] ->
+        {:ok, []}
+
+      waypoints ->
+        {:ok, waypoints}
+    end
+  end
+
   @doc """
   Imports GPX traces from the specified folder path and associates them with the given profile ID.
 
