@@ -138,6 +138,11 @@ defmodule KlaxonWeb.Router do
     delete "/session", SessionController, :delete
     get "/posts", PostController, :index
     get "/posts/:id", PostController, :show
+    get "/traces", TraceController, :index
+    get "/traces/:id", TraceController, :show
+    put "/traces/:id", TraceController, :update
+    post "/traces/:id/reprocess", TraceController, :reprocess
+    get "/traces/:trace_id/waypoints", WaypointController, :index
     resources "/places", PlaceController
   end
 

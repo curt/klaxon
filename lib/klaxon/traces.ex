@@ -10,7 +10,7 @@ defmodule Klaxon.Traces do
   import SweetXml
 
   @spec get_traces() :: {:ok, list(Trace.t())} | {:error, any()}
-  def get_traces do
+  def get_traces() do
     subquery =
       from(w in Waypoint,
         group_by: w.trace_id,
@@ -29,6 +29,31 @@ defmodule Klaxon.Traces do
       )
 
     case Repo.all(query) do
+      [] ->
+        {:ok, []}
+
+      traces ->
+        {:ok, traces}
+    end
+  end
+
+  @spec get_traces_admin() :: {:ok, any()}
+  def get_traces_admin() do
+    subquery =
+      from(w in Waypoint,
+        group_by: w.trace_id,
+        select: %{trace_id: w.trace_id, min_created_at: min(w.time)}
+      )
+
+    query =
+      from(t in Trace,
+        join: w in subquery(subquery),
+        on: t.id == w.trace_id,
+        order_by: w.min_created_at,
+        select_merge: %{time: w.min_created_at}
+      )
+
+    case query |> Repo.all() do
       [] ->
         {:ok, []}
 
@@ -62,6 +87,44 @@ defmodule Klaxon.Traces do
          |> Repo.one() do
       %Trace{} = trace -> {:ok, trace}
       _ -> {:error, :not_found}
+    end
+  end
+
+  def get_trace_admin(id) do
+    subquery =
+      from(w in Waypoint,
+        group_by: w.trace_id,
+        select: %{trace_id: w.trace_id, min_created_at: min(w.time)}
+      )
+
+    query =
+      from(t in Trace,
+        join: w in subquery(subquery),
+        on: t.id == w.trace_id,
+        where: t.id == ^id,
+        order_by: w.min_created_at,
+        select_merge: %{time: w.min_created_at}
+      )
+
+    case query |> Repo.one() do
+      %Trace{} = trace -> {:ok, trace}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def get_waypoints_admin(trace_id) do
+    query =
+      from(w in Waypoint,
+        where: w.trace_id == ^trace_id,
+        order_by: w.time
+      )
+
+    case Repo.all(query) do
+      [] ->
+        {:ok, []}
+
+      waypoints ->
+        {:ok, waypoints}
     end
   end
 
@@ -213,6 +276,12 @@ defmodule Klaxon.Traces do
     %Waypoint{}
     |> Waypoint.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def update_trace(%Trace{} = trace, attrs) do
+    trace
+    |> Trace.update_changeset(attrs)
+    |> Repo.update()
   end
 
   @spec delete_trace(Trace.t()) :: :ok

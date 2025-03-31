@@ -38,6 +38,13 @@ defmodule Klaxon.Traces.Trace do
   @spec changeset(struct(), map()) :: Ecto.Changeset.t()
   def changeset(trace, attrs \\ %{}) do
     trace
-    |> cast(attrs, [:name, :profile_id])
+    |> cast(attrs, [:name, :profile_id, :status, :visibility])
+  end
+
+  @doc false
+  @spec update_changeset(struct(), map()) :: Ecto.Changeset.t()
+  def update_changeset(trace, attrs \\ %{}) do
+    trace
+    |> cast(attrs, [:name, :status, :visibility])
   end
 end
