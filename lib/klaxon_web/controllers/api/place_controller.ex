@@ -22,7 +22,8 @@ defmodule KlaxonWeb.Api.PlaceController do
 
   def create(conn, %{"place" => place_params}) do
     with {:ok, profile} <- current_profile(conn),
-         {:ok, %Place{} = place} <- Contents.create_place(profile, place_params) do
+         {:ok, %Place{} = place} <-
+           Contents.insert_place(place_params, profile, &Routes.places_url(conn, :show, &1)) do
       conn
       |> put_status(:created)
       |> json(place)

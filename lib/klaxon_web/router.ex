@@ -60,6 +60,8 @@ defmodule KlaxonWeb.Router do
     get "/rss", RssController, :index, assigns: %{cache: :moderate}
     get "/traces", TraceController, :index, assigns: %{cache: :moderate}
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
+
+    get "/places/:id", Plugs.FakeRoute, :show, as: :places
   end
 
   scope "/", KlaxonWeb do

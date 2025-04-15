@@ -366,10 +366,12 @@ defmodule Klaxon.Contents do
   @doc """
   Creates a new place associated with the given profile.
   """
-  @spec create_place(map(), map()) :: {:ok, Place.t()} | {:error, Ecto.Changeset.t()}
-  def create_place(profile, attrs) do
-    %Place{}
-    |> Place.changeset(Map.put(attrs, :profile_id, profile.id))
+  def insert_place(attrs, profile, uri_fun) do
+    id = EctoBase58.generate()
+    uri = uri_fun.(id)
+
+    %Place{id: id, uri: uri, profile_id: profile.id, origin: :local}
+    |> Place.changeset(attrs)
     |> Repo.insert()
   end
 
