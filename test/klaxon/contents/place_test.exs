@@ -82,8 +82,8 @@ defmodule Klaxon.Contents.PlaceTest do
       profile = create_profile()
 
       attrs = %{
+        id: UUID.generate(),
         title: "Test Place",
-        uri: "test-uri",
         lat: 10.0,
         lon: 20.0,
         status: :published,
@@ -91,13 +91,13 @@ defmodule Klaxon.Contents.PlaceTest do
         origin: :local
       }
 
-      assert {:ok, place} = Contents.create_place(profile, attrs)
+      assert {:ok, place} = Contents.insert_place(profile, attrs, fn x -> "test:#{x}" end)
       assert place.title == "Test Place"
     end
 
     test "fails with invalid attributes" do
       profile = create_profile()
-      assert {:error, _changeset} = Contents.create_place(profile, %{})
+      assert {:error, _changeset} = Contents.insert_place(profile, %{}, fn _x -> "test" end)
     end
   end
 

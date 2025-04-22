@@ -366,7 +366,7 @@ defmodule Klaxon.Contents do
   @doc """
   Creates a new place associated with the given profile.
   """
-  def insert_place(attrs, profile, uri_fun) do
+  def insert_place(profile, attrs, uri_fun) do
     id = EctoBase58.generate()
     uri = uri_fun.(id)
 
