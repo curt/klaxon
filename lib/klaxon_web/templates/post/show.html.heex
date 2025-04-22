@@ -5,7 +5,7 @@
     <h1 style="display: none;" class="p-name"><%= String.trim(Earmark.as_html!(snippet(@post), inner_html: true)) %></h1>
   <% end %>
 
-  <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+  <%= if @is_owner do %>
     <%= if @post.origin == :local do %>
       <div class="post-actions">
         <%= link to: Routes.post_path(@conn, :edit, @post) do %>Edit<% end %>

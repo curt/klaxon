@@ -3,13 +3,13 @@
   <%= for place <- @places do %>
     <li>
       <%= link place.title, to: Routes.place_path(@conn, :show, place) %>
-      <%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+      <%= if @is_owner do %>
         (<%= link "Edit", to: Routes.place_path(@conn, :edit, place) %>)
         (<%= link "Delete", to: Routes.place_path(@conn, :delete, place), method: :delete, data: [confirm: "Are you sure?"] %>)
       <% end %>
     </li>
   <% end %>
 </ul>
-<%= if assigns[:current_user] && assigns[:current_profile] && Klaxon.Profiles.is_profile_owned_by_user?(assigns[:current_profile], assigns[:current_user]) do %>
+<%= if @is_owner do %>
   <%= link "New Place", to: Routes.place_path(@conn, :new), class: "btn btn-primary" %>
 <% end %>

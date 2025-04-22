@@ -18,6 +18,7 @@ defmodule KlaxonWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_user
     plug :fetch_current_profile
+    plug :assign_owner_flag
     plug KlaxonWeb.Plugs.CacheControl
   end
 
@@ -27,6 +28,7 @@ defmodule KlaxonWeb.Router do
     plug :fetch_session
     plug :fetch_current_user
     plug :fetch_current_profile
+    plug :assign_owner_flag
     plug KlaxonWeb.Plugs.CacheControl
   end
 
