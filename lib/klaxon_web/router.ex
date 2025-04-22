@@ -60,8 +60,8 @@ defmodule KlaxonWeb.Router do
     get "/rss", RssController, :index, assigns: %{cache: :moderate}
     get "/traces", TraceController, :index, assigns: %{cache: :moderate}
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
-
-    get "/places/:id", Plugs.FakeRoute, :show, as: :places
+    get "/places", PlaceController, :index, assigns: %{cache: :moderate}
+    get "/places/:id", PlaceController, :show, assigns: %{cache: :aggressive}
   end
 
   scope "/", KlaxonWeb do
@@ -112,6 +112,12 @@ defmodule KlaxonWeb.Router do
     get "/pongs", PongController, :index
     get "/pongs/:id", PongController, :show
     get "/media/:scope", MediaController, :index
+    get "/places/new", PlaceController, :new
+    post "/places", PlaceController, :create
+    get "/places/:id/edit", PlaceController, :edit
+    put "/places/:id", PlaceController, :update
+    patch "/places/:id", PlaceController, :update
+    delete "/places/:id", PlaceController, :delete
   end
 
   scope "/", KlaxonWeb do

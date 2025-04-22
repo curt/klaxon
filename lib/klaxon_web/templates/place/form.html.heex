@@ -1,0 +1,58 @@
+<div class="my-4">
+  <%= form_for @changeset, @action, fn f -> %>
+    <%= if @changeset.action do %>
+      <div class="alert alert-danger">
+        <p>Oops, something went wrong! Please check the errors below.</p>
+      </div>
+    <% end %>
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+      <%= label class: "block md:col-span-6" do %>
+        <span>Source</span>
+        <%= textarea f, :source, class: "mt-1 block w-full h-48", rows: 6 %>
+        <%= error_tag f, :source %>
+      <% end %>
+      <%= label class: "block md:col-span-6" do %>
+        <span>Title</span>
+        <%= text_input f, :title, class: "mt-1 block w-full" %>
+        <%= error_tag f, :title %>
+      <% end %>
+      <%= label class: "block md:col-span-6" do %>
+        <span>Slug</span>
+        <%= text_input f, :slug, class: "mt-1 block w-full" %>
+        <%= error_tag f, :slug %>
+      <% end %>
+      <div class="block md:col-span-6">
+        <a {[href: "#", onclick: "geoGrab();"]}>Grab coordinates</a>
+      </div>
+      <%= label class: "block md:col-span-2" do %>
+        <span>Latitude<br>(degrees +N, -S)</span>
+        <%= text_input f, :lat, class: "mt-1 block w-full" %>
+        <%= error_tag f, :lat %>
+      <% end %>
+      <%= label class: "block md:col-span-2" do %>
+        <span>Longitude<br>(degrees +E, -W)</span>
+        <%= text_input f, :lon, class: "mt-1 block w-full" %>
+        <%= error_tag f, :lon %>
+      <% end %>
+      <%= label class: "block md:col-span-2" do %>
+        <span>Elevation<br>(meters)</span>
+        <%= text_input f, :ele, class: "mt-1 block w-full" %>
+        <%= error_tag f, :ele %>
+      <% end %>
+      <%= label class: "block md:col-span-2" do %>
+        <span>Status</span>
+        <%= select f, :status, Ecto.Enum.values(Klaxon.Contents.Place, :status), prompt: "Choose a value", class: "mt-1 block w-full" %>
+        <%= error_tag f, :status %>
+      <% end %>
+      <%= label class: "block md:col-span-2" do %>
+        <span>Visibility</span>
+        <%= select f, :visibility, Ecto.Enum.values(Klaxon.Contents.Place, :visibility), prompt: "Choose a value", class: "mt-1 block w-full" %>
+        <%= error_tag f, :visibility %>
+      <% end %>
+      <div class="flex justify-end gap-6 md:col-span-6 items-center">
+        <div><%= link to: Routes.place_path(@conn, :index) do %>Cancel<% end %></div>
+        <div><%= submit "Save", class: "mt-1 px-4 block" %></div>
+      </div>
+    </div>
+  <% end %>
+</div>
