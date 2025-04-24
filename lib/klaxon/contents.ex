@@ -337,12 +337,45 @@ defmodule Klaxon.Contents do
   @doc """
   Returns a list of places filtered by the given profile URI.
   """
-  @spec get_places(String.t(), map()) :: {:ok, list(Place.t())}
-  def get_places(profile_uri, _current_user) do
+  @spec get_places(String.t(), %Klaxon.Auth.User{id: String.t()} | nil, map()) ::
+          {:ok, list(Place.t())}
+  def get_places(profile_uri, user, options \\ %{})
+
+  def get_places(profile_uri, %User{id: user_id, email: email} = _user, options) do
+    Logger.debug("Getting places authenticated as user: #{email}")
+    get_places_authenticated(profile_uri, user_id, options)
+  end
+
+  def get_places(profile_uri, _user, options) do
+    get_places_unauthenticated(profile_uri, options)
+  end
+
+  defp get_places_authenticated(profile_uri, user_id, options) do
+    if is_user_id_endpoint_principal?(profile_uri, user_id) do
+      Logger.debug("Getting places as principal of profile: #{profile_uri}")
+      get_places_authorized(profile_uri, options)
+    else
+      get_places_unauthenticated(profile_uri, options)
+    end
+  end
+
+  defp get_places_authorized(profile_uri, options) do
     places =
       Place.from_preloaded()
-      |> Place.where_profile_uri(profile_uri)
+      |> Place.where_authorized(profile_uri)
       |> Place.order_by_default()
+      |> maybe_limit(options)
+      |> Repo.all()
+
+    {:ok, places}
+  end
+
+  defp get_places_unauthenticated(profile_uri, options) do
+    places =
+      Place.from_preloaded()
+      |> Place.where_unauthenticated_list(profile_uri)
+      |> Place.order_by_default()
+      |> maybe_limit(options)
       |> Repo.all()
 
     {:ok, places}
@@ -351,11 +384,38 @@ defmodule Klaxon.Contents do
   @doc """
   Retrieves a single place belonging to the given profile URI.
   """
-  @spec get_place(String.t(), String.t(), map()) ::
+  @spec get_place(String.t(), String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
           {:ok, Place.t()} | {:error, :not_found}
-  def get_place(profile_uri, place_id, _current_user) do
+  def get_place(profile_uri, place_id, %User{id: user_id, email: email} = _user) do
+    Logger.debug("Getting place authenticated as user: #{email}")
+    get_place_authenticated(profile_uri, place_id, user_id)
+  end
+
+  def get_place(profile_uri, place_id, _user) do
+    get_place_unauthenticated(profile_uri, place_id)
+  end
+
+  defp get_place_authenticated(profile_uri, place_id, user_id) do
+    if is_user_id_endpoint_principal?(profile_uri, user_id) do
+      get_place_authorized(profile_uri, place_id)
+    else
+      get_place_unauthenticated(profile_uri, place_id)
+    end
+  end
+
+  defp get_place_authorized(profile_uri, place_id) do
     case Place.from_preloaded()
-         |> Place.where_profile_uri(profile_uri)
+         |> Place.where_authorized(profile_uri)
+         |> Place.where_place_id(place_id)
+         |> Repo.one() do
+      nil -> {:error, :not_found}
+      place -> {:ok, place}
+    end
+  end
+
+  defp get_place_unauthenticated(profile_uri, place_id) do
+    case Place.from_preloaded()
+         |> Place.where_unauthenticated_single(profile_uri)
          |> Place.where_place_id(place_id)
          |> Repo.one() do
       nil -> {:error, :not_found}

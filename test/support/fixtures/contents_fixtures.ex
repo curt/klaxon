@@ -14,7 +14,7 @@ defmodule Klaxon.ContentsFixtures do
         slug: "some-place",
         lat: 1.0,
         lon: 2.0,
-        status: :draft,
+        status: :published,
         visibility: :public
       }
       |> Map.merge(attrs)

@@ -8,15 +8,30 @@ defmodule Klaxon.Contents.PlaceTest do
   alias Klaxon.Contents.Place
   alias Klaxon.Repo
   alias Klaxon.Profiles.Profile
+  alias Klaxon.Auth.User
 
-  defp create_profile(attrs \\ %{}) do
+  defp create_user(attrs \\ %{}) do
+    {:ok, user} =
+      Repo.insert(%User{
+        id: Map.get(attrs, :id, UUID.generate()),
+        email: Map.get(attrs, :email, "test@example.com"),
+        hashed_password: Map.get(attrs, :hashed_password, "password")
+      })
+
+    user
+  end
+
+  defp create_profile(user \\ nil, attrs \\ %{}) do
+    user = user || create_user()
+
     {:ok, profile} =
       Repo.insert(%Profile{
         uri: Map.get(attrs, :uri, "test-uri"),
-        name: Map.get(attrs, :name, "Test Profile")
+        name: Map.get(attrs, :name, "Test Profile"),
+        owner_id: user.id
       })
 
-    profile
+    {profile, user}
   end
 
   defp create_place(profile, attrs \\ %{}) do
@@ -53,33 +68,50 @@ defmodule Klaxon.Contents.PlaceTest do
 
   describe "get_places/2" do
     test "returns places for a given profile URI" do
-      profile = create_profile()
+      {profile, user} = create_profile()
       place = create_place(profile)
 
-      {:ok, places} = Contents.get_places(profile.uri, %{})
+      {:ok, places} = Contents.get_places(profile.uri, user)
+      assert length(places) == 1
+      assert hd(places).id == place.id
+    end
+
+    test "returns places for unauthenticated access" do
+      {profile, user} = create_profile()
+      place = create_place(profile)
+
+      {:ok, places} = Contents.get_places(profile.uri, user)
       assert length(places) == 1
       assert hd(places).id == place.id
     end
   end
 
   describe "get_place/3" do
-    test "returns a place by ID and profile URI" do
-      profile = create_profile()
+    test "returns a place by ID and profile URI when authenticated" do
+      {profile, user} = create_profile()
       place = create_place(profile)
 
-      {:ok, found_place} = Contents.get_place(profile.uri, place.id, %{})
+      {:ok, found_place} = Contents.get_place(profile.uri, place.id, user)
+      assert found_place.id == place.id
+    end
+
+    test "returns a place by ID and profile URI when unauthenticated" do
+      {profile, user} = create_profile()
+      place = create_place(profile)
+
+      {:ok, found_place} = Contents.get_place(profile.uri, place.id, user)
       assert found_place.id == place.id
     end
 
     test "returns error when place is not found" do
-      profile = create_profile()
-      assert {:error, :not_found} == Contents.get_place(profile.uri, "nonexistent", %{})
+      {profile, user} = create_profile()
+      assert {:error, :not_found} == Contents.get_place(profile.uri, "nonexistent", user)
     end
   end
 
   describe "create_place/2" do
     test "successfully creates a place" do
-      profile = create_profile()
+      {profile, _user} = create_profile()
 
       attrs = %{
         id: UUID.generate(),
@@ -96,14 +128,14 @@ defmodule Klaxon.Contents.PlaceTest do
     end
 
     test "fails with invalid attributes" do
-      profile = create_profile()
+      {profile, _user} = create_profile()
       assert {:error, _changeset} = Contents.insert_place(profile, %{}, fn _x -> "test" end)
     end
   end
 
   describe "update_place/3" do
     test "successfully updates a place" do
-      profile = create_profile()
+      {profile, _user} = create_profile()
       place = create_place(profile)
       attrs = %{title: "Updated Title"}
 
@@ -112,8 +144,8 @@ defmodule Klaxon.Contents.PlaceTest do
     end
 
     test "fails when profile does not match" do
-      profile1 = create_profile()
-      profile2 = create_profile(%{name: "Test Profile 2", uri: "test-uri-2"})
+      {profile1, user} = create_profile()
+      {profile2, _user2} = create_profile(user, %{name: "Test Profile 2", uri: "test-uri-2"})
       place = create_place(profile1)
       attrs = %{title: "Updated Title"}
 
@@ -123,7 +155,7 @@ defmodule Klaxon.Contents.PlaceTest do
 
   describe "delete_place/2" do
     test "successfully deletes a place" do
-      profile = create_profile()
+      profile = create_profile() |> elem(0)
       place = create_place(profile)
 
       assert {:ok, _deleted} = Contents.delete_place(profile, place)
@@ -131,8 +163,8 @@ defmodule Klaxon.Contents.PlaceTest do
     end
 
     test "fails when profile does not match" do
-      profile1 = create_profile()
-      profile2 = create_profile(%{name: "Test Profile 2", uri: "test-uri-2"})
+      {profile1, user} = create_profile()
+      profile2 = create_profile(user, %{name: "Test Profile 2", uri: "test-uri-2"}) |> elem(0)
       place = create_place(profile1)
 
       assert {:error, :unauthorized} == Contents.delete_place(profile2, place)
@@ -147,7 +179,7 @@ defmodule Klaxon.Contents.PlaceTest do
 
       Application.put_env(:klaxon, :contents_module, Klaxon.ContentsMock)
 
-      profile = create_profile()
+      profile = create_profile() |> elem(0)
       post_without_place = create_post(profile, %{location: "Test Place", lat: 10.0, lon: 20.0})
       post_with_place = create_post(profile, %{location: "Another Place", lat: 30.0, lon: 40.0})
 
@@ -201,7 +233,7 @@ defmodule Klaxon.Contents.PlaceTest do
 
   describe "maybe_associate_post_with_place/2" do
     setup do
-      profile = create_profile()
+      profile = create_profile() |> elem(0)
       place = create_place(profile, %{title: "Test Place"})
 
       post_with_location =
