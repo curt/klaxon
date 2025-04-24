@@ -37,6 +37,7 @@ defmodule KlaxonWeb.Router do
     pipe_through [:browser, :require_owner]
 
     get "/posts/new", PostController, :new
+    get "/places/new", PlaceController, :new
   end
 
   scope "/", KlaxonWeb do
@@ -114,7 +115,6 @@ defmodule KlaxonWeb.Router do
     get "/pongs", PongController, :index
     get "/pongs/:id", PongController, :show
     get "/media/:scope", MediaController, :index
-    get "/places/new", PlaceController, :new
     post "/places", PlaceController, :create
     get "/places/:id/edit", PlaceController, :edit
     put "/places/:id", PlaceController, :update
