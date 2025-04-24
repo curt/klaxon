@@ -1,0 +1,29 @@
+<article class="place">
+  <h1><%= @place.title %></h1>
+  <p>Latitude: <%= @place.lat %></p>
+  <p>Longitude: <%= @place.lon %></p>
+
+  <%= if @is_owner do %>
+    <div class="place-actions">
+      <%= link "Edit", to: Routes.place_path(@conn, :edit, @place), class: "btn btn-primary" %>
+      <%= link "Delete", to: Routes.place_path(@conn, :delete, @place), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger" %>
+    </div>
+  <% end %>
+
+  <%= if @place.lat && @place.lon do %>
+    <div id="map" class="my-4"></div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const center = [<%= @place.lat %>, <%= @place.lon %>];
+        const map = L.map('map').setView(center, 13);
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 16,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        L.marker(center).addTo(map);
+      });
+    </script>
+  <% end %>
+
+  <%= link "Back to Places", to: Routes.place_path(@conn, :index), class: "btn btn-secondary" %>
+</article>

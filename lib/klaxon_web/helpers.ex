@@ -1,5 +1,6 @@
 defmodule KlaxonWeb.Helpers do
   import KlaxonWeb.Titles
+  alias Klaxon.Contents.Place
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   alias Klaxon.Contents.PostAttachment
@@ -118,7 +119,7 @@ defmodule KlaxonWeb.Helpers do
     {"Klaxon", "klaxon@#{conn.host}"}
   end
 
-  @spec snippet(%PostAttachment{} | %Post{}) :: nil | binary
+  @spec snippet(%PostAttachment{} | %Post{} | %Place{}) :: nil | binary
   def snippet(%Post{} = post) do
     post.title ||
       Snippet.snippify(
@@ -132,6 +133,15 @@ defmodule KlaxonWeb.Helpers do
 
   def snippet(%PostAttachment{} = attachment) do
     Snippet.snippify(attachment.caption, 140)
+  end
+
+  def snippet(%Place{} = place) do
+    place.title ||
+      Snippet.snippify(
+        html_textify(place.content_html) ||
+          "",
+        140
+      )
   end
 
   @spec html_textify(nil | binary) :: nil | binary

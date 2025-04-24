@@ -61,16 +61,31 @@ defmodule KlaxonWeb.Plugs do
   end
 
   @doc """
+  Assigns `:is_owner` to true if current_user owns current_profile.
+  """
+  @spec assign_owner_flag(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def assign_owner_flag(conn, _opts) do
+    is_owner =
+      conn.assigns[:current_profile] &&
+        conn.assigns[:current_user] &&
+        Profiles.is_profile_owned_by_user?(
+          conn.assigns.current_profile,
+          conn.assigns.current_user
+        )
+
+    assign(conn, :is_owner, is_owner)
+  end
+
+  @doc """
   Requires signed-in user to be principal of current profile.
   """
   @spec require_owner(Plug.Conn.t(), any) :: Plug.Conn.t()
   def require_owner(conn, _opts) do
-    profile = conn.assigns[:current_profile]
-    user = conn.assigns[:current_user]
-
-    unless profile && user && Profiles.is_profile_owned_by_user?(profile, user) do
+    if conn.assigns[:is_owner] do
+      conn
+    else
       conn |> render_error_and_halt(:unauthorized, :"401")
-    end || conn
+    end
   end
 
   defp render_error_and_halt(conn, status, template) do

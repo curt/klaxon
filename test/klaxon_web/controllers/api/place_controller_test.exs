@@ -9,7 +9,15 @@ defmodule KlaxonWeb.Api.PlaceControllerTest do
   setup %{conn: conn} do
     user = insert_user()
     profile = insert_profile(user)
-    conn = assign(conn, :current_user, user) |> assign(:current_profile, profile)
+
+    private = Map.get(conn, :private, %{}) |> Map.put(:phoenix_router_url, "http://example.com")
+
+    conn =
+      conn
+      |> assign(:current_user, user)
+      |> assign(:current_profile, profile)
+      |> Map.put(:private, private)
+
     {:ok, conn: conn, user: user, profile: profile}
   end
 

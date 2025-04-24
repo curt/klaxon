@@ -1,7 +1,7 @@
 <h1><%= @title %></h1>
 <%= if @is_owner do %>
 <div class="mb-4">
-    <%= link to: Routes.post_path(@conn, :new) do %>Add<% end %>
+    <%= link to: Routes.place_path(@conn, :new) do %>Add<% end %>
 </div>
 <% end %>
 <%= render "list.html", assigns %>

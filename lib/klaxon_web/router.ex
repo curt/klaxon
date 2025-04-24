@@ -18,6 +18,7 @@ defmodule KlaxonWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_user
     plug :fetch_current_profile
+    plug :assign_owner_flag
     plug KlaxonWeb.Plugs.CacheControl
   end
 
@@ -27,6 +28,7 @@ defmodule KlaxonWeb.Router do
     plug :fetch_session
     plug :fetch_current_user
     plug :fetch_current_profile
+    plug :assign_owner_flag
     plug KlaxonWeb.Plugs.CacheControl
   end
 
@@ -35,6 +37,7 @@ defmodule KlaxonWeb.Router do
     pipe_through [:browser, :require_owner]
 
     get "/posts/new", PostController, :new
+    get "/places/new", PlaceController, :new
   end
 
   scope "/", KlaxonWeb do
@@ -60,6 +63,8 @@ defmodule KlaxonWeb.Router do
     get "/rss", RssController, :index, assigns: %{cache: :moderate}
     get "/traces", TraceController, :index, assigns: %{cache: :moderate}
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
+    get "/places", PlaceController, :index, assigns: %{cache: :moderate}
+    get "/places/:id", PlaceController, :show, assigns: %{cache: :aggressive}
   end
 
   scope "/", KlaxonWeb do
@@ -110,6 +115,11 @@ defmodule KlaxonWeb.Router do
     get "/pongs", PongController, :index
     get "/pongs/:id", PongController, :show
     get "/media/:scope", MediaController, :index
+    post "/places", PlaceController, :create
+    get "/places/:id/edit", PlaceController, :edit
+    put "/places/:id", PlaceController, :update
+    patch "/places/:id", PlaceController, :update
+    delete "/places/:id", PlaceController, :delete
   end
 
   scope "/", KlaxonWeb do

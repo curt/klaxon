@@ -6,16 +6,16 @@ const geoOptions = {
 
 function geoSuccess(pos) {
     const crd = pos.coords;
-    const lat = document.getElementById("post_lat")
-    const lon = document.getElementById("post_lon")
-    const ele = document.getElementById("post_ele")
+    const lat = document.getElementById("post_lat") ?? document.getElementById("place_lat")
+    const lon = document.getElementById("post_lon") ?? document.getElementById("place_lon")
+    const ele = document.getElementById("post_ele") ?? document.getElementById("place_ele")
     lat.value = crd.latitude;
     lon.value = crd.longitude;
     ele.value = crd.altitude;
 }
 
 function geoError(pos) {
-    
+
 }
 
 function geoGrab() {

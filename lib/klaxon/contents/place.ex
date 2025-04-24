@@ -268,4 +268,83 @@ defmodule Klaxon.Contents.Place do
   def order_by_default(query) do
     order_by(query, [places: p], desc_nulls_last: p.published_at, desc: p.inserted_at)
   end
+
+  @doc """
+  Returns a query for the `places` table filtered for authorized access.
+
+  This includes places that are:
+  - Remote OR
+  - Published and public OR
+  - Belong to the specified endpoint (profile)
+
+  ## Examples
+
+      iex> Klaxon.Contents.Place.where_authorized(query, "profile-uri")
+      #Ecto.Query<from p in Klaxon.Contents.Place, as: :places, where: p.origin == :remote or (p.status == :published and p.visibility == :public) or r.uri == ^"profile-uri">
+
+  """
+  @spec where_authorized(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
+  def where_authorized(query, endpoint) do
+    query
+    |> where_origin([:local, :remote])
+    |> where_status([:published, :draft])
+    |> where_visibility([:public, :unlisted, :private])
+    |> where(
+      [places: p, profile: r],
+      p.origin == :remote or (p.status == :published and p.visibility == :public) or
+        r.uri == ^endpoint
+    )
+  end
+
+  @doc """
+  Returns a query for the `places` table filtered for unauthenticated access to a single place.
+
+  Only returns places that are:
+  - Local
+  - Published
+  - Public or unlisted
+  - From the specified endpoint (profile)
+
+  ## Examples
+
+      iex> Klaxon.Contents.Place.where_unauthenticated_single(query, "profile-uri")
+      #Ecto.Query<...filtered for local published places with public or unlisted visibility...>
+
+  """
+  @spec where_unauthenticated_single(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
+  def where_unauthenticated_single(query, endpoint) do
+    query
+    |> where_local_published(endpoint)
+    |> where_visibility([:public, :unlisted])
+  end
+
+  @doc """
+  Returns a query for the `places` table filtered for unauthenticated access to a list of places.
+
+  Only returns places that are:
+  - Local
+  - Published
+  - Public
+  - From the specified endpoint (profile)
+
+  ## Examples
+
+      iex> Klaxon.Contents.Place.where_unauthenticated_list(query, "profile-uri")
+      #Ecto.Query<...filtered for local published places with public visibility...>
+
+  """
+  @spec where_unauthenticated_list(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
+  def where_unauthenticated_list(query, endpoint) do
+    query
+    |> where_local_published(endpoint)
+    |> where_visibility([:public])
+  end
+
+  defp where_local_published(query, endpoint) do
+    query
+    |> where_profile_uri(endpoint)
+    |> where_origin([:local])
+    |> where_status([:published])
+    |> where_published_at()
+  end
 end
