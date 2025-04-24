@@ -26,7 +26,7 @@ defmodule KlaxonWeb.PlaceController do
     case Contents.insert_place(
            conn.assigns.current_profile,
            place_params,
-           &Routes.place_path(conn, :show, &1)
+           &Routes.place_url(conn, :show, &1)
          ) do
       {:ok, place} -> redirect(conn, to: Routes.place_path(conn, :show, place))
       {:error, changeset} -> render(conn, "new.html", changeset: changeset)
