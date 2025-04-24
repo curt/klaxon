@@ -1,4 +1,7 @@
 defmodule Klaxon.ProfileFixtures do
+  alias Klaxon.Profiles
+  alias Klaxon.Profiles.Profile
+
   def valid_profile_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
       uri: "http://localhost:4002/",
@@ -9,10 +12,10 @@ defmodule Klaxon.ProfileFixtures do
   end
 
   def profile_fixture(user, attrs \\ %{}) do
-    {:ok, %{principal: _, profile: profile}} =
+    {:ok, %Profile{} = profile} =
       attrs
       |> valid_profile_attributes()
-      |> Klaxon.Profiles.create_local_profile(user.id)
+      |> Profiles.create_local_profile(user.id)
 
     profile
   end
