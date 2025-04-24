@@ -1,15 +1,7 @@
-<h1>Places</h1>
-<ul>
-  <%= for place <- @places do %>
-    <li>
-      <%= link place.title, to: Routes.place_path(@conn, :show, place) %>
-      <%= if @is_owner do %>
-        (<%= link "Edit", to: Routes.place_path(@conn, :edit, place) %>)
-        (<%= link "Delete", to: Routes.place_path(@conn, :delete, place), method: :delete, data: [confirm: "Are you sure?"] %>)
-      <% end %>
-    </li>
-  <% end %>
-</ul>
+<h1><%= @title %></h1>
 <%= if @is_owner do %>
-  <%= link "New Place", to: Routes.place_path(@conn, :new), class: "btn btn-primary" %>
+<div class="mb-4">
+    <%= link to: Routes.place_path(@conn, :new) do %>Add<% end %>
+</div>
 <% end %>
+<%= render "list.html", assigns %>

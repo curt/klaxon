@@ -1,0 +1,10 @@
+<%= if length(@places) > 0 do %>
+  <%= for place <- @places do %>
+    <article class="my-4 flex items-center gap-4">
+      <div><img {[src: profile_media_avatar_path(@conn, place.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
+      <span><%= if place.status == :draft do %><em>Draft</em> <% end %><a class="link" {[href: Routes.place_path(@conn, :show, place.id)]}>&raquo; <%= String.trim(Earmark.as_html!(snippet(place), inner_html: true)) %></a></span>
+    </article>
+  <% end %>
+<% else %>
+  <p>No places found.</p>
+<% end %>

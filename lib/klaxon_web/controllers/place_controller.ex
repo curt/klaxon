@@ -7,7 +7,7 @@ defmodule KlaxonWeb.PlaceController do
     {:ok, places} =
       Contents.get_places(conn.assigns.current_profile.uri, conn.assigns.current_user)
 
-    render(conn, "index.html", places: places)
+    render(conn, "index.html", places: places, title: "Places")
   end
 
   def show(conn, %{"id" => id}) do
