@@ -64,6 +64,7 @@ defmodule Klaxon.Contents.Place do
     has_many(:attachments, Klaxon.Contents.PlaceAttachment)
     has_many(:post_places, Klaxon.Contents.PostPlace)
     has_many(:posts, through: [:post_places, :post])
+    has_many(:checkins, Klaxon.Checkins.Checkin)
 
     timestamps()
   end
@@ -139,7 +140,8 @@ defmodule Klaxon.Contents.Place do
     |> preload([p, r],
       profile: r,
       tags: [:label],
-      attachments: [:media]
+      attachments: [:media],
+      checkins: [:profile]
     )
   end
 

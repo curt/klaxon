@@ -38,6 +38,7 @@ defmodule KlaxonWeb.Router do
 
     get "/posts/new", PostController, :new
     get "/places/new", PlaceController, :new
+    get "/places/:place_id/checkins/new", CheckinController, :new
   end
 
   scope "/", KlaxonWeb do
@@ -65,6 +66,8 @@ defmodule KlaxonWeb.Router do
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
     get "/places", PlaceController, :index, assigns: %{cache: :moderate}
     get "/places/:id", PlaceController, :show, assigns: %{cache: :aggressive}
+    get "/places/:place_id/checkins", CheckinController, :index
+    get "/places/:place_id/checkins/:id", CheckinController, :show
   end
 
   scope "/", KlaxonWeb do

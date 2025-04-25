@@ -26,4 +26,21 @@
       });
     </script>
   <% end %>
+
+  <h2 class="place-checkins">Check-Ins</h2>
+
+  <%= if @place.checkins do %>
+    <ul class="checkin-list">
+      <%= for checkin <- @place.checkins do %>
+        <li class="checkin-item">
+          <p>
+            <strong><%= checkin.profile.display_name %></strong> checked in:
+            <%= link checkin.checked_in_at |> Timex.format!("%Y-%m-%d %H:%M", :strftime), to: Routes.checkin_path(@conn, :show, @place.id, checkin.id), class: "btn btn-primary" %>
+          </p>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>No check-ins yet.</p>
+  <% end %>
 </article>

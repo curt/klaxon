@@ -1,0 +1,9 @@
+<article class="checkin">
+  <h1 class="checkin-title p-name">Check-In: <%= @place.title %></h1>
+  <h2 class="checkin-subtitle"><%= @checkin.profile.display_name %>: <%= Timex.format!(@checkin.checked_in_at, "%Y-%m-%d %H:%M", :strftime) %></h2>
+
+  <div class="checkin-content e-content">
+    <%= raw @checkin.content_html %>
+  </div>
+
+</article>
