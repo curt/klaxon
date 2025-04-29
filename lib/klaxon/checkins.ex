@@ -160,6 +160,103 @@ defmodule Klaxon.Checkins do
     end
   end
 
+  @doc ~S"""
+  Creates a checkin for a specific profile and place.
+
+  ## Parameters
+    - `profile` - The profile creating the checkin
+    - `place_id` - The ID of the place being checked into
+    - `attrs` - Attributes for the checkin
+    - `uri_fun` - Function to generate URI based on ID
+
+  ## Returns
+    - `{:ok, checkin}` if the checkin was created successfully
+    - `{:error, changeset}` if there was a validation error
+
+  ## Examples
+
+      iex> insert_checkin(profile, place_id, %{source: "Had a great time!"}, &("https://example.com/#{&1}"))
+      {:ok, %Checkin{}}
+  """
+  @spec insert_checkin(any(), String.t(), map(), (String.t() -> String.t())) ::
+          {:ok, Checkin.t()} | {:error, Ecto.Changeset.t()}
+  def insert_checkin(profile, place_id, attrs, uri_fun) do
+    id = EctoBase58.generate()
+    uri = uri_fun.(id)
+
+    %Checkin{
+      id: id,
+      uri: uri,
+      profile_id: profile.id,
+      place_id: place_id,
+      origin: :local,
+      checked_in_at: Map.get(attrs, :checked_in_at, DateTime.utc_now())
+    }
+    |> Checkin.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a checkin for a specific profile.
+
+  Ensures the checkin belongs to the specified profile before updating.
+
+  ## Parameters
+    - `profile` - The profile that owns the checkin
+    - `checkin` - The checkin to update
+    - `attrs` - New attributes for the checkin
+
+  ## Returns
+    - `{:ok, checkin}` if the checkin was updated successfully
+    - `{:error, :unauthorized}` if the checkin doesn't belong to the profile
+    - `{:error, changeset}` if there was a validation error
+
+  ## Examples
+
+      iex> update_checkin(profile, checkin, %{source: "Updated message"})
+      {:ok, %Checkin{}}
+  """
+  @spec update_checkin(any(), Checkin.t(), map()) ::
+          {:ok, Checkin.t()} | {:error, :unauthorized | Ecto.Changeset.t()}
+  def update_checkin(profile, %Checkin{} = checkin, attrs) do
+    if checkin.profile_id == profile.id do
+      checkin
+      |> Checkin.changeset(attrs)
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Deletes a checkin for a specific profile.
+
+  Ensures the checkin belongs to the specified profile before deleting.
+
+  ## Parameters
+    - `profile` - The profile that owns the checkin
+    - `checkin` - The checkin to delete
+
+  ## Returns
+    - `{:ok, checkin}` if the checkin was deleted successfully
+    - `{:error, :unauthorized}` if the checkin doesn't belong to the profile
+    - `{:error, changeset}` if there was an error during deletion
+
+  ## Examples
+
+      iex> delete_checkin(profile, checkin)
+      {:ok, %Checkin{}}
+  """
+  @spec delete_checkin(any(), Checkin.t()) ::
+          {:ok, Checkin.t()} | {:error, :unauthorized | Ecto.Changeset.t()}
+  def delete_checkin(profile, %Checkin{} = checkin) do
+    if checkin.profile_id == profile.id do
+      Repo.delete(checkin)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
   @doc """
   Returns the list of checkins.
 

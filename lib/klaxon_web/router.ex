@@ -123,6 +123,11 @@ defmodule KlaxonWeb.Router do
     put "/places/:id", PlaceController, :update
     patch "/places/:id", PlaceController, :update
     delete "/places/:id", PlaceController, :delete
+    post "/places/:place_id/checkins", CheckinController, :create
+    get "/places/:place_id/checkins/:id/edit", CheckinController, :edit
+    put "/places/:place_id/checkins/:id", CheckinController, :update
+    patch "/places/:place_id/checkins/:id", CheckinController, :update
+    delete "/places/:place_id/checkins/:id", CheckinController, :delete
   end
 
   scope "/", KlaxonWeb do
