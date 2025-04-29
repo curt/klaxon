@@ -1,9 +1,16 @@
 <article class="checkin">
-  <h1 class="checkin-title p-name">Check-In: <%= @place.title %></h1>
+  <h1 class="checkin-title p-name">Check-In: <%= link @place.title, to: Routes.place_path(@conn, :show, @place) %></h1>
   <h2 class="checkin-subtitle"><%= @checkin.profile.display_name %>: <%= Timex.format!(@checkin.checked_in_at, "%Y-%m-%d %H:%M", :strftime) %></h2>
 
   <div class="checkin-content e-content">
     <%= raw @checkin.content_html %>
   </div>
+
+  <%= if @is_owner do %>
+    <div class="checkin-actions my-4">
+      <%= link "Edit", to: Routes.checkin_path(@conn, :edit, @place, @checkin), class: "btn btn-primary" %>
+      <%= link "Delete", to: Routes.checkin_path(@conn, :delete, @place, @checkin), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger" %>
+    </div>
+  <% end %>
 
 </article>

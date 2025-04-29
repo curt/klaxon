@@ -1,7 +1,7 @@
 <h1>Check-Ins: <%= @place.title %></h1>
 <%= if @is_owner do %>
 <div class="mb-4">
-    <%= link to: Routes.checkin_path(@conn, :new, @place.id) do %>Add<% end %>
+    <%= link to: Routes.checkin_path(@conn, :new, @place) do %>Add<% end %>
 </div>
 <% end %>
 <%= render "list.html", assigns %>
