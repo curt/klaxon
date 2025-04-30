@@ -52,6 +52,7 @@ defmodule Klaxon.Checkins.Checkin do
 
     belongs_to(:profile, Klaxon.Profiles.Profile, type: EctoBase58)
     belongs_to(:place, Klaxon.Contents.Place, type: EctoBase58)
+    has_many(:attachments, Klaxon.Checkins.CheckinAttachment, preload_order: [:inserted_at])
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -92,7 +93,7 @@ defmodule Klaxon.Checkins.Checkin do
     query
     |> join(:inner, [checkins: c], r in assoc(c, :profile), as: :profile)
     |> join(:inner, [checkins: c], p in assoc(c, :place), as: :place)
-    |> preload([c, r, p], profile: r, place: p)
+    |> preload([c, r, p], profile: r, place: p, attachments: [:media])
   end
 
   @spec where_place_id(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
