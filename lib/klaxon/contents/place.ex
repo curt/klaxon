@@ -64,7 +64,7 @@ defmodule Klaxon.Contents.Place do
     has_many(:attachments, Klaxon.Contents.PlaceAttachment)
     has_many(:post_places, Klaxon.Contents.PostPlace)
     has_many(:posts, through: [:post_places, :post])
-    has_many(:checkins, Klaxon.Checkins.Checkin)
+    has_many(:checkins, Klaxon.Checkins.Checkin, preload_order: [desc: :checked_in_at])
 
     timestamps()
   end
