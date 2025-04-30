@@ -73,6 +73,7 @@ defmodule Klaxon.Checkins.Checkin do
     ])
     |> validate_required([:checked_in_at, :origin, :status, :uri, :visibility])
     |> unique_constraint(:uri)
+    |> apply_content_html()
     |> apply_published_at()
   end
 
