@@ -4,6 +4,16 @@ defmodule KlaxonWeb.CheckinController do
   alias Klaxon.Contents
   action_fallback KlaxonWeb.FallbackController
 
+  def all(conn, _params) do
+    with {:ok, checkins} <-
+           Checkins.get_checkins_all(
+             conn.assigns.current_profile.uri,
+             conn.assigns.current_user
+           ) do
+      render(conn, "all.html", checkins: checkins)
+    end
+  end
+
   def index(conn, %{"place_id" => place_id}) do
     with {:ok, place} <-
            Contents.get_place(

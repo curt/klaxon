@@ -66,6 +66,7 @@ defmodule KlaxonWeb.Router do
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
     get "/places", PlaceController, :index, assigns: %{cache: :moderate}
     get "/places/:id", PlaceController, :show, assigns: %{cache: :aggressive}
+    get "/c", CheckinController, :all
     get "/places/:place_id/checkins", CheckinController, :index
     get "/places/:place_id/checkins/:id", CheckinController, :show
   end

@@ -78,6 +78,46 @@ defmodule Klaxon.Checkins do
     {:ok, checkins}
   end
 
+  def get_checkins_all(profile_uri, user, opts \\ %{})
+
+  def get_checkins_all(profile_uri, %User{id: user_id, email: email} = _user, opts) do
+    Logger.debug("Getting checkins authenticated as user: #{email}")
+    get_checkins_all_authenticated(profile_uri, user_id, opts)
+  end
+
+  def get_checkins_all(profile_uri, _user, opts) do
+    get_checkins_all_unauthorized(profile_uri, opts)
+  end
+
+  defp get_checkins_all_authenticated(profile_uri, user_id, opts) do
+    if is_user_id_endpoint_principal?(profile_uri, user_id) do
+      Logger.debug("Getting checkins as principal of profile: #{profile_uri}")
+      get_checkins_all_authorized(profile_uri, opts)
+    else
+      get_checkins_all_unauthorized(profile_uri, opts)
+    end
+  end
+
+  defp get_checkins_all_authorized(profile_uri, _opts) do
+    checkins =
+      Checkin.from_preloaded()
+      |> Checkin.where_authorized(profile_uri)
+      |> Checkin.order_by_default()
+      |> Repo.all()
+
+    {:ok, checkins}
+  end
+
+  defp get_checkins_all_unauthorized(profile_uri, _opts) do
+    checkins =
+      Checkin.from_preloaded()
+      |> Checkin.where_public_list(profile_uri)
+      |> Checkin.order_by_default()
+      |> Repo.all()
+
+    {:ok, checkins}
+  end
+
   @doc """
   Gets a single checkin for a specific place belonging to a profile.
 
