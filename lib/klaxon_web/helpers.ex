@@ -58,10 +58,11 @@ defmodule KlaxonWeb.Helpers do
   @doc """
   Returns an attachment caption with Markdown processed for HTML.
   """
-  @spec htmlify_caption(%PostAttachment{:caption => String.t()}) :: String.t()
-  def htmlify_caption(%PostAttachment{} = attachment) do
-    htmlify_markdown_string(attachment.caption)
+  def htmlify_caption(%{caption: caption}) when not is_nil(caption) do
+    htmlify_markdown_string(caption)
   end
+
+  def htmlify_caption(_), do: nil
 
   @spec htmlify_title(%Post{}) :: String.t()
   def htmlify_title(%Post{} = post) do
