@@ -197,6 +197,10 @@
     @apply p-1;
   }
 
+  main {
+    @apply max-w-[1024px] mx-auto;
+  }
+
   #map {
     @apply my-4 h-[384px] w-full;
   }
