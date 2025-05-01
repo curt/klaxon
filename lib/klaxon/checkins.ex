@@ -353,6 +353,13 @@ defmodule Klaxon.Checkins do
     Checkin.changeset(checkin, attrs)
   end
 
+  def get_checkin_attachment(id) do
+    case Repo.get(CheckinAttachment, id) do
+      nil -> {:error, :not_found}
+      checkin_attachment -> {:ok, checkin_attachment}
+    end
+  end
+
   def insert_checkin_attachment(checkin_id, attrs, path, content_type, url_fun)
       when is_function(url_fun, 3) do
     with {:ok, media} <- Media.insert_local_media(path, content_type, :checkin, url_fun) do
