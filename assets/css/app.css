@@ -201,31 +201,38 @@
     @apply my-4 h-[384px] w-full;
   }
 
-  .post-content {
+  .post-content,
+  .checkin-content {
     @apply my-4;
   }
 
-  .post-attachments {
+  .post-attachments,
+  .checkin-attachments {
     @apply flex flex-wrap gap-4 mt-4;
   }
 
-  .post-attachment {
+  .post-attachment,
+  .checkin-attachment {
     @apply max-w-[1024px];
   }
 
-  .post-attachment img {
+  .post-attachment img,
+  .checkin-attachment img {
     @apply rounded h-auto mt-4 mb-2;
   }
 
-  .post-attachment-caption {
+  .post-attachment-caption,
+  .checkin-attachment-caption {
     @apply mt-2 mb-4;
   }
 
-  .post-byline {
+  .post-byline,
+  .checkin-byline {
     @apply mt-4 py-4 border-t text-sm flex flex-wrap gap-1 items-center;
   }
 
-  .post-avatar {
+  .post-avatar,
+  .checkin-avatar {
     @apply rounded w-[32px] min-w-[32px] h-auto;
   }
 

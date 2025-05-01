@@ -1,11 +1,4 @@
-<article class="checkin">
-  <h1 class="checkin-title p-name">Check-In: <%= link @place.title, to: Routes.place_path(@conn, :show, @place) %></h1>
-  <h2 class="checkin-subtitle"><%= @checkin.profile.display_name %>: <%= Timex.format!(@checkin.checked_in_at, "%Y-%m-%d %H:%M", :strftime) %></h2>
-
-  <div class="checkin-content e-content">
-    <%= raw @checkin.content_html %>
-  </div>
-
+<article class="checkin h-entry">
   <%= if @is_owner do %>
     <div class="checkin-actions my-4">
       <%= link "Attachments", to: Routes.checkin_attachment_path(@conn, :index, @place, @checkin), class: "btn btn-primary" %>
@@ -13,5 +6,44 @@
       <%= link "Delete", to: Routes.checkin_path(@conn, :delete, @place, @checkin), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger" %>
     </div>
   <% end %>
-
+  <div class="checkin-content e-content">
+    <%= raw @checkin.content_html %>
+  </div>
+  <%= if length(@checkin.attachments) > 0 do %>
+    <div class="checkin-attachments">
+      <%= for attachment <- @checkin.attachments do %>
+        <div class="checkin-attachment">
+          <img {[src: Routes.media_path(@conn, :show, :checkin, :full, attachment.media.id), alt: htmlify_caption(attachment) ]}/>
+          <div class="checkin-attachment-caption"><%= raw htmlify_caption(attachment) %></div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+  <%= if @place.lat && @place.lon do %>
+  <div id="map"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const center = [<%= @place.lat %>, <%= @place.lon %>];
+      const description = "<%= @place.title || "" %>";
+      const map = L.map('map').setView(center, 13);
+      const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 16,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+      const marker = L.marker(center).addTo(map);
+      if (description.length > 0) {
+        marker.bindPopup(description).openPopup();
+      }
+    });
+  </script>
+  <% end %>
+  <div class="checkin-byline">
+    <div><img {[src: profile_media_avatar_path(@conn, @checkin.profile), class: "checkin-avatar", alt: @checkin.profile.display_name ]}/></div>
+    <div><a {[href: @checkin.profile.url || @checkin.profile.uri, class: "p-author", rel: "author"]}><%= @checkin.profile.display_name %></a></div>
+    <div>
+      <%= status_action(@checkin) %>
+      <a {[href: @checkin.uri, class: "u-url u-uid"]}><time {[datetime: htmlify_date(status_date(@checkin))]} class="dt-published"><%= prettify_date(status_date(@checkin)) %></time></a>
+      at <a {[href: @place.uri, class: "p-location"]}><%= @place.title %></a>
+    </div>
+  </div>
 </article>
