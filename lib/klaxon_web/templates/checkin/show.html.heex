@@ -8,6 +8,7 @@
 
   <%= if @is_owner do %>
     <div class="checkin-actions my-4">
+      <%= link "Attachments", to: Routes.checkin_attachment_path(@conn, :index, @place, @checkin), class: "btn btn-primary" %>
       <%= link "Edit", to: Routes.checkin_path(@conn, :edit, @place, @checkin), class: "btn btn-primary" %>
       <%= link "Delete", to: Routes.checkin_path(@conn, :delete, @place, @checkin), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger" %>
     </div>

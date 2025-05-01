@@ -128,6 +128,13 @@ defmodule KlaxonWeb.Router do
     put "/places/:place_id/checkins/:id", CheckinController, :update
     patch "/places/:place_id/checkins/:id", CheckinController, :update
     delete "/places/:place_id/checkins/:id", CheckinController, :delete
+    get "/z/:place_id/c/:checkin_id/i", CheckinAttachmentController, :index
+    post "/z/:place_id/c/:checkin_id/i", CheckinAttachmentController, :create
+    get "/z/:place_id/c/:checkin_id/i/new", CheckinAttachmentController, :new
+    get "/z/:place_id/c/:checkin_id/i/:id/edit", CheckinAttachmentController, :edit
+    put "/z/:place_id/c/:checkin_id/i/:id", CheckinAttachmentController, :update
+    patch "/z/:place_id/c/:checkin_id/i/:id", CheckinAttachmentController, :update
+    delete "/z/:place_id/c/:checkin_id/i/:id", CheckinAttachmentController, :delete
   end
 
   scope "/", KlaxonWeb do

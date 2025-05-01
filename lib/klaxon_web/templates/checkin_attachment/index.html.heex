@@ -1,0 +1,25 @@
+<h1>Check-In Attachments: <%= @place.title %></h1>
+
+<div><%= raw @checkin.content_html %></div>
+
+<div class="mb-4">
+    <%= link to: Routes.checkin_path(@conn, :show, @place, @checkin) do %>Check-In<% end %>
+    | <%= link to: Routes.checkin_attachment_path(@conn, :new, @place, @checkin) do %>Add<% end %>
+</div>
+
+<%= if length(@checkin.attachments) > 0 do %>
+  <%= for attachment <- @checkin.attachments do %>
+    <%= if !is_nil(attachment.media) do %>
+      <article class="mb-2">
+        <div><img {[src: Routes.media_path(@conn, :show, :checkin, :gallery, attachment.media.id), class: "rounded w-[256px] min-w-[256px] h-auto" ]}/></div>
+        <div><%= raw htmlify_caption(attachment) %></div>
+        <div>
+          <%= link "Edit", to: Routes.checkin_attachment_path(@conn, :edit, @place, @checkin, attachment.id) %>
+          <%= link "Delete", to: Routes.checkin_attachment_path(@conn, :delete, @place, @checkin, attachment.id), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger" %>
+        </div>
+      </article>
+    <% end %>
+  <% end %>
+<% else %>
+  <p>No attachments found.</p>
+<% end %>

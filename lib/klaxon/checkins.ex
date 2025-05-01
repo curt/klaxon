@@ -4,9 +4,11 @@ defmodule Klaxon.Checkins do
   """
   require Logger
 
+  alias Klaxon.Checkins.CheckinAttachment
   alias Klaxon.Auth.User
   alias Klaxon.Repo
   alias Klaxon.Checkins.Checkin
+  alias Klaxon.Media
   alias Klaxon.Profiles
 
   @doc """
@@ -349,6 +351,33 @@ defmodule Klaxon.Checkins do
   """
   def change_checkin(%Checkin{} = checkin, attrs \\ %{}) do
     Checkin.changeset(checkin, attrs)
+  end
+
+  def get_checkin_attachment(id) do
+    case Repo.get(CheckinAttachment, id) do
+      nil -> {:error, :not_found}
+      checkin_attachment -> {:ok, checkin_attachment}
+    end
+  end
+
+  def insert_checkin_attachment(checkin_id, attrs, path, content_type, url_fun)
+      when is_function(url_fun, 3) do
+    with {:ok, media} <- Media.insert_local_media(path, content_type, :checkin, url_fun) do
+      %CheckinAttachment{checkin_id: checkin_id, media_id: media.id}
+      |> CheckinAttachment.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  def update_checkin_attachment(checkin_attachment, attrs) do
+    checkin_attachment
+    |> CheckinAttachment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_checkin_attachment(checkin_attachment) do
+    checkin_attachment
+    |> Repo.delete()
   end
 
   defp is_user_id_endpoint_principal?(endpoint, user_id) do
