@@ -168,6 +168,6 @@ defmodule Klaxon.Checkins.Checkin do
 
   @spec order_by_default(Ecto.Query.t()) :: Ecto.Query.t()
   def order_by_default(query) do
-    order_by(query, [checkins: c], desc_nulls_last: c.published_at, desc: c.inserted_at)
+    order_by(query, [checkins: c], desc: c.checked_in_at)
   end
 end

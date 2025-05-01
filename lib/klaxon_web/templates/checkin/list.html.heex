@@ -2,7 +2,10 @@
   <%= for checkin <- @checkins do %>
     <article class="my-4 flex items-center gap-4">
       <div><img {[src: profile_media_avatar_path(@conn, checkin.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
-      <span><%= if checkin.status == :draft do %><em>Draft</em> <% end %><a class="link" {[href: Routes.checkin_path(@conn, :show, @place.id, checkin.id)]}>&raquo; <%= String.trim(Earmark.as_html!(snippet(checkin), inner_html: true)) %></a></span>
+      <span>
+        <%= if checkin.status == :draft do %><em>Draft</em> <% end %><%= link checkin.checked_in_at |> Timex.format!("%Y-%m-%d %H:%M", :strftime), to: Routes.checkin_path(@conn, :show, checkin.place, checkin) %>
+        &raquo; <%= String.trim(Earmark.as_html!(snippet(checkin), inner_html: true)) %>
+      </span>
     </article>
   <% end %>
 <% else %>
