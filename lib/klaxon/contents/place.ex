@@ -141,7 +141,7 @@ defmodule Klaxon.Contents.Place do
       profile: r,
       tags: [:label],
       attachments: [:media],
-      checkins: [:profile]
+      checkins: [:profile, :attachments]
     )
   end
 
