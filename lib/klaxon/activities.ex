@@ -196,7 +196,7 @@ defmodule Klaxon.Activities do
                  "to" => followee_uri
                }
              },
-             followee_uri,
+             follower_uri,
              profile
            ),
          {:ok, follow} <- get_follow(uri, follower_uri, followee_uri) do
@@ -226,7 +226,7 @@ defmodule Klaxon.Activities do
       to = Profiles.get_or_fetch_public_profile_by_uri(to)
 
       Logger.info(
-        "Sending\n activity --> #{inspect(activity)}\n from --> #{inspect(from)} to --> #{inspect(to)}"
+        "Sending\n --> activity --> #{inspect(activity)}\n\n --> from --> #{inspect(from)}\n\n --> to --> #{inspect(to)}"
       )
 
       # FIXME: Lookup key from repository.
