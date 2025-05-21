@@ -58,6 +58,10 @@ config :mime, :types, %{
   "application/ld+json" => ["activity+json"]
 }
 
+config :mime, :extensions, %{
+  "activity+json" => "application/activity+json"
+}
+
 config :phoenix, :format_encoders,
   json: Jason,
   "activity+json": Jason
