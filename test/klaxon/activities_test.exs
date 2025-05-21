@@ -91,7 +91,7 @@ defmodule Klaxon.ActivitiesTest do
                  "http://localhost:4002/"
                )
 
-      assert follow.status == :requested
+      assert follow.status == :accepted
       assert follow.uri == uri
     end
 
@@ -104,7 +104,7 @@ defmodule Klaxon.ActivitiesTest do
                  "http://localhost:4002/"
                )
 
-      assert follow.status == :requested
+      assert follow.status == :accepted
       refute is_nil(follow.uri)
     end
 
@@ -119,7 +119,7 @@ defmodule Klaxon.ActivitiesTest do
                  "http://localhost:4002/"
                )
 
-      assert follow.status == :requested
+      assert follow.status == :accepted
     end
 
     test "receive undo follow, with uri" do

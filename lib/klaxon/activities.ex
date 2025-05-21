@@ -7,6 +7,8 @@ defmodule Klaxon.Activities do
   alias Klaxon.Activities.Follow
   import Ecto.Query
 
+  @config Application.compile_env(:klaxon, Klaxon.Activities)
+
   @spec send_ping(String.t(), String.t()) :: any
   def send_ping(actor, to) do
     {:ok, ping} =
@@ -152,20 +154,52 @@ defmodule Klaxon.Activities do
   end
 
   def receive_follow(uri, follower_uri, followee_uri, profile) do
-    case get_follow(nil, follower_uri, followee_uri) do
-      {:ok, follow} ->
-        update_follow(follow, %{uri: uri, status: :requested}, profile)
+    follow =
+      case get_follow(nil, follower_uri, followee_uri) do
+        {:ok, follow} ->
+          update_follow(follow, %{uri: uri, status: :requested}, profile)
+
+        _ ->
+          create_follow(
+            %{
+              uri: uri,
+              follower_uri: follower_uri,
+              followee_uri: followee_uri,
+              status: :requested
+            },
+            profile
+          )
+      end
+
+    case follow do
+      {:ok, _} ->
+        send_follow_accepted(uri, follower_uri, followee_uri, profile)
 
       _ ->
-        create_follow(
-          %{
-            uri: uri,
-            follower_uri: follower_uri,
-            followee_uri: followee_uri,
-            status: :requested
-          },
-          profile
-        )
+        {:error, :not_found}
+    end
+  end
+
+  def send_follow_accepted(uri, follower_uri, followee_uri, profile) do
+    with {:ok, _} <-
+           send_activity(
+             %{
+               "type" => "Accept",
+               "id" => "#{uri}#accept",
+               "actor" => followee_uri,
+               "to" => follower_uri,
+               "object" => %{
+                 "type" => "Follow",
+                 "id" => uri,
+                 "actor" => follower_uri,
+                 "to" => followee_uri
+               }
+             },
+             followee_uri,
+             profile
+           ),
+         {:ok, follow} <- get_follow(uri, follower_uri, followee_uri) do
+      update_follow(follow, %{status: :accepted}, profile)
     end
   end
 
@@ -187,13 +221,13 @@ defmodule Klaxon.Activities do
   @spec send_activity(map, String.t(), String.t()) :: any
   defp send_activity(%{} = activity, to, profile) do
     if @config[:send_activities] do
-    {:ok, from} = Profiles.get_local_profile_by_uri(profile)
-    to = Profiles.get_or_fetch_public_profile_by_uri(to)
+      {:ok, from} = Profiles.get_local_profile_by_uri(profile)
+      to = Profiles.get_or_fetch_public_profile_by_uri(to)
 
-    # FIXME: Lookup key from repository.
-    HttpClient.post(Map.fetch!(to, :inbox), activity,
-      opts: [private_key: from.private_key, key_id: from.uri <> "#key"]
-    )
+      # FIXME: Lookup key from repository.
+      HttpClient.post(Map.fetch!(to, :inbox), activity,
+        opts: [private_key: from.private_key, key_id: from.uri <> "#key"]
+      )
     else
       {:ok, nil}
     end
