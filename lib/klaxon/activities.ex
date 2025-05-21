@@ -1,4 +1,5 @@
 defmodule Klaxon.Activities do
+  require Logger
   alias Klaxon.Repo
   alias Klaxon.HttpClient
   alias Klaxon.Profiles
@@ -223,6 +224,10 @@ defmodule Klaxon.Activities do
     if @config[:send_activities] do
       {:ok, from} = Profiles.get_local_profile_by_uri(profile)
       to = Profiles.get_or_fetch_public_profile_by_uri(to)
+
+      Logger.info(
+        "Sending\n activity --> #{inspect(activity)}\n from --> #{inspect(from)} to --> #{inspect(to)}"
+      )
 
       # FIXME: Lookup key from repository.
       HttpClient.post(Map.fetch!(to, :inbox), activity,
