@@ -186,6 +186,7 @@ defmodule Klaxon.Activities do
 
   @spec send_activity(map, String.t(), String.t()) :: any
   defp send_activity(%{} = activity, to, profile) do
+    if @config[:send_activities] do
     {:ok, from} = Profiles.get_local_profile_by_uri(profile)
     to = Profiles.get_or_fetch_public_profile_by_uri(to)
 
@@ -193,6 +194,9 @@ defmodule Klaxon.Activities do
     HttpClient.post(Map.fetch!(to, :inbox), activity,
       opts: [private_key: from.private_key, key_id: from.uri <> "#key"]
     )
+    else
+      {:ok, nil}
+    end
   end
 
   @spec contextify(map) :: map

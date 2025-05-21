@@ -103,6 +103,8 @@ config :klaxon, KlaxonWeb.CacheConfig,
     static: 31_536_000
   }
 
+config :klaxon, Klaxon.Activities, send_activities: true
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
