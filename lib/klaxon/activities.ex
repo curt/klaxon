@@ -193,7 +193,7 @@ defmodule Klaxon.Activities do
                  "type" => "Follow",
                  "id" => uri,
                  "actor" => follower_uri,
-                 "to" => followee_uri
+                 "object" => followee_uri
                }
              },
              follower_uri,
