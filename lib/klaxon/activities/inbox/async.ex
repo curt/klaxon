@@ -161,7 +161,6 @@ defmodule Klaxon.Activities.Inbox.Async do
     activity =
       activity
       |> maybe_normalize_id("object")
-      |> validate_attribute_against_required_value("object", endpoint)
 
     Activities.receive_like(activity["id"], actor_id, activity["object"], endpoint)
   end
