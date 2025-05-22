@@ -56,7 +56,7 @@ defmodule Klaxon.MixProject do
       {:castore, "~> 0.1.22"},
       {:oban, "~> 2.13"},
       {:http_signatures, "~> 0.1.1"},
-      {:tesla, "~> 1.4"},
+      {:tesla, "~> 1.14"},
       {:hackney, "~> 1.17"},
       {:cachex, "~> 3.4"},
       {:timex, "~> 3.7"},

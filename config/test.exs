@@ -35,3 +35,6 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Inline tests for Oban
 config :klaxon, Oban, testing: :inline
+
+# Don't send activities in tests
+config :klaxon, Klaxon.Activities, send_activities: false

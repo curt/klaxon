@@ -58,6 +58,10 @@ config :mime, :types, %{
   "application/ld+json" => ["activity+json"]
 }
 
+config :mime, :extensions, %{
+  "activity+json" => "application/activity+json"
+}
+
 config :phoenix, :format_encoders,
   json: Jason,
   "activity+json": Jason
@@ -98,6 +102,8 @@ config :klaxon, KlaxonWeb.CacheConfig,
     aggressive: 3_600,
     static: 31_536_000
   }
+
+config :klaxon, Klaxon.Activities, send_activities: true
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
