@@ -56,4 +56,13 @@
       <% end %>
     </div>
   </div>
+  <% likes = Enum.filter(@likes, fn x -> x.actor end) %>
+  <%= if length(likes) > 0 do %>
+    <div class="like-byline">
+      <div>Likes:</div>
+      <%= for like <- Enum.filter(likes, fn x -> x.actor end) do %>
+        <div><a {[href: like.actor.url || like.actor.uri]}><img {[src: profile_media_avatar_path(@conn, like.actor), class: "like-avatar", alt: like.actor.display_name ]}/></a></div>
+      <% end %>
+    </div>
+  <% end %>
 </article>

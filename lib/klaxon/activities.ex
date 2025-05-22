@@ -215,6 +215,10 @@ defmodule Klaxon.Activities do
     Repo.one(from l in Like, where: l.actor_uri == ^actor_uri and l.object_uri == ^object_uri)
   end
 
+  def get_likes(object_uri) do
+    Repo.all(from l in Like, where: l.object_uri == ^object_uri, preload: [:actor])
+  end
+
   def create_like(attrs, endpoint) do
     %Like{} |> Like.changeset(attrs, endpoint) |> Repo.insert(on_conflict: :nothing)
   end

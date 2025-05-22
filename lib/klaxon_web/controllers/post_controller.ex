@@ -1,4 +1,5 @@
 defmodule KlaxonWeb.PostController do
+  alias Klaxon.Activities
   use KlaxonWeb, :controller
 
   import KlaxonWeb.Plugs
@@ -47,7 +48,8 @@ defmodule KlaxonWeb.PostController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <-
            Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
-      render(conn, post: post, title: htmlify_title(post))
+      likes = Activities.get_likes(post.uri)
+      render(conn, post: post, title: htmlify_title(post), likes: likes)
     end
   end
 
