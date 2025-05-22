@@ -154,6 +154,32 @@ defmodule Klaxon.Activities.Inbox.Async do
     end
   end
 
+  def process(
+        %{"type" => "Like", "actor" => %{uri: actor_id}} = activity,
+        %{"profile" => %{"uri" => endpoint}} = _args
+      ) do
+    activity =
+      activity
+      |> maybe_normalize_id("object")
+      |> validate_attribute_against_required_value("object", endpoint)
+
+    Activities.receive_like(activity["id"], actor_id, activity["object"], endpoint)
+  end
+
+  def process(
+        %{"type" => "Undo", "actor" => %{uri: actor_id}, "object" => %{"type" => "Like"}} =
+          object,
+        %{"profile" => %{"uri" => _}} = _args
+      ) do
+    object =
+      object
+      |> maybe_normalize_id("actor")
+      |> maybe_normalize_id("object")
+      |> validate_attribute_against_required_value("actor", actor_id)
+
+    Activities.receive_undo_like(actor_id, object["object"])
+  end
+
   def process(activity, args) do
     Logger.info("Unprocessable\n  activity: #{inspect(activity)}\n  args: #{inspect(args)}")
     throw(:reject)
