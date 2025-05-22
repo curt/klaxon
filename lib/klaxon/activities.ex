@@ -6,6 +6,7 @@ defmodule Klaxon.Activities do
   alias Klaxon.Activities.Ping
   alias Klaxon.Activities.Pong
   alias Klaxon.Activities.Follow
+  alias Klaxon.Activities.Like
   import Ecto.Query
 
   @config Application.compile_env(:klaxon, Klaxon.Activities)
@@ -208,6 +209,30 @@ defmodule Klaxon.Activities do
     with {:ok, follow} <- get_follow(uri, follower_uri, followee_uri) do
       update_follow(follow, %{status: :undone}, profile)
     end
+  end
+
+  def get_like(actor_uri, object_uri) do
+    Repo.one(from l in Like, where: l.actor_uri == ^actor_uri and l.object_uri == ^object_uri)
+  end
+
+  def get_likes(object_uri) do
+    Repo.all(from l in Like, where: l.object_uri == ^object_uri, preload: [:actor])
+  end
+
+  def create_like(attrs, endpoint) do
+    %Like{} |> Like.changeset(attrs, endpoint) |> Repo.insert(on_conflict: :nothing)
+  end
+
+  def delete_like(%Like{} = like) do
+    Repo.delete(like)
+  end
+
+  def receive_like(uri, actor_uri, object_uri, profile) do
+    create_like(%{uri: uri, actor_uri: actor_uri, object_uri: object_uri}, profile)
+  end
+
+  def receive_undo_like(actor_uri, object_uri) do
+    get_like(actor_uri, object_uri) |> delete_like()
   end
 
   def resolve_undoable(uri) do
