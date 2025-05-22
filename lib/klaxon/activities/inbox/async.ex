@@ -172,9 +172,7 @@ defmodule Klaxon.Activities.Inbox.Async do
       ) do
     object =
       object
-      |> maybe_normalize_id("actor")
       |> maybe_normalize_id("object")
-      |> validate_attribute_against_required_value("actor", actor_id)
 
     Activities.receive_undo_like(actor_id, object["object"])
   end
