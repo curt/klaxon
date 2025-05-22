@@ -17,8 +17,7 @@ defmodule Klaxon.Schema do
         other
       end
 
-      @spec apply_tag(Ecto.Changeset.t(), URI.t() | binary, atom, binary) ::
-              Ecto.Changeset.t() | nil
+      @spec apply_tag(Ecto.Changeset.t(), URI.t() | binary, atom, binary) :: Ecto.Changeset.t()
       def apply_tag(changeset, endpoint, field, context) do
         host = convert_endpoint_to_host(endpoint)
 
