@@ -166,13 +166,20 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   def process(
-        %{"type" => "Undo", "actor" => %{uri: actor_id}, "object" => %{"type" => "Like"}} =
-          object,
+        %{
+          "type" => "Undo",
+          "actor" => %{uri: actor_id},
+          "object" =>
+            %{"type" => "Like"} =
+              object
+        },
         %{"profile" => %{"uri" => _}} = _args
       ) do
     object =
       object
+      |> maybe_normalize_id("actor")
       |> maybe_normalize_id("object")
+      |> validate_attribute_against_required_value("actor", actor_id)
 
     Activities.receive_undo_like(actor_id, object["object"])
   end
