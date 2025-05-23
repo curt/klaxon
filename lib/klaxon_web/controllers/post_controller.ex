@@ -53,7 +53,7 @@ defmodule KlaxonWeb.PostController do
         |> Enum.filter(fn x -> x.actor end)
 
       replies =
-        Contents.get_posts_for_context(profile.uri, post.context_uri, conn.assigns[:current_user])
+        Contents.get_context(profile.uri, post.context_uri, conn.assigns[:current_user])
         |> Enum.filter(fn x -> x.id != post.id end)
 
       render(conn, post: post, title: htmlify_title(post), likes: likes, replies: replies)

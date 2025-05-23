@@ -33,20 +33,6 @@ defmodule Klaxon.Contents do
     get_posts_unauthenticated(endpoint, options)
   end
 
-  @doc """
-  Gets post from repo for given endpoint, identifier, and user (if specified).
-  """
-  @spec get_post(String.t(), String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
-          {:error, :not_found} | {:ok, %Klaxon.Contents.Post{id: String.t()}}
-  def get_post(endpoint, post_id, %User{id: user_id, email: email} = _user) do
-    Logger.debug("Getting post authenticated as user: #{email}")
-    get_post_authenticated(endpoint, post_id, user_id)
-  end
-
-  def get_post(host, post_id, _) do
-    get_post_unauthenticated(host, post_id)
-  end
-
   defp get_posts_authenticated(endpoint, user_id, options) do
     if is_user_id_endpoint_principal?(endpoint, user_id) do
       Logger.debug("Getting posts as principal of endpoint: #{endpoint}")
@@ -78,19 +64,39 @@ defmodule Klaxon.Contents do
     end
   end
 
-  def get_posts_for_context(endpoint, context_id, user, options \\ %{}) do
-    predicate =
-      case user do
-        %User{} -> &where_authorized(&1, endpoint)
-        _ -> &where_unauthenticated_list(&1, endpoint)
-      end
-
+  def get_context(_endpoint, context_id, user, options \\ %{}) do
     Post.from_preloaded()
-    |> predicate.()
     |> Post.where_context_uri(context_id)
+    |> apply_context_authorization(user)
     |> Post.order_by_default()
     |> maybe_limit(options)
     |> Repo.all()
+  end
+
+  defp apply_context_authorization(query, %User{}) do
+    query
+    |> Post.where_status([:published, :draft])
+    |> Post.where_visibility([:public, :unlisted, :private])
+  end
+
+  defp apply_context_authorization(query, _) do
+    query
+    |> Post.where_status([:published])
+    |> Post.where_visibility([:public, :unlisted])
+  end
+
+  @doc """
+  Gets post from repo for given endpoint, identifier, and user (if specified).
+  """
+  @spec get_post(String.t(), String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
+          {:error, :not_found} | {:ok, %Klaxon.Contents.Post{id: String.t()}}
+  def get_post(endpoint, post_id, %User{id: user_id, email: email} = _user) do
+    Logger.debug("Getting post authenticated as user: #{email}")
+    get_post_authenticated(endpoint, post_id, user_id)
+  end
+
+  def get_post(host, post_id, _) do
+    get_post_unauthenticated(host, post_id)
   end
 
   defp get_post_authenticated(endpoint, post_id, user_id) do
