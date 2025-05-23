@@ -64,6 +64,21 @@ defmodule Klaxon.Contents do
     end
   end
 
+  @doc """
+  Gets post from repo for given endpoint, identifier, and user (if specified).
+  """
+  @spec get_post(String.t(), String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
+          {:error, :not_found} | {:ok, %Klaxon.Contents.Post{id: String.t()}}
+  def get_post(_endpoint, post_id, user) do
+    case Post.from_preloaded()
+         |> Post.where_post_id(post_id)
+         |> apply_context_authorization(user)
+         |> Repo.one() do
+      %Post{} = post -> {:ok, post}
+      _ -> {:error, :not_found}
+    end
+  end
+
   def get_context(_endpoint, context_id, user, options \\ %{}) do
     Post.from_preloaded()
     |> Post.where_context_uri(context_id)
@@ -83,48 +98,6 @@ defmodule Klaxon.Contents do
     query
     |> Post.where_status([:published])
     |> Post.where_visibility([:public, :unlisted])
-  end
-
-  @doc """
-  Gets post from repo for given endpoint, identifier, and user (if specified).
-  """
-  @spec get_post(String.t(), String.t(), %Klaxon.Auth.User{id: String.t()} | nil) ::
-          {:error, :not_found} | {:ok, %Klaxon.Contents.Post{id: String.t()}}
-  def get_post(endpoint, post_id, %User{id: user_id, email: email} = _user) do
-    Logger.debug("Getting post authenticated as user: #{email}")
-    get_post_authenticated(endpoint, post_id, user_id)
-  end
-
-  def get_post(host, post_id, _) do
-    get_post_unauthenticated(host, post_id)
-  end
-
-  defp get_post_authenticated(endpoint, post_id, user_id) do
-    if is_user_id_endpoint_principal?(endpoint, user_id) do
-      get_post_authorized(endpoint, post_id)
-    else
-      get_post_unauthenticated(endpoint, post_id)
-    end
-  end
-
-  defp get_post_authorized(endpoint, post_id) do
-    case Post.from_preloaded()
-         |> where_authorized(endpoint)
-         |> Post.where_post_id(post_id)
-         |> Repo.one() do
-      %Post{} = post -> {:ok, post}
-      _ -> {:error, :not_found}
-    end
-  end
-
-  defp get_post_unauthenticated(endpoint, post_id) do
-    case Post.from_preloaded()
-         |> where_unauthenticated_single(endpoint)
-         |> Post.where_post_id(post_id)
-         |> Repo.one() do
-      %Post{} = post -> {:ok, post}
-      _ -> {:error, :not_found}
-    end
   end
 
   def get_local_post_attachment(attachment_id) do
@@ -157,12 +130,6 @@ defmodule Klaxon.Contents do
     |> Post.where_origin([:local])
     |> Post.where_status([:published])
     |> Post.where_published_at()
-  end
-
-  defp where_unauthenticated_single(query, endpoint) do
-    query
-    |> where_local_published(endpoint)
-    |> Post.where_visibility([:public, :unlisted])
   end
 
   defp where_unauthenticated_list(query, endpoint) do
