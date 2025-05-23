@@ -230,16 +230,13 @@
     @apply mt-2 mb-4;
   }
 
-  .post-byline,
-  .like-byline,
-  .checkin-byline {
-    @apply py-4 border-t text-sm flex flex-wrap gap-2 items-center;
+  .post-byline {
+    @apply py-4 flex flex-wrap justify-end gap-2 items-center;
   }
 
   .post-avatar,
-  .like-avatar,
   .checkin-avatar {
-    @apply rounded w-[32px] min-w-[32px] h-auto;
+    @apply rounded w-[48px] min-w-[48px] h-auto;
   }
 
   .post-likes,
@@ -249,6 +246,11 @@
 
   .post-likes .likes {
     @apply my-2 flex flex-wrap gap-2 items-center;
+  }
+
+  .like-avatar,
+  .reply-avatar {
+    @apply rounded w-[32px] min-w-[32px] h-auto;
   }
 
   .leaflet-popup-content .title {
