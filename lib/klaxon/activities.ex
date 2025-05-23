@@ -256,6 +256,7 @@ defmodule Klaxon.Activities do
 
       # FIXME: Lookup key from repository.
       HttpClient.post(Map.fetch!(to, :inbox), activity,
+        headers: [{"content-type", "application/activity+json"}],
         opts: [private_key: from.private_key, key_id: from.uri <> "#key"]
       )
     else
