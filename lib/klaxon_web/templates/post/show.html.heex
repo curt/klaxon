@@ -46,7 +46,6 @@
   </script>
   <% end %>
   <div class="post-byline">
-    <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "post-avatar", alt: @post.profile.display_name ]}/></div>
     <div>
       <a {[href: @post.profile.url || @post.profile.uri, class: "p-author", rel: "author"]}><%= @post.profile.display_name %></a>
       <%= status_action(@post) %> <a {[href: @post.uri, class: "u-url u-uid"]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
@@ -55,13 +54,14 @@
           <a {[href: Routes.labels_path(@conn, :show, t.label.slug)]}><%= t.label.title %></a><% end) %>
       <% end %>
     </div>
+    <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "post-avatar", alt: @post.profile.display_name ]}/></div>
   </div>
   <%= if length(@replies) > 0 do %>
     <div class="post-replies">
       <p class="font-bold">Conversation</p>
       <%= for reply <- @replies do %>
         <div class="my-2 flex items-center gap-2">
-          <div><img {[src: profile_media_avatar_path(@conn, reply.profile), class: "post-avatar" ]}/></div>
+          <div><img {[src: profile_media_avatar_path(@conn, reply.profile), class: "reply-avatar" ]}/></div>
           <span><%= prettify_date(status_date(reply)) %> <a class="link" {[href: Routes.post_path(@conn, :show, reply.id)]}>&raquo; <%= String.trim(Earmark.as_html!(snippet(reply), inner_html: true)) %></a></span>
         </div>
       <% end %>
