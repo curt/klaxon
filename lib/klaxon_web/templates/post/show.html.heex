@@ -47,8 +47,8 @@
   <% end %>
   <div class="post-byline">
     <div><img {[src: profile_media_avatar_path(@conn, @post.profile), class: "post-avatar", alt: @post.profile.display_name ]}/></div>
-    <div><a {[href: @post.profile.url || @post.profile.uri, class: "p-author", rel: "author"]}><%= @post.profile.display_name %></a></div>
     <div>
+      <a {[href: @post.profile.url || @post.profile.uri, class: "p-author", rel: "author"]}><%= @post.profile.display_name %></a>
       <%= status_action(@post) %> <a {[href: @post.uri, class: "u-url u-uid"]}><time {[datetime: htmlify_date(status_date(@post))]} class="dt-published"><%= prettify_date(status_date(@post)) %></time></a>
       <%= if length(@post.tags) > 0 do %>tagged
         <%= Enum.map_intersperse(Enum.sort(@post.tags, fn t1, t2 -> t1.label <= t2.label end), ", ", fn t -> %>
@@ -56,13 +56,25 @@
       <% end %>
     </div>
   </div>
-  <% likes = Enum.filter(@likes, fn x -> x.actor end) %>
-  <%= if length(likes) > 0 do %>
-    <div class="like-byline">
-      <div>Liked by:</div>
-      <%= for like <- Enum.filter(likes, fn x -> x.actor end) do %>
-        <div><a {[href: like.actor.url || like.actor.uri, title: like.actor.display_name]}><img {[src: profile_media_avatar_path(@conn, like.actor), class: "like-avatar", alt: like.actor.display_name ]}/></a></div>
+  <%= if length(@replies) > 0 do %>
+    <div class="post-replies">
+      <p class="font-bold">Conversation</p>
+      <%= for reply <- @replies do %>
+        <div class="my-2 flex items-center gap-2">
+          <div><img {[src: profile_media_avatar_path(@conn, reply.profile), class: "post-avatar" ]}/></div>
+          <span><%= prettify_date(status_date(reply)) %> <a class="link" {[href: Routes.post_path(@conn, :show, reply.id)]}>&raquo; <%= String.trim(Earmark.as_html!(snippet(reply), inner_html: true)) %></a></span>
+        </div>
       <% end %>
+    </div>
+  <% end %>
+  <%= if length(@likes) > 0 do %>
+    <div class="post-likes">
+      <p class="font-bold">Likes</p>
+      <div class="likes">
+        <%= for like <- @likes do %>
+          <div class="like"><a {[href: like.actor.url || like.actor.uri, title: like.actor.display_name]}><img {[src: profile_media_avatar_path(@conn, like.actor), class: "like-avatar", alt: like.actor.display_name ]}/></a></div>
+        <% end %>
+      </div>
     </div>
   <% end %>
 </article>

@@ -191,6 +191,10 @@ defmodule Klaxon.Contents.Post do
     where(query, [posts: p], p.uri == ^post_uri)
   end
 
+  def where_context_uri(query, context_uri) do
+    where(query, [posts: p], p.context_uri == ^context_uri)
+  end
+
   def where_status(query, statuses) do
     where(query, [posts: p], p.status in ^statuses)
   end

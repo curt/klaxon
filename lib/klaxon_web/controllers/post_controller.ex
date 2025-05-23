@@ -48,8 +48,15 @@ defmodule KlaxonWeb.PostController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <-
            Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
-      likes = Activities.get_likes(post.uri)
-      render(conn, post: post, title: htmlify_title(post), likes: likes)
+      likes =
+        Activities.get_likes(post.uri)
+        |> Enum.filter(fn x -> x.actor end)
+
+      replies =
+        Contents.get_posts_for_context(profile.uri, post.context_uri, conn.assigns[:current_user])
+        |> Enum.filter(fn x -> x.id != post.id end)
+
+      render(conn, post: post, title: htmlify_title(post), likes: likes, replies: replies)
     end
   end
 

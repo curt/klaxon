@@ -78,6 +78,21 @@ defmodule Klaxon.Contents do
     end
   end
 
+  def get_posts_for_context(endpoint, context_id, user, options \\ %{}) do
+    predicate =
+      case user do
+        %User{} -> &where_authorized(&1, endpoint)
+        _ -> &where_unauthenticated_list(&1, endpoint)
+      end
+
+    Post.from_preloaded()
+    |> predicate.()
+    |> Post.where_context_uri(context_id)
+    |> Post.order_by_default()
+    |> maybe_limit(options)
+    |> Repo.all()
+  end
+
   defp get_post_authenticated(endpoint, post_id, user_id) do
     if is_user_id_endpoint_principal?(endpoint, user_id) do
       get_post_authorized(endpoint, post_id)

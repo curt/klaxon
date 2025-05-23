@@ -233,13 +233,22 @@
   .post-byline,
   .like-byline,
   .checkin-byline {
-    @apply py-4 border-t text-sm flex flex-wrap gap-1 items-center;
+    @apply py-4 border-t text-sm flex flex-wrap gap-2 items-center;
   }
 
   .post-avatar,
   .like-avatar,
   .checkin-avatar {
     @apply rounded w-[32px] min-w-[32px] h-auto;
+  }
+
+  .post-likes,
+  .post-replies {
+    @apply py-2 border-t text-sm;
+  }
+
+  .post-likes .likes {
+    @apply my-2 flex flex-wrap gap-2 items-center;
   }
 
   .leaflet-popup-content .title {
