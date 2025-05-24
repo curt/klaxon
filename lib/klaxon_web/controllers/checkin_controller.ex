@@ -10,7 +10,7 @@ defmodule KlaxonWeb.CheckinController do
              conn.assigns.current_profile.uri,
              conn.assigns.current_user
            ) do
-      render(conn, "all.html", checkins: checkins)
+      render(conn, "all.html", checkins: checkins, title: "Check-Ins")
     end
   end
 
@@ -27,7 +27,11 @@ defmodule KlaxonWeb.CheckinController do
              conn.assigns.current_user,
              place_id
            ) do
-      render(conn, "index.html", place: place, checkins: checkins)
+      render(conn, "index.html",
+        place: place,
+        checkins: checkins,
+        title: "Check-Ins: #{place.title}"
+      )
     end
   end
 
@@ -45,7 +49,11 @@ defmodule KlaxonWeb.CheckinController do
              place_id,
              id
            ) do
-      render(conn, "show.html", place: place, checkin: checkin)
+      render(conn, "show.html",
+        place: place,
+        checkin: checkin,
+        title: "Check-In at #{place.title}"
+      )
     end
   end
 

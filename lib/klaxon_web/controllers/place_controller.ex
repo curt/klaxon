@@ -4,16 +4,16 @@ defmodule KlaxonWeb.PlaceController do
   alias Klaxon.Contents.Place
 
   def index(conn, _params) do
-    {:ok, places} =
-      Contents.get_places(conn.assigns.current_profile.uri, conn.assigns.current_user)
-
-    render(conn, "index.html", places: places, title: "Places")
+    with {:ok, places} <-
+           Contents.get_places(conn.assigns.current_profile.uri, conn.assigns.current_user) do
+      render(conn, "index.html", places: places, title: "Places")
+    end
   end
 
   def show(conn, %{"id" => id}) do
-    case Contents.get_place(conn.assigns.current_profile.uri, id, conn.assigns.current_user) do
-      {:ok, place} -> render(conn, "show.html", place: place)
-      {:error, :not_found} -> send_resp(conn, :not_found, "Place not found")
+    with {:ok, place} <-
+           Contents.get_place(conn.assigns.current_profile.uri, id, conn.assigns.current_user) do
+      render(conn, "show.html", place: place, title: place.title)
     end
   end
 

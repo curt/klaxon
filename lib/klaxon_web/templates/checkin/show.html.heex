@@ -1,4 +1,5 @@
 <article class="checkin h-entry">
+  <h1 class="checkin-title p-name"><%= @title %></h1>
   <%= if @is_owner do %>
     <div class="checkin-actions my-4">
       <%= link "Attachments", to: Routes.checkin_attachment_path(@conn, :index, @place, @checkin), class: "btn btn-primary" %>
@@ -38,12 +39,12 @@
   </script>
   <% end %>
   <div class="checkin-byline">
-    <div><img {[src: profile_media_avatar_path(@conn, @checkin.profile), class: "checkin-avatar", alt: @checkin.profile.display_name ]}/></div>
-    <div><a {[href: @checkin.profile.url || @checkin.profile.uri, class: "p-author", rel: "author"]}><%= @checkin.profile.display_name %></a></div>
     <div>
+      <a {[href: @checkin.profile.url || @checkin.profile.uri, class: "p-author", rel: "author"]}><%= @checkin.profile.display_name %></a>
       <%= status_action(@checkin) %>
       <a {[href: @checkin.uri, class: "u-url u-uid"]}><time {[datetime: htmlify_date(status_date(@checkin))]} class="dt-published"><%= prettify_date(status_date(@checkin)) %></time></a>
       at <a {[href: @place.uri, class: "p-location"]}><%= @place.title %></a>
     </div>
+    <div><img {[src: profile_media_avatar_path(@conn, @checkin.profile), class: "checkin-avatar", alt: @checkin.profile.display_name ]}/></div>
   </div>
 </article>
