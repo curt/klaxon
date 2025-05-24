@@ -234,7 +234,8 @@
     @apply mt-2 mb-4 text-center text-sm;
   }
 
-  .post-byline {
+  .post-byline,
+  .checkin-byline {
     @apply py-4 flex flex-wrap justify-end gap-2 items-center;
   }
 
