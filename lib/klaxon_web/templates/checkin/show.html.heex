@@ -1,4 +1,5 @@
 <article class="checkin h-entry">
+  <h1 class="checkin-title p-name"><%= @title %></h1>
   <%= if @is_owner do %>
     <div class="checkin-actions my-4">
       <%= link "Attachments", to: Routes.checkin_attachment_path(@conn, :index, @place, @checkin), class: "btn btn-primary" %>
