@@ -36,17 +36,19 @@ defmodule KlaxonWeb.Router do
   scope "/", KlaxonWeb do
     pipe_through [:browser, :require_owner]
 
-    get "/posts/new", PostController, :new
-    get "/places/new", PlaceController, :new
-    get "/places/:place_id/checkins/new", CheckinController, :new
+    get "/p/new", PostController, :new
+    get "/z/new", PlaceController, :new
+    get "/z/:place_id/c/new", CheckinController, :new
   end
 
   scope "/", KlaxonWeb do
     pipe_through :browser
 
     get "/", ProfileController, :index, assigns: %{cache: :moderate}
-    get "/posts", PostController, :index, assigns: %{cache: :moderate}
-    get "/posts/:id", PostController, :show, assigns: %{cache: :aggressive}
+    get "/p", PostController, :index, assigns: %{cache: :moderate}
+    get "/posts", RedirectController, :post_index_redirect
+    get "/p/:id", PostController, :show, assigns: %{cache: :aggressive}
+    get "/posts/:id", RedirectController, :post_show_redirect
     get "/labels/:slug", LabelsController, :show
     get "/media/:scope/:usage/:id", MediaController, :show, assigns: %{cache: :static}
     get "/.well-known/webfinger", WebfingerController, :show, assigns: %{cache: :gentle}
@@ -64,11 +66,12 @@ defmodule KlaxonWeb.Router do
     get "/rss", RssController, :index, assigns: %{cache: :moderate}
     get "/traces", TraceController, :index, assigns: %{cache: :moderate}
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
-    get "/places", PlaceController, :index, assigns: %{cache: :moderate}
-    get "/places/:id", PlaceController, :show, assigns: %{cache: :aggressive}
+    get "/z", PlaceController, :index, assigns: %{cache: :moderate}
+    get "/z/:id", PlaceController, :show, assigns: %{cache: :aggressive}
+    get "/places/:id", RedirectController, :place_show_redirect
     get "/c", CheckinController, :all
-    get "/places/:place_id/checkins", CheckinController, :index
-    get "/places/:place_id/checkins/:id", CheckinController, :show
+    # get "/z/:place_id/c", CheckinController, :index
+    get "/z/:place_id/c/:id", CheckinController, :show
   end
 
   scope "/", KlaxonWeb do
@@ -88,30 +91,30 @@ defmodule KlaxonWeb.Router do
   scope "/", KlaxonWeb do
     pipe_through [:browser, :require_owner]
 
-    get "/profile/avatars/new", AvatarController, :new
-    post "/profile/avatars", AvatarController, :create
-    get "/profile/edit", ProfileController, :edit
-    put "/profile", ProfileController, :update
-    get "/posts/:id/edit", PostController, :edit
-    post "/posts", PostController, :create
-    put "/posts/:id", PostController, :update
-    patch "/posts/:id", PostController, :update
-    get "/posts/:post_id/attachments", AttachmentController, :index
-    post "/posts/:post_id/attachments", AttachmentController, :create
-    get "/posts/:post_id/attachments/new", AttachmentController, :new
-    get "/posts/:post_id/attachments/:id/edit", AttachmentController, :edit
-    get "/posts/:post_id/attachments/:id", AttachmentController, :show
-    put "/posts/:post_id/attachments/:id", AttachmentController, :update
-    patch "/posts/:post_id/attachments/:id", AttachmentController, :update
-    get "/posts/:post_id/attachments/:id/delete", AttachmentController, :delete?
-    post "/posts/:post_id/attachments/:id/delete", AttachmentController, :delete
-    # get "/posts/:post_id/traces", TraceController, :index
-    post "/posts/:post_id/traces", TraceController, :create
-    get "/posts/:post_id/traces/new", TraceController, :new
-    get "/posts/:post_id/traces/:id/edit", TraceController, :edit
-    # get "/posts/:post_id/traces/:id", TraceController, :show
-    put "/posts/:post_id/traces/:id", TraceController, :update
-    patch "/posts/:post_id/traces/:id", TraceController, :update
+    get "/u/avatars/new", AvatarController, :new
+    post "/u/avatars", AvatarController, :create
+    get "/u/edit", ProfileController, :edit
+    put "/u", ProfileController, :update
+    get "/p/:id/edit", PostController, :edit
+    post "/p", PostController, :create
+    put "/p/:id", PostController, :update
+    patch "/p/:id", PostController, :update
+    get "/p/:post_id/i", AttachmentController, :index
+    post "/p/:post_id/i", AttachmentController, :create
+    get "/p/:post_id/i/new", AttachmentController, :new
+    get "/p/:post_id/i/:id/edit", AttachmentController, :edit
+    get "/p/:post_id/i/:id", AttachmentController, :show
+    put "/p/:post_id/i/:id", AttachmentController, :update
+    patch "/p/:post_id/i/:id", AttachmentController, :update
+    get "/p/:post_id/i/:id/delete", AttachmentController, :delete?
+    post "/p/:post_id/i/:id/delete", AttachmentController, :delete
+    # get "/p/:post_id/traces", TraceController, :index
+    post "/p/:post_id/traces", TraceController, :create
+    get "/p/:post_id/traces/new", TraceController, :new
+    get "/p/:post_id/traces/:id/edit", TraceController, :edit
+    # get "/p/:post_id/traces/:id", TraceController, :show
+    put "/p/:post_id/traces/:id", TraceController, :update
+    patch "/p/:post_id/traces/:id", TraceController, :update
     get "/pings", PingController, :index
     get "/pings/new", PingController, :new
     get "/pings/:id", PingController, :show
@@ -119,16 +122,16 @@ defmodule KlaxonWeb.Router do
     get "/pongs", PongController, :index
     get "/pongs/:id", PongController, :show
     get "/media/:scope", MediaController, :index
-    post "/places", PlaceController, :create
-    get "/places/:id/edit", PlaceController, :edit
-    put "/places/:id", PlaceController, :update
-    patch "/places/:id", PlaceController, :update
-    delete "/places/:id", PlaceController, :delete
-    post "/places/:place_id/checkins", CheckinController, :create
-    get "/places/:place_id/checkins/:id/edit", CheckinController, :edit
-    put "/places/:place_id/checkins/:id", CheckinController, :update
-    patch "/places/:place_id/checkins/:id", CheckinController, :update
-    delete "/places/:place_id/checkins/:id", CheckinController, :delete
+    post "/z", PlaceController, :create
+    get "/z/:id/edit", PlaceController, :edit
+    put "/z/:id", PlaceController, :update
+    patch "/z/:id", PlaceController, :update
+    delete "/z/:id", PlaceController, :delete
+    post "/z/:place_id/c", CheckinController, :create
+    get "/z/:place_id/c/:id/edit", CheckinController, :edit
+    put "/z/:place_id/c/:id", CheckinController, :update
+    patch "/z/:place_id/c/:id", CheckinController, :update
+    delete "/z/:place_id/c/:id", CheckinController, :delete
     get "/z/:place_id/c/:checkin_id/i", CheckinAttachmentController, :index
     post "/z/:place_id/c/:checkin_id/i", CheckinAttachmentController, :create
     get "/z/:place_id/c/:checkin_id/i/new", CheckinAttachmentController, :new

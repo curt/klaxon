@@ -50,7 +50,7 @@ defmodule KlaxonWeb.CheckinController do
              id
            ) do
       render(conn, "show.html",
-        place: place,
+        place: checkin.place,
         checkin: checkin,
         title: "Check-In at #{place.title}"
       )
