@@ -378,7 +378,6 @@ defmodule Klaxon.Activities do
       "type" => send_type(action),
       "id" => object.uri,
       "actor" => object.profile.uri,
-      "to" => to_uri,
       "object" => object.uri
     }
     |> contextify()
