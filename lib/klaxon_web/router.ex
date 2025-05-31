@@ -66,7 +66,7 @@ defmodule KlaxonWeb.Router do
     get "/traces/:id", TraceController, :show, assigns: %{cache: :aggressive}
     get "/places", PlaceController, :index, assigns: %{cache: :moderate}
     get "/places/:id", PlaceController, :show, assigns: %{cache: :aggressive}
-    get "/c", CheckinController, :all
+    get "/checkins", CheckinController, :all
     get "/places/:place_id/checkins", CheckinController, :index
     get "/places/:place_id/checkins/:id", CheckinController, :show
   end
@@ -129,13 +129,31 @@ defmodule KlaxonWeb.Router do
     put "/places/:place_id/checkins/:id", CheckinController, :update
     patch "/places/:place_id/checkins/:id", CheckinController, :update
     delete "/places/:place_id/checkins/:id", CheckinController, :delete
-    get "/z/:place_id/c/:checkin_id/i", CheckinAttachmentController, :index
-    post "/z/:place_id/c/:checkin_id/i", CheckinAttachmentController, :create
-    get "/z/:place_id/c/:checkin_id/i/new", CheckinAttachmentController, :new
-    get "/z/:place_id/c/:checkin_id/i/:id/edit", CheckinAttachmentController, :edit
-    put "/z/:place_id/c/:checkin_id/i/:id", CheckinAttachmentController, :update
-    patch "/z/:place_id/c/:checkin_id/i/:id", CheckinAttachmentController, :update
-    delete "/z/:place_id/c/:checkin_id/i/:id", CheckinAttachmentController, :delete
+    get "/places/:place_id/checkins/:checkin_id/attachments", CheckinAttachmentController, :index
+
+    post "/places/:place_id/checkins/:checkin_id/attachments",
+         CheckinAttachmentController,
+         :create
+
+    get "/places/:place_id/checkins/:checkin_id/attachments/new",
+        CheckinAttachmentController,
+        :new
+
+    get "/places/:place_id/checkins/:checkin_id/attachments/:id/edit",
+        CheckinAttachmentController,
+        :edit
+
+    put "/places/:place_id/checkins/:checkin_id/attachments/:id",
+        CheckinAttachmentController,
+        :update
+
+    patch "/places/:place_id/checkins/:checkin_id/attachments/:id",
+          CheckinAttachmentController,
+          :update
+
+    delete "/places/:place_id/checkins/:checkin_id/attachments/:id",
+           CheckinAttachmentController,
+           :delete
   end
 
   scope "/", KlaxonWeb do
