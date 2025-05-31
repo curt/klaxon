@@ -7,10 +7,12 @@ defmodule Klaxon.Contents do
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
+  alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   alias Klaxon.Contents.PostAttachment
   alias Klaxon.Contents.PostPlace
   alias Klaxon.Contents.Place
+  alias Klaxon.Federation
   alias Klaxon.Media
   import Ecto.Query
 
@@ -263,13 +265,52 @@ defmodule Klaxon.Contents do
     Repo.insert_or_update(post_changeset)
   end
 
+  defp maybe_federate_post({:ok, %{} = post} = result, %{} = changeset) do
+    if length(Map.keys(changeset.changes)) > 0 do
+      post = post |> maybe_load_post_profile()
+      maybe_federate_post_with_changes(post, changeset)
+    end
+
+    result
+  end
+
+  defp maybe_federate_post(result, _), do: result
+
+  defp maybe_load_post_profile(%Post{profile: %{uri: _}} = post), do: post
+
+  defp maybe_load_post_profile(%Post{profile_id: profile_id} = post) do
+    profile = Profile |> where(id: ^profile_id) |> Repo.one!()
+    Map.put(post, :profile, profile)
+  end
+
+  defp maybe_federate_post_with_changes(post, %{changes: %{status: :published}}) do
+    Logger.info("Federating post: #{post.uri} CREATE")
+    Federation.generate_activities(post.profile.uri, post.uri, :create)
+  end
+
+  defp maybe_federate_post_with_changes(%{status: :published} = post, _) do
+    Logger.info("Federating post: #{post.uri} UPDATE")
+    Federation.generate_activities(post.profile.uri, post.uri, :update)
+  end
+
+  defp maybe_federate_post_with_changes(%{status: :deleted} = post, %{data: %{status: :published}}) do
+    Logger.info("Federating post: #{post.uri} TOMBSTONE")
+    Federation.generate_activities(post.profile.uri, post.uri, :tombstone)
+  end
+
+  defp maybe_federate_post_with_changes(_, _), do: nil
+
   def insert_local_post(attrs, profile_id, host, uri_fun) when is_function(uri_fun, 1) do
     id = EctoBase58.generate()
     uri = uri_fun.(id)
 
-    %Post{id: id, uri: uri, profile_id: profile_id, origin: :local}
-    |> Post.changeset(attrs, host)
+    changeset =
+      %Post{id: id, uri: uri, profile_id: profile_id, origin: :local}
+      |> Post.changeset(attrs, host)
+
+    changeset
     |> Repo.insert()
+    |> maybe_federate_post(changeset)
   end
 
   def insert_local_post_attachment(post_id, attrs, path, content_type, url_fun)
@@ -282,9 +323,13 @@ defmodule Klaxon.Contents do
   end
 
   def update_local_post(post, attrs, host) do
-    post
-    |> Post.changeset(attrs, host)
+    changeset =
+      post
+      |> Post.changeset(attrs, host)
+
+    changeset
     |> Repo.update()
+    |> maybe_federate_post(changeset)
   end
 
   def update_local_post_attachment(attachment, attrs) do

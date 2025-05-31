@@ -68,9 +68,7 @@ defmodule KlaxonWeb.PostController do
     end
   end
 
-  def update(conn, %{"id" => id, "post" => post_params} = params) do
-    IO.inspect(params)
-
+  def update(conn, %{"id" => id, "post" => post_params} = _) do
     with {:ok, profile} <- current_profile(conn),
          {:ok, post} <- Contents.get_post(profile.uri, id, conn.assigns[:current_user]) do
       case Contents.update_local_post(post, post_params, conn.host) do

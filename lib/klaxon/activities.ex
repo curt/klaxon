@@ -362,4 +362,23 @@ defmodule Klaxon.Activities do
   def change_follow(%Follow{} = follow, attrs, endpoint) do
     Follow.changeset(follow, attrs, endpoint)
   end
+
+  def send_object(actor, object, action, follower) do
+    %{
+      "type" => send_type(action),
+      "id" => "#{object}#activity/#{action}",
+      "actor" => actor,
+      "object" => object
+    }
+    |> contextify()
+    |> send_activity(follower, actor)
+  end
+
+  defp send_type(action) do
+    case action do
+      "create" -> "Create"
+      "update" -> "Update"
+      "tombstone" -> "Delete"
+    end
+  end
 end
