@@ -7,6 +7,7 @@ defmodule Klaxon.Contents do
   alias Klaxon.Repo
   alias Klaxon.Auth.User
   alias Klaxon.Profiles
+  alias Klaxon.Profiles.Profile
   alias Klaxon.Contents.Post
   alias Klaxon.Contents.PostAttachment
   alias Klaxon.Contents.PostPlace
@@ -266,6 +267,7 @@ defmodule Klaxon.Contents do
 
   defp maybe_federate_post({:ok, %{} = post} = result, %{} = changeset) do
     if length(Map.keys(changeset.changes)) > 0 do
+      post = post |> maybe_load_post_profile()
       maybe_federate_post_with_changes(post, changeset)
     end
 
@@ -273,6 +275,13 @@ defmodule Klaxon.Contents do
   end
 
   defp maybe_federate_post(result, _), do: result
+
+  defp maybe_load_post_profile(%Post{profile: %{uri: _}} = post), do: post
+
+  defp maybe_load_post_profile(%Post{profile_id: profile_id} = post) do
+    profile = Profile |> where(id: ^profile_id) |> Repo.one!()
+    Map.put(post, :profile, profile)
+  end
 
   defp maybe_federate_post_with_changes(post, %{changes: %{status: :published}}) do
     Logger.info("Federating post: #{post.uri} CREATE")
