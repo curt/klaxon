@@ -276,17 +276,17 @@ defmodule Klaxon.Contents do
 
   defp maybe_federate_post_with_changes(post, %{changes: %{status: :published}}) do
     Logger.info("Federating post: #{post.uri} CREATE")
-    Federation.generate_activities_for_post(post.id, :create)
+    Federation.generate_activities(post.profile.uri, post.uri, :create)
   end
 
   defp maybe_federate_post_with_changes(%{status: :published} = post, _) do
     Logger.info("Federating post: #{post.uri} UPDATE")
-    Federation.generate_activities_for_post(post.id, :update)
+    Federation.generate_activities(post.profile.uri, post.uri, :update)
   end
 
   defp maybe_federate_post_with_changes(%{status: :deleted} = post, %{data: %{status: :published}}) do
     Logger.info("Federating post: #{post.uri} TOMBSTONE")
-    Federation.generate_activities_for_post(post.id, :tombstone)
+    Federation.generate_activities(post.profile.uri, post.uri, :tombstone)
   end
 
   defp maybe_federate_post_with_changes(_, _), do: nil

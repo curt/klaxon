@@ -7,7 +7,6 @@ defmodule Klaxon.Activities do
   alias Klaxon.Activities.Pong
   alias Klaxon.Activities.Follow
   alias Klaxon.Activities.Like
-  alias Klaxon.Contents.Post
   import Ecto.Query
 
   @config Application.compile_env(:klaxon, Klaxon.Activities)
@@ -364,24 +363,15 @@ defmodule Klaxon.Activities do
     Follow.changeset(follow, attrs, endpoint)
   end
 
-  def send_post(post_id, to_uri, action) do
-    Post
-    |> from(as: :posts)
-    |> preload([:profile])
-    |> where([posts: p], p.id == ^post_id)
-    |> Repo.one!()
-    |> send_object_activity(to_uri, action)
-  end
-
-  defp send_object_activity(object, to_uri, action) do
+  def send_object(actor, object, action, follower) do
     %{
       "type" => send_type(action),
-      "id" => object.uri,
-      "actor" => object.profile.uri,
-      "object" => object.uri
+      "id" => "#{object}#activity/#{action}",
+      "actor" => actor,
+      "object" => object
     }
     |> contextify()
-    |> send_activity(to_uri, object.profile.uri)
+    |> send_activity(follower, actor)
   end
 
   defp send_type(action) do

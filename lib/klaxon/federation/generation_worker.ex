@@ -4,19 +4,23 @@ defmodule Klaxon.Federation.GenerationWorker do
   use Oban.Worker
 
   @impl Oban.Worker
-  def perform(%{args: %{"action" => action, "id" => id, "uri" => uri, "type" => "post"}}) do
-    Logger.info("Perform distribution: post #{id} action #{action} uri: #{uri}")
-    Activities.send_post(id, uri, action)
+  def perform(%{
+        args:
+          %{"actor" => actor, "object" => object, "action" => action, "follower" => follower} =
+            args
+      }) do
+    Logger.info("Perform distribution: #{inspect(args)}")
+    Activities.send_object(actor, object, action, follower)
     :ok
   end
 
   @impl Oban.Worker
-  def perform(%{args: %{"action" => action, "id" => id, "type" => "post"}}) do
-    Logger.info("Generate distribution workers for post: #{id} with action: #{action}")
+  def perform(%{args: %{"actor" => actor, "object" => object, "action" => action} = args}) do
+    Logger.info("Generate distribution workers: #{inspect(args)}")
 
-    for uri <- Klaxon.Federation.get_follower_uris_for_post(id) do
-      %{type: :post, id: id, action: action, uri: uri}
-      |> Klaxon.Federation.GenerationWorker.new()
+    for follower <- Klaxon.Federation.get_follower_uris(actor) do
+      %{actor: actor, object: object, action: action, follower: follower}
+      |> Klaxon.Federation.GenerationWorker.new(max_attempts: 3)
       |> Oban.insert()
     end
 
