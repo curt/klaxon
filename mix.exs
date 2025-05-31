@@ -54,7 +54,7 @@ defmodule Klaxon.MixProject do
       # not supplied with Phoenix
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:castore, "~> 0.1.22"},
-      {:oban, "~> 2.13"},
+      {:oban, "~> 2.19"},
       {:http_signatures, "~> 0.1.1"},
       {:tesla, "~> 1.14"},
       {:hackney, "~> 1.17"},
