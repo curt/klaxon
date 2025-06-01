@@ -4,11 +4,8 @@ defmodule KlaxonWeb.PostView do
   alias Klaxon.Activities.Helpers
   alias Klaxon.Contents.Post
 
-  def render("show.activity+json", %{
-        conn: conn,
-        post: %Post{} = post
-      }) do
-    Note.note(post, Routes, conn)
+  def render("show.activity+json", %{post: %Post{} = post}) do
+    Note.note(post)
     |> Helpers.contextify()
   end
 
