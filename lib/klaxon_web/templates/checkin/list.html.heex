@@ -6,7 +6,7 @@
         <%= if checkin.status == :draft do %><em>Draft</em> <% end %><%= link checkin.checked_in_at |> Timex.format!("%Y-%m-%d %H:%M", :strftime), to: Routes.checkin_path(@conn, :show, checkin.place, checkin) %>
         &raquo; <%= link checkin.place.title, to: Routes.place_path(@conn, :show, checkin.place) %>
         <% content = String.trim(Earmark.as_html!(snippet(checkin), inner_html: true)) %>
-        <%= if content != "" do %>&raquo; <%= content %><% end %>
+        <%= if content != "" do %>&raquo; <%= raw content %><% end %>
         <% attach_length = length(checkin.attachments) %>
         <%= if attach_length > 0 do %>&raquo; <%= attach_length %> <i class="fa-solid fa-images"></i><% end %>
       </span>

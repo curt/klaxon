@@ -9,7 +9,7 @@
             <div><img {[src: profile_media_avatar_path(@conn, post.profile), class: "rounded w-[32px] min-w-[32px] h-auto" ]}/></div>
             <span>
               <%= if post.status == :draft do %><em>Draft</em> <% end %>
-              <%= prettify_date(status_date(post), :time) %> <a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}>&raquo; <%= String.trim(Earmark.as_html!(snippet(post), inner_html: true)) %></a>
+              <%= prettify_date(status_date(post), :time) %> <a class="link" {[href: Routes.post_path(@conn, :show, post.id)]}>&raquo; <%= raw String.trim(Earmark.as_html!(snippet(post), inner_html: true)) %></a>
               <% attach_length = length(post.attachments) %>
               <%= if attach_length > 0 do %>&raquo; <%= attach_length %> <i class="fa-solid fa-images"></i><% end %>
             </span>
