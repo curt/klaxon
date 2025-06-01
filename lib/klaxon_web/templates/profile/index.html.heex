@@ -7,3 +7,13 @@
   <%= render KlaxonWeb.PostView, "list.html", assigns %>
   <div class="ml-4 py-2"><%= link to: Routes.post_path(@conn, :index) do %>All posts<% end %></div>
 </div>
+<%= if length(@follows) > 0 do %>
+  <div class="my-4 border-t">
+    <h3>Followers</h3>
+    <div class="follows">
+      <%= for follow <- @follows do %>
+        <div class="follow"><a {[href: follow.follower.url || follow.follower.uri, title: follow.follower.display_name]}><img {[src: profile_media_avatar_path(@conn, follow.follower), class: "follow-avatar", alt: follow.follower.display_name ]}/></a></div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
