@@ -1,12 +1,13 @@
 defmodule Klaxon.Activities do
   require Logger
-  alias Klaxon.Repo
-  alias Klaxon.HttpClient
-  alias Klaxon.Profiles
   alias Klaxon.Activities.Ping
   alias Klaxon.Activities.Pong
   alias Klaxon.Activities.Follow
   alias Klaxon.Activities.Like
+  alias Klaxon.HttpClient
+  alias Klaxon.Profiles
+  alias Klaxon.Profiles.Profile
+  alias Klaxon.Repo
   import Ecto.Query
 
   @config Application.compile_env(:klaxon, Klaxon.Activities)
@@ -153,6 +154,21 @@ defmodule Klaxon.Activities do
 
   def get_follow(_uri, _follower_uri, _followee_uri) do
     {:error, :not_found}
+  end
+
+  def get_followers(followee_uri) do
+    from(Follow, as: :follows, preload: [:follower])
+    |> join(:inner, [follows: f], p in Profile, on: p.uri == f.follower_uri)
+    |> where([follows: f], f.followee_uri == ^followee_uri)
+    |> Repo.all()
+  end
+
+  def get_follower_uris(followee_uri) do
+    Repo.all(
+      from f in Follow,
+        where: f.followee_uri == ^followee_uri,
+        select: f.follower_uri
+    )
   end
 
   def receive_follow(uri, follower_uri, followee_uri, profile) do

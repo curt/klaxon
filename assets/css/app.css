@@ -188,6 +188,10 @@
     @apply text-2xl my-3 font-bold;
   }
 
+  h3 {
+    @apply text-xl my-2 font-semibold;
+  }
+
   p {
     @apply my-2;
   }
@@ -245,16 +249,19 @@
   }
 
   .post-likes,
-  .post-replies {
+  .post-replies,
+  .profile-follows {
     @apply py-2 border-t text-sm;
   }
 
-  .post-likes .likes {
+  .post-likes .likes,
+  .profile-follows .follows {
     @apply my-2 flex flex-wrap gap-2 items-center;
   }
 
   .like-avatar,
-  .reply-avatar {
+  .reply-avatar,
+  .follow-avatar {
     @apply rounded w-[32px] min-w-[32px] h-auto;
   }
 

@@ -2,6 +2,7 @@ defmodule KlaxonWeb.ProfileController do
   use KlaxonWeb, :controller
   import KlaxonWeb.Plugs
   import KlaxonWeb.Titles
+  alias Klaxon.Activities
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
   alias Klaxon.Contents
@@ -19,8 +20,14 @@ defmodule KlaxonWeb.ProfileController do
 
   def index(conn, _params) do
     with {:ok, profile} <- get_profile(conn),
-         {:ok, posts} <- Contents.get_posts(profile.uri, nil, limit: 5) do
-      render(conn, :index, profile: profile, posts: posts, title: title(profile))
+         {:ok, posts} <- Contents.get_posts(profile.uri, nil, limit: 5),
+         follows <- Activities.get_followers(profile.uri) do
+      render(conn, :index,
+        profile: profile,
+        posts: posts,
+        follows: follows,
+        title: title(profile)
+      )
     end
   end
 
