@@ -5,8 +5,8 @@ defmodule Klaxon.Federation do
   alias Klaxon.Federation.GenerationWorker
   alias Klaxon.Repo
 
-  def generate_activities(actor, object, action) do
-    %{actor: actor, object: object, action: action}
+  def generate_activities(schema, actor, object, action) do
+    %{schema: schema, actor: actor, object: object, action: action}
     |> GenerationWorker.new(max_attempts: 3)
     |> Oban.insert()
   end

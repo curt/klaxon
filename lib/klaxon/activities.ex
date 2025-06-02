@@ -4,6 +4,7 @@ defmodule Klaxon.Activities do
   alias Klaxon.Activities.Pong
   alias Klaxon.Activities.Follow
   alias Klaxon.Activities.Like
+  alias Klaxon.Activities.Note
   alias Klaxon.HttpClient
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
@@ -379,15 +380,28 @@ defmodule Klaxon.Activities do
     Follow.changeset(follow, attrs, endpoint)
   end
 
-  def send_object(actor, object, action, follower) do
+  def send_object(schema, actor_uri, object_uri, action, follower) do
+    object = get_object(schema, object_uri)
+
     %{
       "type" => send_type(action),
-      "id" => "#{object}#activity/#{action}",
-      "actor" => actor,
-      "object" => object
+      "id" => "#{object_uri}/activity/#{action}",
+      "actor" => actor_uri,
+      "object" => object,
+      "to" => object["to"],
+      "cc" => object["cc"]
     }
     |> contextify()
-    |> send_activity(follower, actor)
+    |> send_activity(follower, actor_uri)
+  end
+
+  defp get_object("post", object_uri) do
+    from(p in Klaxon.Contents.Post,
+      preload: [:profile, attachments: [:media]],
+      where: p.uri == ^object_uri
+    )
+    |> Repo.one!()
+    |> Note.note()
   end
 
   defp send_type(action) do
