@@ -5,8 +5,8 @@ defmodule KlaxonWeb.FollowersView do
       when is_list(followers) do
     contextify()
     |> Map.put("id", Plug.Conn.request_url(conn))
-    |> Map.put("type", "Collection")
-    |> Map.put("items", followers)
+    |> Map.put("type", "OrderedCollection")
+    |> Map.put("orderedItems", followers)
     |> Map.put("totalItems", length(followers))
   end
 end
