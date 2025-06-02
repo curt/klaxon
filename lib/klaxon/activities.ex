@@ -380,7 +380,7 @@ defmodule Klaxon.Activities do
     Follow.changeset(follow, attrs, endpoint)
   end
 
-  def send_object(schema, actor_uri, object_uri, action, follower) do
+  def send_object(schema, actor_uri, object_uri, action, follower_uri) do
     object = get_object(schema, object_uri)
 
     %{
@@ -391,8 +391,9 @@ defmodule Klaxon.Activities do
       "to" => object["to"],
       "cc" => object["cc"]
     }
+    |> disambiguify(follower_uri)
     |> contextify()
-    |> send_activity(follower, actor_uri)
+    |> send_activity(follower_uri, actor_uri)
   end
 
   defp get_object("post", object_uri) do
@@ -410,5 +411,15 @@ defmodule Klaxon.Activities do
       "update" -> "Update"
       "tombstone" -> "Delete"
     end
+  end
+
+  defp disambiguify(activity, follower_uri) do
+    activity_cc = activity["cc"] ++ [follower_uri]
+    object = activity["object"]
+    object_cc = object["cc"] ++ [follower_uri]
+
+    activity
+    |> Map.put("cc", activity_cc)
+    |> Map.put("object", Map.put(object, "cc", object_cc))
   end
 end
