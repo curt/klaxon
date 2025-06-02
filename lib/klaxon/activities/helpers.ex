@@ -21,6 +21,25 @@ defmodule Klaxon.Activities.Helpers do
     Map.put(object, key, val)
   end
 
+  def activify(object, action) do
+    %{
+      "type" => send_type(action),
+      "id" => "#{object["id"]}/activity/#{action}",
+      "actor" => object["attributedTo"],
+      "object" => object,
+      "to" => object["to"],
+      "cc" => object["cc"]
+    }
+  end
+
+  def send_type(action) do
+    case action do
+      "create" -> "Create"
+      "update" -> "Update"
+      "tombstone" -> "Delete"
+    end
+  end
+
   def stampify(datetime) do
     Timex.format!(datetime, "{RFC3339z}")
   end
