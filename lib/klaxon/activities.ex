@@ -4,11 +4,13 @@ defmodule Klaxon.Activities do
   alias Klaxon.Activities.Pong
   alias Klaxon.Activities.Follow
   alias Klaxon.Activities.Like
+  alias Klaxon.Activities.Note
   alias Klaxon.HttpClient
   alias Klaxon.Profiles
   alias Klaxon.Profiles.Profile
   alias Klaxon.Repo
   import Ecto.Query
+  import Klaxon.Activities.Helpers
 
   @config Application.compile_env(:klaxon, Klaxon.Activities)
 
@@ -280,11 +282,6 @@ defmodule Klaxon.Activities do
     end
   end
 
-  @spec contextify(map) :: map
-  defp contextify(%{} = activity) do
-    Map.put(activity, "@context", "https://www.w3.org/ns/activitystreams")
-  end
-
   @doc """
   Returns the list of follows.
 
@@ -379,22 +376,31 @@ defmodule Klaxon.Activities do
     Follow.changeset(follow, attrs, endpoint)
   end
 
-  def send_object(actor, object, action, follower) do
-    %{
-      "type" => send_type(action),
-      "id" => "#{object}#activity/#{action}",
-      "actor" => actor,
-      "object" => object
-    }
+  def send_object(schema, actor_uri, object_uri, action, follower_uri) do
+    object = get_object(schema, object_uri)
+
+    activify(object, action)
+    |> disambiguify(follower_uri)
     |> contextify()
-    |> send_activity(follower, actor)
+    |> send_activity(follower_uri, actor_uri)
   end
 
-  defp send_type(action) do
-    case action do
-      "create" -> "Create"
-      "update" -> "Update"
-      "tombstone" -> "Delete"
-    end
+  defp get_object("post", object_uri) do
+    from(p in Klaxon.Contents.Post,
+      preload: [:profile, attachments: [:media]],
+      where: p.uri == ^object_uri
+    )
+    |> Repo.one!()
+    |> Note.note()
+  end
+
+  defp disambiguify(activity, follower_uri) do
+    activity_cc = activity["cc"] ++ [follower_uri]
+    object = activity["object"]
+    object_cc = object["cc"] ++ [follower_uri]
+
+    activity
+    |> Map.put("cc", activity_cc)
+    |> Map.put("object", Map.put(object, "cc", object_cc))
   end
 end

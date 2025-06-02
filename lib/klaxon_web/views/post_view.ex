@@ -1,14 +1,12 @@
 defmodule KlaxonWeb.PostView do
   use KlaxonWeb, :view
+  alias Klaxon.Activities.Note
+  alias Klaxon.Activities.Helpers
   alias Klaxon.Contents.Post
-  alias Klaxon.Contents.PostAttachment
 
-  def render("show.activity+json", %{
-        conn: conn,
-        post: %Post{} = post
-      }) do
-    contextify()
-    |> post(conn, post)
+  def render("show.activity+json", %{post: %Post{} = post}) do
+    Note.note(post)
+    |> Helpers.contextify()
   end
 
   @spec status_action(%Post{:status => any}) :: String.t()
@@ -27,42 +25,4 @@ defmodule KlaxonWeb.PostView do
       _ -> post.inserted_at
     end
   end
-
-  @spec post(map, any, %Post{}) :: map
-  def post(%{} = activity, conn, %Post{} = post) do
-    activity
-    |> Map.put("type", "Note")
-    |> Map.put("id", post.uri)
-    |> Map.put("attributedTo", post.profile.uri)
-    |> Map.put("context", post.context_uri)
-    |> Map.put("conversation", post.context_uri)
-    |> Map.put("content", post.content_html)
-    |> Map.put("published", Timex.format!(post.published_at, "{RFC3339z}"))
-    |> Map.put("url", post.uri)
-    |> mergify("inReplyTo", post.in_reply_to_uri)
-    |> mergify("to", post_to(conn, post))
-    |> mergify("cc", post_cc(conn, post))
-    |> mergify("attachment", post_attachments(conn, post))
-  end
-
-  @spec post_attachments(any, %Post{}) :: list
-  def post_attachments(conn, %Post{} = post) do
-    for attachment <- post.attachments do
-      post_attachment(conn, attachment)
-    end
-  end
-
-  @spec post_attachment(any, %PostAttachment{}) :: map
-  def post_attachment(conn, %PostAttachment{} = attachment) do
-    %{
-      "mediaType" => attachment.media.mime_type,
-      "name" => snippet(attachment),
-      "summary" => htmlify_caption(attachment),
-      "type" => "Document",
-      "url" => Routes.media_url(conn, :show, :post, :full, attachment.media.id)
-    }
-  end
-
-  defp post_to(_conn, _post), do: ["https://www.w3.org/ns/activitystreams#Public"]
-  defp post_cc(conn, _post), do: [Routes.followers_url(conn, :index)]
 end
