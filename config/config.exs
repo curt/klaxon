@@ -27,10 +27,15 @@ config :klaxon, KlaxonWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :klaxon, Klaxon.Mailer, adapter: Swoosh.Adapters.Local
 
+config :waffle,
+  storage: Waffle.Storage.S3,
+  bucket: {:system, "AWS_S3_BUCKET"},
+  virtual_host: true
+
 config :ex_aws,
   access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
   secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role],
-  region: "us-west-2"
+  region: [{:system, "AWS_REGION"}, :instance_role]
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
