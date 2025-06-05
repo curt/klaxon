@@ -6,6 +6,7 @@ defmodule Klaxon.Media do
   alias Klaxon.Repo
   alias Klaxon.Media.Media
   alias Klaxon.Media.Impression
+  alias Klaxon.Media.Uploader
 
   import Mogrify
   import Ecto.Query
@@ -95,7 +96,7 @@ defmodule Klaxon.Media do
   @spec insert_impressions(%Media{}, String.t()) :: {:ok, %Media{}}
   def insert_impressions(%Media{} = media, path) do
     for usage <- @usages[media.scope] do
-      {:ok, attrs} = create_impression(media.id, path, usage)
+      {:ok, attrs} = create_impression(media, path, usage)
 
       media
       |> Ecto.build_assoc(:impressions, attrs)
@@ -106,19 +107,18 @@ defmodule Klaxon.Media do
     {:ok, media}
   end
 
-  @spec create_impression(String.t(), String.t(), atom) :: {:ok, map} | {:error, atom}
-  def create_impression(media_id, path, usage) do
+  @spec create_impression(%Media{}, String.t(), atom) :: {:ok, map} | {:error, atom}
+  def create_impression(%Media{} = media, path, usage) do
     path = mogrify_impression(path, usage)
 
     with {:ok, %File.Stat{} = info} <- File.stat(path),
          %{height: height, width: width} <- identify(path),
-         {:ok, data} <- File.read(path) do
+         {:ok, _} <- Uploader.store({path, {media, usage}}) do
       File.rm(path)
 
       {:ok,
        %{
-         media_id: media_id,
-         data: data,
+         media_id: media.id,
          usage: usage,
          height: height,
          width: width,
