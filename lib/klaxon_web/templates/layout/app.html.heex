@@ -10,7 +10,7 @@
         | <a {[href: Routes.checkin_path(@conn, :all)]}>Check-Ins</a>
         | <a {[href: Routes.trace_path(@conn, :index)]}>Traces</a>
         <%= render "_current_user.html", assigns %>
-        || Klaxon: <%= link to: "https://github.com/curt/klaxon/tree/#{git_revision()}" do %><%= String.slice(git_revision(), 0, 7) %><% end %>
+        || <%= link to: "https://github.com/curt/klaxon/tree/#{git_revision()}" do %>Klaxon: v<%= to_string(Application.spec(:klaxon, :vsn)) %><% end %>
     </p>
   </footer>
 </main>
