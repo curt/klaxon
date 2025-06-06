@@ -2,7 +2,7 @@ ARG MIX_ENV="prod"
 
 ### Build stage ###
 
-FROM elixir:1.18.4-otp-26-alpine AS build
+FROM elixir:1.15.8-otp-26-alpine AS build
 
 RUN apk add --no-cache git gcc g++ musl-dev make cmake postgresql-client
 
