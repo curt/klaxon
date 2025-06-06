@@ -2,7 +2,7 @@ ARG MIX_ENV="prod"
 
 ### Build stage ###
 
-FROM elixir:1.15.6-alpine AS build
+FROM elixir:1.18.4-otp-26-alpine AS build
 
 RUN apk add --no-cache git gcc g++ musl-dev make cmake postgresql-client
 
@@ -14,6 +14,7 @@ RUN mix local.hex --force && \
 ARG MIX_ENV
 ENV MIX_ENV="${MIX_ENV}"
 
+COPY VERSION.default VERSION.full
 COPY mix.exs mix.lock ./
 RUN mix deps.get --only $MIX_ENV
 
@@ -25,6 +26,8 @@ COPY priv priv
 COPY assets assets
 COPY lib lib
 COPY .git .git
+COPY Makefile VERSION ./
+RUN make write-version
 RUN mix assets.deploy && \
     mix compile
 

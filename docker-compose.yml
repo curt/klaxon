@@ -12,8 +12,12 @@ services:
         volume:
           nocopy: true
   app:
-    image: klaxon
-    build: .
+    image: klaxon:${DOCKER_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${VERSION}
     restart: unless-stopped
     environment: { DATABASE_URL: ecto://klaxon:klaxon@db/klaxon }
     env_file:
