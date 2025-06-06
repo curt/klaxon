@@ -34,7 +34,6 @@ npm-debug.log
 
 # asdf
 /..*
-.tool-versions
 
 # Local
 /pgdata/
@@ -43,3 +42,6 @@ npm-debug.log
 .DS_Store
 /.elixir_ls
 /.local/
+
+# Generated full version file
+VERSION.full
