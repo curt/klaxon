@@ -15,7 +15,10 @@ defmodule Klaxon.MixProject do
   end
 
   defp version do
-    File.read!("VERSION.full") |> String.trim()
+    case File.read("VERSION.full") do
+      {:ok, v} -> String.trim(v)
+      _ -> "0.0.0+dev"
+    end
   end
 
   # Configuration for the OTP application.
