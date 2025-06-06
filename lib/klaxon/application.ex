@@ -2,11 +2,13 @@ defmodule Klaxon.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-
+  require Logger
   use Application
 
   @impl true
   def start(_type, _args) do
+    log_version()
+
     children = [
       # Start the Ecto repository
       Klaxon.Repo,
@@ -50,5 +52,10 @@ defmodule Klaxon.Application do
       start: {Cachex, :start_link, [String.to_atom("#{name}_cache"), opts]},
       type: :worker
     }
+  end
+
+  defp log_version do
+    version = to_string(Application.spec(:klaxon, :vsn))
+    Logger.info("Starting Klaxon version #{version}")
   end
 end

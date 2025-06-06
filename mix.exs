@@ -4,7 +4,7 @@ defmodule Klaxon.MixProject do
   def project do
     [
       app: :klaxon,
-      version: "0.1.0",
+      version: version(),
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [] ++ Mix.compilers(),
@@ -12,6 +12,10 @@ defmodule Klaxon.MixProject do
       aliases: aliases(),
       deps: deps()
     ]
+  end
+
+  defp version do
+    File.read!("VERSION.full") |> String.trim()
   end
 
   # Configuration for the OTP application.
