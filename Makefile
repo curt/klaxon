@@ -15,35 +15,35 @@ print-version:
 
 build: write-version
 	@echo "🔧 Building image for $(APP):$(FULL_VERSION)..."
-	VERSION=$(FULL_VERSION) DOCKER_TAG=$(DOCKER_TAG) docker-compose build
+	VERSION=$(FULL_VERSION) DOCKER_TAG=$(DOCKER_TAG) docker compose build
 	@echo "🏷 Tagging $(APP):$(DOCKER_TAG) as $(APP):latest..."
 	docker tag $(APP):$(DOCKER_TAG) $(APP):latest
 
 up:
 	@echo "🚀 Starting containers for $(APP):$(shell cat VERSION.full)..."
-	VERSION=$(shell cat VERSION.full) DOCKER_TAG=$(DOCKER_TAG) docker-compose up -d
+	VERSION=$(shell cat VERSION.full) DOCKER_TAG=$(DOCKER_TAG) docker compose up -d
 
 # Convenience target: build and start containers
 up-build: build up
 
 down:
-	docker-compose down
+	docker compose down
 
 clean:
-	docker-compose down
+	docker compose down
 	docker system prune -f
 
 reset: down clean
 	@rm -f VERSION.full
 
 status:
-	docker-compose ps
+	docker compose ps
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 logs-app:
-	docker-compose logs -f app
+	docker compose logs -f app
 
 tag:
 	@git tag -a v$(FULL_VERSION) -m "Release v$(FULL_VERSION)"
