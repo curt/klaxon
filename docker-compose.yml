@@ -1,16 +1,17 @@
 services:
   db:
-    image: postgres:15
+    image: ghcr.io/curt/postgis:17-3.5-alpine
     restart: unless-stopped
-    environment: { POSTGRES_DB: klaxon, POSTGRES_USER: klaxon, POSTGRES_PASSWORD: klaxon }
+    environment: { POSTGRES_DB: klaxon, POSTGRES_USER: klaxon, POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}" }
     env_file:
       - .env
     volumes:
       - type: volume
-        source: dbdata
+        source: dbdata17
         target: /var/lib/postgresql/data
         volume:
           nocopy: true
+    ports: [ "127.0.0.1:${POSTGRES_PORT}:5432" ]
   app:
     image: klaxon:${DOCKER_TAG}
     build:
@@ -19,7 +20,7 @@ services:
       args:
         VERSION: ${VERSION}
     restart: unless-stopped
-    environment: { DATABASE_URL: ecto://klaxon:klaxon@db/klaxon }
+    environment: { DATABASE_URL: "ecto://klaxon:${POSTGRES_PASSWORD}@db/klaxon" }
     env_file:
       - .env
     volumes:
@@ -29,7 +30,7 @@ services:
         read_only: true
     links:
       - db
-    ports: [ "127.0.0.1:${KLAXON_PORT:-4000}:4000" ]
+    ports: [ "127.0.0.1:${KLAXON_PORT}:4000" ]
 
 volumes:
-  dbdata:
+  dbdata17:
