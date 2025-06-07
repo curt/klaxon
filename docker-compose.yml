@@ -1,6 +1,6 @@
 services:
   db:
-    image: ghcr.io/curt/postgis:17-3.5-alpine
+    image: ${POSTGIS_IMAGE_NAME}:17-3.5-alpine
     restart: unless-stopped
     environment: { POSTGRES_DB: klaxon, POSTGRES_USER: klaxon, POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}" }
     env_file:
