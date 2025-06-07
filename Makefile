@@ -23,12 +23,6 @@ else
   $(error Unsupported architecture: $(ARCH))
 endif
 
-require-env-var = \
-  if [ -z "$$($(1))" ]; then \
-    echo "Error: Environment variable '$(1)' is not set."; \
-    exit 1; \
-  fi
-
 export POSTGIS_IMAGE_NAME DOCKER_TAG VERSION
 
 write-version:
@@ -86,8 +80,6 @@ tag:
 	@git push origin v$(FULL_VERSION)
 
 dump-db:
-	@$(call require-env-var,POSTGRES_PASSWORD)
-	@$(call require-env-var,AWS_S3_DUMP_BUCKET)
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
 	container_name=$$(docker compose ps -q db | xargs docker inspect --format '{{.Name}}' | sed 's|/||'); \
 	short_hostname=$$(hostname | cut -d. -f1); \
