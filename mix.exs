@@ -80,6 +80,7 @@ defmodule Klaxon.MixProject do
       {:atomex, "~> 0.5.1"},
       {:mox, "~> 1.0", only: :test},
       {:haversine, "~> 0.1.0"},
+      {:briefly, "~> 0.5"},
 
       # Dependency of `:ex_aws`
       {:sweet_xml, "~> 0.6"},
