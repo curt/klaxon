@@ -1,6 +1,10 @@
 defmodule Blogifier do
   alias __MODULE__.Entry
   alias __MODULE__.Attachment
+  alias Klaxon.Contents
+  alias Klaxon.Contents.Post
+  alias Klaxon.Profiles.Profile
+  alias Klaxon.Repo
 
   defmodule Entry do
     defstruct [
@@ -29,8 +33,59 @@ defmodule Blogifier do
     ]
   end
 
-  def blogify(_zip_path, _profile_uri) do
-    raise "not implemented"
+  def blogify(zip_path, profile_uri, host, post_uri_fun, attachment_uri_fun) do
+    unzipify_and_clean(zip_path, fn tmpdir, entries ->
+      blogify_entries(entries, tmpdir, profile_uri, host, post_uri_fun, attachment_uri_fun)
+    end)
+  end
+
+  defp blogify_entries(entries, tmpdir, profile_uri, host, post_uri_fun, attachment_uri_fun) do
+    profile = Repo.get_by!(Profile, uri: profile_uri)
+
+    for entry <- entries do
+      uri = post_uri_fun.(entry.id)
+      {:ok, published_at, _} = DateTime.from_iso8601(entry.date)
+
+      changeset =
+        %Post{
+          id: entry.id,
+          published_at: published_at,
+          uri: uri,
+          profile_id: profile.id,
+          origin: :local,
+          status: :published,
+          visibility: :public
+        }
+        |> Post.changeset(Map.from_struct(entry), host)
+
+      changeset
+      |> Repo.insert()
+
+      attachments = blogify_attachments(entry.attachments, tmpdir, entry.id, attachment_uri_fun)
+
+      {:ok, %{entry: entry.id, attachments: attachments}}
+    end
+  end
+
+  defp blogify_attachments(attachments, tmpdir, post_id, attachment_uri_fun) do
+    with {:ok, attachdir} <-
+           Briefly.create(type: :directory, prefix: "attach_#{post_id}") do
+      for attachment <- attachments do
+        path = Path.join([tmpdir, "media", attachment.file])
+        attachpath = Path.join(attachdir, attachment.id)
+        File.cp(path, attachpath)
+
+        Contents.insert_local_post_attachment(
+          post_id,
+          %{caption: attachment.caption},
+          attachpath,
+          attachment.type,
+          attachment_uri_fun
+        )
+
+        {:ok, %{attachment: attachment.id}}
+      end
+    end
   end
 
   def unzipify(zip_path) do
