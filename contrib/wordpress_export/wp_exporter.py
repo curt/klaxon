@@ -1,6 +1,8 @@
-from parser import parse
-from converter import convert_to_intermediate
+"""Exports the parsed and converted WordPress XML data to a JSON file."""
+
 import json
+from wp_parser import parse
+from wp_converter import convert_to_intermediate
 
 posts = parse("export.xml")
 print(posts)

@@ -1,30 +1,14 @@
-import pytest
-from converter import convert_to_intermediate, uuid_from_sha1, _get_mime_type_from_extension
+"""Unit tests for the `converter` module."""
 
-
-@pytest.fixture
-def sample_post():
-    return [{
-        "post_id": "42",
-        "guid": "https://example.com/?p=42",
-        "post_name": "my-sample-post",
-        "post_date": "2024-06-01T12:00:00",
-        "post_date_gmt": "2024-06-01T19:00:00",
-        "title": "My Sample Post",
-        "content": "<p>Example content</p>",
-        "link": "https://example.com/2024/06/01/my-sample-post/",
-        "tags": ["demo", "sample"],
-        "attachments": [
-            {
-                "url": "https://example.com/wp-content/uploads/2024/05/image.jpg",
-                "mime_type": "image/jpeg",
-                "caption": "A sample image caption",
-            }
-        ],
-    }]
+from wp_converter import (
+    convert_to_intermediate,
+    uuid_from_sha1,
+    _get_mime_type_from_extension,
+)
 
 
 def test_uuid_is_deterministic():
+    """Test that UUIDs generated from the same input are consistent."""
     a = uuid_from_sha1("abc")
     b = uuid_from_sha1("abc")
     c = uuid_from_sha1("xyz")
@@ -34,13 +18,20 @@ def test_uuid_is_deterministic():
 
 
 def test_conversion_basic_structure(sample_post):
+    """Test that the basic structure of the converted post is correct."""
     result = convert_to_intermediate(sample_post)
     assert isinstance(result, list)
     assert len(result) == 1
 
     entry = result[0]
     assert set(entry.keys()) >= {
-        "id", "paths", "date", "title", "source", "tags", "attachments"
+        "id",
+        "paths",
+        "date",
+        "title",
+        "source",
+        "tags",
+        "attachments",
     }
 
     expected_uuid = uuid_from_sha1("https://example.com/?p=42")
@@ -53,6 +44,7 @@ def test_conversion_basic_structure(sample_post):
 
 
 def test_attachment_structure(sample_post):
+    """Test that attachments are converted correctly."""
     result = convert_to_intermediate(sample_post)
     att = result[0]["attachments"][0]
 
@@ -63,6 +55,7 @@ def test_attachment_structure(sample_post):
 
 
 def test_mime_type_extraction():
+    """Test that MIME types are extracted correctly from file extensions."""
     assert _get_mime_type_from_extension("jpg") == "image/jpeg"
     assert _get_mime_type_from_extension("jpeg") == "image/jpeg"
     assert _get_mime_type_from_extension("png") == "image/png"

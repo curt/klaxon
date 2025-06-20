@@ -1,10 +1,11 @@
+"""Converter for WordPress posts to intermediate JSON format."""
+
 import hashlib
 import uuid
 from urllib.parse import urlparse
-from typing import List, Dict, Any
 
 
-def uuid_from_sha1(text: str) -> str:
+def uuid_from_sha1(text):
     """
     Deterministically generates a UUID from a SHA-1 hash truncated to 128 bits.
     """
@@ -12,7 +13,7 @@ def uuid_from_sha1(text: str) -> str:
     return str(uuid.UUID(bytes=h))
 
 
-def convert_to_intermediate(posts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def convert_to_intermediate(posts):
     """
     Convert parsed WordPress posts to the intermediate JSON format.
     """
@@ -82,20 +83,20 @@ def convert_to_intermediate(posts: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     return result
 
 
-def _get_extension_from_path(path: str) -> str:
+def _get_extension_from_path(path):
     if not path:
         return ""
-    
-    parts = path.split('.')
+
+    parts = path.split(".")
     return parts[-1].lower() if len(parts) > 1 else ""
 
 
-def _get_mime_type_from_extension(ext: str) -> str:
+def _get_mime_type_from_extension(ext):
     mime_types = {
         "jpg": "image/jpeg",
         "jpeg": "image/jpeg",
         "png": "image/png",
-        "gif": "image/gif"
+        "gif": "image/gif",
     }
-    
+
     return mime_types.get(ext, "application/octet-stream")
