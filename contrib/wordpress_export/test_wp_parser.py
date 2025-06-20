@@ -59,6 +59,32 @@ def test_image_resolution_with_attachment(attachments, localhosts):
     assert "https://example.com/wp-content/uploads/2023/06/photo.jpg" not in out
 
 
+def test_image_resolution_with_attachment_resized(attachments, localhosts):
+    """Tests that image resolution is handled correctly with attachments."""
+    raw = '<img src="https://example.com/wp-content/uploads/2023/06/photo-800x600.jpg">'
+    out, _, _ = normalize_content(raw, attachments, localhosts)
+    assert len(attachments.keys()) == 1
+    assert "-800x600" not in out
+
+
+def test_caption_captured_into_attachment(attachments, localhosts):
+    """Tests that caption is captured and stored correctly into attachments."""
+    raw = """
+        <figure>
+            <img src="https://example.com/wp-content/uploads/2023/06/photo.jpg">
+            <figcaption>Mountain View</figcaption>
+        </figure>
+    """
+    _ = normalize_content(raw, attachments, localhosts)
+    assert len(attachments.keys()) == 1
+    assert (
+        "Mountain View"
+        == attachments["https://example.com/wp-content/uploads/2023/06/photo.jpg"][
+            "caption"
+        ]
+    )
+
+
 def test_link_rewriting_stub():
     """Tests that links are rewritten correctly."""
     raw = '<a href="https://example.com/some-link">click</a>'

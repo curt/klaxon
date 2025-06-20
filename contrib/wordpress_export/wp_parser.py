@@ -3,6 +3,7 @@
 import xml.etree.ElementTree as ET
 from html import unescape
 import re
+import os
 import urllib
 from bs4 import BeautifulSoup
 import html2text
@@ -15,8 +16,9 @@ NAMESPACES = {
 }
 
 
-def parse(file_path):
+def parse(file_path, localhosts=None):
     """Parses a WordPress XML export file."""
+    localhosts = localhosts or []
     tree = ET.parse(file_path)
     root = tree.getroot()
 
@@ -90,7 +92,7 @@ def parse(file_path):
         attachments = [a for a in raw_attachments if a["post_parent"] == post_id]
 
         normalized_content, lat, lon = normalize_content(
-            raw_content, attachments_by_url, []
+            raw_content, attachments_by_url, localhosts
         )
 
         posts.append(
@@ -151,19 +153,20 @@ def normalize_content(html, attachments_by_url, localhosts=None):
         if url.netloc not in localhosts:
             continue
 
-        img["src"] = rewrite_image_url(src)
+        print(src)
+        src = rewrite_image_url(src)
+        img["src"] = src
         fig = img.find_parent("figure")
         attachment = attachments_by_url.get(src)
 
         if not attachment:
             attachment = {}
-            if fig:
-                cap = fig.find("figcaption")
-                if cap:
-                    attachment["caption"] = cap.text.strip()
             attachments_by_url[src] = attachment
 
         if fig:
+            cap = fig.find("figcaption")
+            if cap:
+                attachment["caption"] = cap.text.strip()
             fig.decompose()
         else:
             img.decompose()
@@ -175,7 +178,9 @@ def normalize_content(html, attachments_by_url, localhosts=None):
 
     _sanitize_html(soup)
 
-    markdown = html2text.html2text(str(soup)).strip()
+    markdown = html2text.html2text(
+        str(soup), baseurl="https://caminosinnombre.com", bodywidth=0
+    ).strip()
     return markdown, lat, lon
 
 
@@ -255,8 +260,11 @@ def _extract_and_remove_leaflet_shortcode(text):
 
 
 def rewrite_image_url(url):
-    """Rewrites image URLs."""
-    return url
+    """Rewrites image URLs to remove resolution suffixes."""
+    dirname, filename = os.path.split(url)
+    name, ext = os.path.splitext(filename)
+    name = re.sub(r"-\d{2,}x\d{2,}$", "", name)
+    return os.path.join(dirname, f"{name}{ext}")
 
 
 def rewrite_url(url):

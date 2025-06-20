@@ -3,3 +3,4 @@ pyvenv.cfg
 *.xml
 *.json
 .venv
+.coverage
