@@ -16,10 +16,10 @@ NAMESPACES = {
 }
 
 
-def parse(file_path, localhosts=None):
+def parse(fileobj, localhosts=None):
     """Parses a WordPress XML export file."""
     localhosts = localhosts or []
-    tree = ET.parse(file_path)
+    tree = ET.parse(fileobj)
     root = tree.getroot()
 
     items = root.findall(".//item")
@@ -153,7 +153,6 @@ def normalize_content(html, attachments_by_url, localhosts=None):
         if url.netloc not in localhosts:
             continue
 
-        print(src)
         src = rewrite_image_url(src)
         img["src"] = src
         fig = img.find_parent("figure")
