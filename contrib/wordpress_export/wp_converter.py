@@ -3,6 +3,7 @@
 import hashlib
 import uuid
 from urllib.parse import urlparse
+from datetime import datetime
 
 
 def convert(posts):
@@ -53,7 +54,7 @@ def convert(posts):
         post_entry = {
             "id": post_id,
             "paths": [path],
-            "date": date,
+            "date": datetime.fromisoformat(date).isoformat() + "Z",
             "title": title,
             "source": source,
             "tags": tags,
