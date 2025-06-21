@@ -1,17 +1,17 @@
 """Unit tests for the `converter` module."""
 
 from wp_converter import (
-    convert_to_intermediate,
-    uuid_from_sha1,
+    convert,
+    uuid_from_text_hash,
     _get_mime_type_from_extension,
 )
 
 
 def test_uuid_is_deterministic():
     """Test that UUIDs generated from the same input are consistent."""
-    a = uuid_from_sha1("abc")
-    b = uuid_from_sha1("abc")
-    c = uuid_from_sha1("xyz")
+    a = uuid_from_text_hash("abc")
+    b = uuid_from_text_hash("abc")
+    c = uuid_from_text_hash("xyz")
     assert a == b
     assert a != c
     assert len(a) == 36  # UUID format
@@ -19,7 +19,7 @@ def test_uuid_is_deterministic():
 
 def test_conversion_basic_structure(sample_post):
     """Test that the basic structure of the converted post is correct."""
-    result = convert_to_intermediate(sample_post)
+    result = convert(sample_post)
     assert isinstance(result, list)
     assert len(result) == 1
 
@@ -34,7 +34,7 @@ def test_conversion_basic_structure(sample_post):
         "attachments",
     }
 
-    expected_uuid = uuid_from_sha1("https://example.com/?p=42")
+    expected_uuid = uuid_from_text_hash("https://example.com/?p=42")
     assert entry["id"] == expected_uuid
 
     assert entry["title"] == "My Sample Post"
@@ -45,7 +45,7 @@ def test_conversion_basic_structure(sample_post):
 
 def test_attachment_structure(sample_post):
     """Test that attachments are converted correctly."""
-    result = convert_to_intermediate(sample_post)
+    result = convert(sample_post)
     att = result[0]["attachments"][0]
 
     assert set(att.keys()) >= {"id", "paths", "type", "file"}

@@ -5,18 +5,8 @@ import uuid
 from urllib.parse import urlparse
 
 
-def uuid_from_sha1(text):
-    """
-    Deterministically generates a UUID from a SHA-1 hash truncated to 128 bits.
-    """
-    h = hashlib.sha1(text.encode("utf-8")).digest()[:16]
-    return str(uuid.UUID(bytes=h))
-
-
-def convert_to_intermediate(posts):
-    """
-    Convert parsed WordPress posts to the intermediate JSON format.
-    """
+def convert(posts):
+    """Convert parsed WordPress posts to the intermediate JSON format."""
     result = []
 
     for post in posts:
@@ -25,7 +15,7 @@ def convert_to_intermediate(posts):
         path = parsed_link.path if parsed_link else ""
 
         guid = post.get("guid") or link or post.get("post_id")
-        post_id = uuid_from_sha1(guid)
+        post_id = uuid_from_text_hash(guid)
 
         slug = post.get("post_name")
 
@@ -43,7 +33,7 @@ def convert_to_intermediate(posts):
             att_url = att.get("url")
             parsed_url = urlparse(att_url)
             path_part = parsed_url.path
-            att_id = uuid_from_sha1(path_part)
+            att_id = uuid_from_text_hash(path_part)
 
             extension = _get_extension_from_path(path_part)
             mime_type = _get_mime_type_from_extension(extension)
@@ -81,6 +71,12 @@ def convert_to_intermediate(posts):
         result.append(post_entry)
 
     return result
+
+
+def uuid_from_text_hash(text):
+    """Deterministically generates a UUID from a SHA-256 hash truncated to 128 bits."""
+    h = hashlib.sha256(text.encode("utf-8")).digest()[:16]
+    return str(uuid.UUID(bytes=h))
 
 
 def _get_extension_from_path(path):
