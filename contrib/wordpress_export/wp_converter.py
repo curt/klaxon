@@ -54,7 +54,8 @@ def convert(posts):
         post_entry = {
             "id": post_id,
             "paths": [path],
-            "date": datetime.fromisoformat(date).isoformat() + "Z",
+            "date": datetime.fromisoformat(date).isoformat(timespec="microseconds")
+            + "Z",
             "title": title,
             "source": source,
             "tags": tags,
