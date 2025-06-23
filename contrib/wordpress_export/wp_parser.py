@@ -138,6 +138,7 @@ def normalize_content(html, attachments_by_url, localhosts=None):
     html = _remove_gallery_shortcodes(html)
     html = _remove_comment_blocks(html)
     html, lat, lon = _extract_and_remove_leaflet_shortcode(html)
+    html = _remove_remaining_shortcodes(html)
     html = _consolidate_line_feeds(html)
     html = html.strip()
 
@@ -181,6 +182,19 @@ def normalize_content(html, attachments_by_url, localhosts=None):
         str(soup), baseurl="https://caminosinnombre.com", bodywidth=0
     ).strip()
     return markdown, lat, lon
+
+
+def rewrite_image_url(url):
+    """Rewrites image URLs to remove resolution suffixes."""
+    dirname, filename = os.path.split(url)
+    name, ext = os.path.splitext(filename)
+    name = re.sub(r"-\d{2,}x\d{2,}$", "", name)
+    return os.path.join(dirname, f"{name}{ext}")
+
+
+def rewrite_url(url):
+    """Rewrites URLs."""
+    return url
 
 
 # --- HELPERS ---
@@ -241,12 +255,12 @@ def _consolidate_line_feeds(text):
 
 
 def _extract_and_remove_leaflet_shortcode(text):
-    pattern = re.compile(r"\[leaflet-map\b([^]]*)\]", re.IGNORECASE)
+    pattern = re.compile(r"\[leaflet-(map|marker)\b([^]]*)\]", re.IGNORECASE)
     lat = lon = None
 
     def replacer(match):
         nonlocal lat, lon
-        attrs = match.group(1)
+        attrs = match.group(2)
         lat_match = re.search(r"lat\s*=\s*([-+]?[0-9]*\.?[0-9]+)", attrs)
         lon_match = re.search(r"lng\s*=\s*([-+]?[0-9]*\.?[0-9]+)", attrs)
         if lat_match and lon_match:
@@ -258,17 +272,14 @@ def _extract_and_remove_leaflet_shortcode(text):
     return text, lat, lon
 
 
-def rewrite_image_url(url):
-    """Rewrites image URLs to remove resolution suffixes."""
-    dirname, filename = os.path.split(url)
-    name, ext = os.path.splitext(filename)
-    name = re.sub(r"-\d{2,}x\d{2,}$", "", name)
-    return os.path.join(dirname, f"{name}{ext}")
-
-
-def rewrite_url(url):
-    """Rewrites URLs."""
-    return url
+def _remove_remaining_shortcodes(text):
+    pattern = re.compile(r"\[([-\w]+)(?:[^\]]*)\](.*?)\[/\1\]", re.DOTALL)
+    while True:
+        new_text, count = pattern.subn(r"\2", text)
+        if count == 0:
+            break
+        text = new_text
+    return text
 
 
 def _sanitize_html(soup):

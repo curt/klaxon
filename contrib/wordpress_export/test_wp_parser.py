@@ -109,9 +109,27 @@ def test_remove_comment_blocks():
     assert out == "Content"
 
 
-def test_leaflet_shortcode_extraction():
+def test_leaflet_map_shortcode_extraction():
     """Tests that leaflet map shortcode coordinates are extracted."""
     raw = "<p>Some text</p>[leaflet-map lat=33.43441 lng=-112.01107]<p>More text</p>"
-    _, lat, lon = normalize_content(raw, {})
+    out, lat, lon = normalize_content(raw, {})
     assert lat == 33.43441
     assert lon == -112.01107
+    assert "[leaflet-map" not in out
+
+
+def test_leaflet_marker_shortcode_extraction():
+    """Tests that leaflet karker shortcode coordinates are extracted."""
+    raw = "<p>Some text</p>[leaflet-marker lat=33.43441 lng=-112.01107]<p>More text</p>"
+    out, lat, lon = normalize_content(raw, {})
+    assert lat == 33.43441
+    assert lon == -112.01107
+    assert "[leaflet-marker" not in out
+
+
+def test_remove_other_shortcodes():
+    """Tests that other shortcodes are removed from content."""
+    raw = "[some-shortcode]Content[/some-shortcode]"
+    out, _, _ = normalize_content(raw, {})
+    assert "some-shortcode" not in out
+    assert "Content" in out
