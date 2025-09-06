@@ -12,9 +12,8 @@ defmodule Klaxon.Profiles.Profile do
              :site_text,
              :site_title,
              :summary,
-             :url,
-             :owner
-  ]}
+             :url
+           ]}
   use Klaxon.Schema
   alias Klaxon.Auth.User
 
