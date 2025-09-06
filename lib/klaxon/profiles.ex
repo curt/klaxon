@@ -52,12 +52,12 @@ defmodule Klaxon.Profiles do
     end
   end
 
-  @spec get_or_fetch_public_profile_by_uri(binary) :: struct | map | nil
+  @spec get_or_fetch_public_profile_by_uri(binary) :: Klaxon.Profiles.Profile.t() | nil
   def get_or_fetch_public_profile_by_uri(profile_uri) do
     get_public_profile_by_uri(profile_uri) || fetch_public_profile_by_uri(profile_uri)
   end
 
-  @spec fetch_public_profile_by_uri(binary) :: map | nil
+  @spec fetch_public_profile_by_uri(binary) :: Klaxon.Profiles.Profile.t() | nil
   def fetch_public_profile_by_uri(profile_uri) do
     case HttpClient.get(profile_uri) do
       {:ok, %{body: body}} ->
