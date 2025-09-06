@@ -25,11 +25,11 @@ defmodule Klaxon.Application do
       {Oban, Application.fetch_env!(:klaxon, Oban)},
 
       # Start the Cachex caches
-      cachex_child("local_profile", limit: 20),
-      cachex_child("get_profile", limit: 1000),
-      cachex_child("fetch_profile", limit: 1000),
-      cachex_child("get_post", limit: 1000),
-      cachex_child("fetch_post", limit: 1000)
+      cachex_child(:local_profile_cache, limit: 20),
+      cachex_child(:get_profile_cache, limit: 1000),
+      cachex_child(:fetch_profile_cache, limit: 1000),
+      cachex_child(:get_post_cache, limit: 1000),
+      cachex_child(:fetch_post_cache, limit: 1000)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -46,10 +46,10 @@ defmodule Klaxon.Application do
     :ok
   end
 
-  defp cachex_child(name, opts) do
+  defp cachex_child(name, opts) when is_atom(name) do
     %{
       id: "cachex_#{name}",
-      start: {Cachex, :start_link, [String.to_atom("#{name}_cache"), opts]},
+      start: {Cachex, :start_link, [name, opts]},
       type: :worker
     }
   end
