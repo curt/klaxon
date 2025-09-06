@@ -33,7 +33,7 @@ defmodule Klaxon.Activities.Inbox.Async do
         |> process(args)
         |> tap_debug("Processed activity")
 
-      Logger.info("Processed good inbound activity: #{inspect(activity)}")
+      Logger.debug("Processed good inbound activity: #{inspect(activity)}")
       :ok
     rescue
       ex ->
