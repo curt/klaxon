@@ -37,7 +37,7 @@ defmodule KlaxonWeb.Plugs do
   @spec fetch_current_profile(Plug.Conn.t(), any) :: Plug.Conn.t()
   def fetch_current_profile(conn, _opts) do
     uri = Routes.profile_url(conn, :index)
-    Logger.info("Fetching profile: #{uri}")
+    Logger.debug("Fetching profile: #{uri}")
 
     case Profiles.get_local_profile_by_uri(uri) do
       {:ok, %Profile{} = profile} ->
