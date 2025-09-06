@@ -8,12 +8,12 @@ defmodule Klaxon.Activities.Inbox.Async do
   alias Klaxon.Contents.Post
   alias Klaxon.Profiles.Profile
 
-  # TODO: Replace :reject with {:reject, reason} tuple throughout module.
+  # Rejections are signaled via throw({:reject, reason}) and handled at the top-level.
 
   @doc """
   Processes an inbound activity. The activity should have already been checked for well-formedness.
   """
-  @spec process(map) :: :ok | :reject
+  @spec process(map) :: :ok | {:cancel, String.t()}
   def process(%{} = args) do
     {activity, args} = Map.pop!(args, "activity")
 
@@ -44,8 +44,8 @@ defmodule Klaxon.Activities.Inbox.Async do
 
         {:cancel, inspect(ex)}
     catch
-      :reject ->
-        Logger.info("Rejected inbound activity: #{inspect(activity)}")
+      {:reject, reason} ->
+        Logger.info("Rejected inbound activity: #{inspect(activity)}\n  reason: #{inspect(reason)}")
         :ok
     end
   end
@@ -185,8 +185,9 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   def process(activity, args) do
-    Logger.info("Unprocessable\n  activity: #{inspect(activity)}\n  args: #{inspect(args)}")
-    throw(:reject)
+    reason = "Unprocessable activity"
+    Logger.info("#{reason}\n  activity: #{inspect(activity)}\n  args: #{inspect(args)}")
+    throw({:reject, reason})
   end
 
   # TODO: Make this unnecessary by preprocessing headers
@@ -207,8 +208,9 @@ defmodule Klaxon.Activities.Inbox.Async do
         object |> Map.put(key, id)
       end || object
     else
-      Logger.info("Unable to normalize `id` of #{key} from: #{inspect(object)}")
-      throw(:reject)
+      reason = "Unable to normalize id for '#{key}'"
+      Logger.info("#{reason} from: #{inspect(object)}")
+      throw({:reject, reason})
     end
   end
 
@@ -216,13 +218,15 @@ defmodule Klaxon.Activities.Inbox.Async do
     case URI.new(id) do
       {:ok, uri} ->
         unless uri.scheme in ["http", "https"] and uri.host do
-          Logger.info("Scheme '#{uri.scheme}' not a publicly dereferenceable URI: #{id}")
-          throw(:reject)
+          reason = "Scheme '#{uri.scheme}' not publicly dereferenceable"
+          Logger.info("#{reason}: #{id}")
+          throw({:reject, reason})
         end || id
 
       _ ->
-        Logger.info("Not a valid URI: #{id}")
-        throw(:reject)
+        reason = "Not a valid URI"
+        Logger.info("#{reason}: #{id}")
+        throw({:reject, reason})
     end
   end
 
@@ -231,8 +235,9 @@ defmodule Klaxon.Activities.Inbox.Async do
   end
 
   defp validate_publicly_dereferenceable_uri(%{} = obj) do
-    Logger.info("Unable to validate as publicly dereferenceable: #{inspect(obj)}")
-    throw(:reject)
+    reason = "Unable to validate as publicly dereferenceable"
+    Logger.info("#{reason}: #{inspect(obj)}")
+    throw({:reject, reason})
   end
 
   defp validate_timestamps(
@@ -260,8 +265,9 @@ defmodule Klaxon.Activities.Inbox.Async do
 
     # TODO: Make this configurable.
     if abs(diff) > 30 do
-      Logger.info("Timestamps different by greater than allowed tolerance")
-      throw(:reject)
+      reason = "Timestamps exceed allowed tolerance"
+      Logger.info(reason)
+      throw({:reject, reason})
     end
 
     activity
@@ -310,8 +316,9 @@ defmodule Klaxon.Activities.Inbox.Async do
     Logger.debug("Verify signature pass? #{valid?}")
 
     unless valid? do
-      Logger.info("Signature verification failed: #{inspect(activity)}")
-      throw(:reject)
+      reason = "Signature verification failed"
+      Logger.info("#{reason}: #{inspect(activity)}")
+      throw({:reject, reason})
     end
 
     activity
@@ -322,8 +329,9 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"id" => profile_id}} = _args
        ) do
     if Blocks.actor_blocked?(actor_uri, profile_id) do
-      Logger.info("Actor blocked: #{actor_uri}")
-      throw(:reject)
+      reason = "Actor blocked"
+      Logger.info("#{reason}: #{actor_uri}")
+      throw({:reject, reason})
     end || activity
   end
 
@@ -332,15 +340,17 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"profile" => %{"id" => profile_id}} = _args
        ) do
     if Blocks.object_blocked?(object, profile_id) do
-      Logger.info("Object blocked: #{inspect(object)}")
-      throw(:reject)
+      reason = "Object blocked"
+      Logger.info("#{reason}: #{inspect(object)}")
+      throw({:reject, reason})
     end || activity
   end
 
   defp validate_attribute_against_required_value(activity, attr, value) do
     unless activity[attr] == value do
-      Logger.info("Failed to verify `#{attr}` equals #{inspect(value)}: #{inspect(activity)}")
-      throw(:reject)
+      reason = "Attribute mismatch: #{attr} != #{inspect(value)}"
+      Logger.info("#{reason}: #{inspect(activity)}")
+      throw({:reject, reason})
     end || activity
   end
 
@@ -348,14 +358,16 @@ defmodule Klaxon.Activities.Inbox.Async do
          %{"actor" => %{uri: actor_uri}, "object" => %{attributed_to: attributed_to}} = activity
        ) do
     unless actor_uri == attributed_to do
-      Logger.info("Failed to verify `attributed_to` against `actor`: #{inspect(activity)}")
-      throw(:reject)
+      reason = "attributed_to does not match actor"
+      Logger.info("#{reason}: #{inspect(activity)}")
+      throw({:reject, reason})
     end || activity
   end
 
   defp validate_attributed_to_against_actor(activity) do
-    Logger.info("Unable to verify `attributed_to` against `actor`: #{inspect(activity)}")
-    throw(:reject)
+    reason = "Unable to verify attributed_to against actor"
+    Logger.info("#{reason}: #{inspect(activity)}")
+    throw({:reject, reason})
   end
 
   # TODO: This is a stub.
@@ -451,8 +463,9 @@ defmodule Klaxon.Activities.Inbox.Async do
 
   defp throw_reject_if_false(arg) do
     unless arg do
-      Logger.info("false object rejected: #{inspect(arg)}")
-      throw(:reject)
+      reason = "falsey object rejected"
+      Logger.info("#{reason}: #{inspect(arg)}")
+      throw({:reject, reason})
     end || arg
   end
 

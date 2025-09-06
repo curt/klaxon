@@ -49,28 +49,30 @@ defmodule Klaxon.Activities.InboundTest do
     end
 
     test "with bad object or endpoint" do
-      assert catch_throw(
-               Async.process(
-                 %{
-                   "type" => "Follow",
-                   "actor" => %Profile{uri: "https://example.com/actor/joe"},
-                   "object" => "http://example.local:4002/"
-                 },
-                 %{"profile" => %{"uri" => "http://localhost:4002/"}}
+      assert {:reject, _} =
+               catch_throw(
+                 Async.process(
+                   %{
+                     "type" => "Follow",
+                     "actor" => %Profile{uri: "https://example.com/actor/joe"},
+                     "object" => "http://example.local:4002/"
+                   },
+                   %{"profile" => %{"uri" => "http://localhost:4002/"}}
+                 )
                )
-             ) == :reject
     end
 
     test "with missing actor" do
-      assert catch_throw(
-               Async.process(
-                 %{
-                   "type" => "Follow",
-                   "object" => "http://localhost:4002/"
-                 },
-                 %{"profile" => %{"uri" => "http://localhost:4002/"}}
+      assert {:reject, _} =
+               catch_throw(
+                 Async.process(
+                   %{
+                     "type" => "Follow",
+                     "object" => "http://localhost:4002/"
+                   },
+                   %{"profile" => %{"uri" => "http://localhost:4002/"}}
+                 )
                )
-             ) == :reject
     end
   end
 
@@ -116,20 +118,21 @@ defmodule Klaxon.Activities.InboundTest do
     test "with bad actor" do
       _follow = follow_fixture()
 
-      assert catch_throw(
-               Async.process(
-                 %{
-                   "type" => "Undo",
-                   "actor" => %Profile{uri: "https://example.com/actor/joe"},
-                   "object" => %{
-                     "type" => "Follow",
-                     "actor" => "https://example.com/actor/jim",
-                     "object" => "http://localhost:4002/"
-                   }
-                 },
-                 %{"profile" => %{"uri" => "http://localhost:4002/"}}
+      assert {:reject, _} =
+               catch_throw(
+                 Async.process(
+                   %{
+                     "type" => "Undo",
+                     "actor" => %Profile{uri: "https://example.com/actor/joe"},
+                     "object" => %{
+                       "type" => "Follow",
+                       "actor" => "https://example.com/actor/jim",
+                       "object" => "http://localhost:4002/"
+                     }
+                   },
+                   %{"profile" => %{"uri" => "http://localhost:4002/"}}
+                 )
                )
-             ) == :reject
     end
   end
 
