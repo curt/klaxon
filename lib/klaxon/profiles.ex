@@ -173,7 +173,7 @@ defmodule Klaxon.Profiles do
 
   @spec profile_query_where_fresh(Ecto.Query.t(), integer) :: Ecto.Query.t()
   defp profile_query_where_fresh(query, seconds) do
-    cutoff = DateTime.add(DateTime.utc_now(), seconds)
+    cutoff = DateTime.add(DateTime.utc_now(), -seconds)
     where(query, [p], p.updated_at >= ^cutoff)
   end
 
