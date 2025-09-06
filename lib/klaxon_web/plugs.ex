@@ -65,9 +65,10 @@ defmodule KlaxonWeb.Plugs do
   """
   @spec assign_owner_flag(Plug.Conn.t(), any) :: Plug.Conn.t()
   def assign_owner_flag(conn, _opts) do
+    has_profile = match?(%Profile{}, conn.assigns[:current_profile])
+    has_user = match?(%Klaxon.Auth.User{}, conn.assigns[:current_user])
     is_owner =
-      conn.assigns[:current_profile] &&
-        conn.assigns[:current_user] &&
+      has_profile and has_user and
         Profiles.is_profile_owned_by_user?(
           conn.assigns.current_profile,
           conn.assigns.current_user
