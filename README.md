@@ -42,6 +42,8 @@ Use it at your own risk.
 
 Minimal steps to run locally with a Dockerized Postgres and Phoenix dev server.
 
+Tip: run `mix klaxon` to list Klaxon-specific Mix tasks.
+
 1) Prerequisites
 
 - Erlang/OTP 26 and Elixir 1.15 (see `.tool-versions`).
