@@ -15,7 +15,7 @@ defmodule KlaxonWeb.FallbackController do
   end
 
   # Handles an accepted request.
-  # These is not an error, but the response has no payload.
+  # This is not an error, but the response has no payload.
   def call(conn, {:accepted}) do
     call_with_status(conn, :accepted, :"202")
   end

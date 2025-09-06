@@ -3,6 +3,7 @@ defmodule Klaxon.HttpClient do
 
   plug Tesla.Middleware.Headers, [{"accept", "application/activity+json, application/ld+json"}]
   plug Tesla.Middleware.JSON, decode_content_types: ["application/activity+json", "application/ld+json"]
+  plug Tesla.Middleware.Timeout, timeout: 5_000, connect_timeout: 5_000
   plug Tesla.Middleware.FollowRedirects, max_redirects: 2
   plug Tesla.Middleware.Logger, debug: false
   plug Klaxon.Middleware.Sign

@@ -4,13 +4,15 @@ defmodule KlaxonWeb.Router do
   import KlaxonWeb.UserAuth
   import KlaxonWeb.Plugs
 
-  pipeline :none do
+  pipeline :rewrite do
     plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
+  end
+
+  pipeline :none do
   end
 
   pipeline :browser do
     plug :accepts, ["html", "json", "activity+json"]
-    plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {KlaxonWeb.LayoutView, :root}
@@ -24,7 +26,6 @@ defmodule KlaxonWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json", "activity+json"]
-    plug Plug.RewriteOn, [:x_forwarded_host, :x_forwarded_port, :x_forwarded_proto]
     plug :fetch_session
     plug :fetch_current_user
     plug :fetch_current_profile
@@ -34,7 +35,7 @@ defmodule KlaxonWeb.Router do
 
   # These routes have higher priority due to potential matches below.
   scope "/", KlaxonWeb do
-    pipe_through [:browser, :require_owner]
+    pipe_through [:rewrite, :browser, :require_owner]
 
     get "/posts/new", PostController, :new
     get "/places/new", PlaceController, :new
@@ -42,7 +43,7 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through :browser
+    pipe_through [:rewrite, :browser]
 
     get "/", ProfileController, :index, assigns: %{cache: :moderate}
     get "/posts", PostController, :index, assigns: %{cache: :moderate}
@@ -72,7 +73,7 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through :api
+    pipe_through [:rewrite, :api]
 
     get "/inbox", InboxController, :index
     post "/inbox", InboxController, :create
@@ -82,11 +83,11 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:rewrite, :browser, :require_authenticated_user]
   end
 
   scope "/", KlaxonWeb do
-    pipe_through [:browser, :require_owner]
+    pipe_through [:rewrite, :browser, :require_owner]
 
     get "/profile/avatars/new", AvatarController, :new
     post "/profile/avatars", AvatarController, :create
@@ -96,13 +97,7 @@ defmodule KlaxonWeb.Router do
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
     patch "/posts/:id", PostController, :update
-    get "/posts/:post_id/attachments", AttachmentController, :index
-    post "/posts/:post_id/attachments", AttachmentController, :create
-    get "/posts/:post_id/attachments/new", AttachmentController, :new
-    get "/posts/:post_id/attachments/:id/edit", AttachmentController, :edit
-    get "/posts/:post_id/attachments/:id", AttachmentController, :show
-    put "/posts/:post_id/attachments/:id", AttachmentController, :update
-    patch "/posts/:post_id/attachments/:id", AttachmentController, :update
+    resources "/posts/:post_id/attachments", AttachmentController, except: [:delete]
     get "/posts/:post_id/attachments/:id/delete", AttachmentController, :delete?
     post "/posts/:post_id/attachments/:id/delete", AttachmentController, :delete
     # get "/posts/:post_id/traces", TraceController, :index
@@ -157,26 +152,26 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through :none
+    pipe_through [:rewrite]
 
     post "/subscriptions/:id/:key/unsubscribe", SubscriptionController, :unsubscribe
   end
 
   scope "/gpx", KlaxonWeb do
-    pipe_through :api
+    pipe_through [:rewrite, :api]
 
     get "/traces", GpxController, :index, assigns: %{cache: :moderate}
     get "/traces/:id", GpxController, :show, assigns: %{cache: :aggressive}
   end
 
   scope "/api", KlaxonWeb.Api, as: :api do
-    pipe_through :api
+    pipe_through [:rewrite, :api]
 
     post "/session", SessionController, :create
   end
 
   scope "/api", KlaxonWeb.Api, as: :api do
-    pipe_through [:api, :require_owner]
+    pipe_through [:rewrite, :api, :require_owner]
 
     get "/session", SessionController, :show
     delete "/session", SessionController, :delete
@@ -206,7 +201,7 @@ defmodule KlaxonWeb.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/" do
-      pipe_through :browser
+      pipe_through [:rewrite, :browser]
 
       live_dashboard "/dashboard", metrics: KlaxonWeb.Telemetry
     end
@@ -218,7 +213,7 @@ defmodule KlaxonWeb.Router do
   # node running the Phoenix server.
   if Mix.env() == :dev do
     scope "/dev" do
-      pipe_through :browser
+      pipe_through [:rewrite, :browser]
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
@@ -227,7 +222,7 @@ defmodule KlaxonWeb.Router do
   ## Authentication routes
 
   scope "/", KlaxonWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
+    pipe_through [:rewrite, :browser, :redirect_if_user_is_authenticated]
 
     get "/users/register", UserRegistrationController, :new
     post "/users/register", UserRegistrationController, :create
@@ -240,7 +235,7 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:rewrite, :browser, :require_authenticated_user]
 
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update
@@ -248,7 +243,7 @@ defmodule KlaxonWeb.Router do
   end
 
   scope "/", KlaxonWeb do
-    pipe_through [:browser]
+    pipe_through [:rewrite, :browser]
 
     delete "/users/log_out", UserSessionController, :delete
     get "/users/confirm", UserConfirmationController, :new

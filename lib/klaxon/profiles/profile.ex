@@ -12,11 +12,12 @@ defmodule Klaxon.Profiles.Profile do
              :site_text,
              :site_title,
              :summary,
-             :url,
-             :owner
+             :url
            ]}
   use Klaxon.Schema
   alias Klaxon.Auth.User
+
+  @type t :: %__MODULE__{}
 
   schema "profiles" do
     field :display_name, :string

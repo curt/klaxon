@@ -28,7 +28,7 @@ services:
         source: ./.local
         target: /var/local/klaxon
         read_only: true
-    links:
+    depends_on:
       - db
     ports: [ "127.0.0.1:${KLAXON_PORT}:4000" ]
 
