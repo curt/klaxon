@@ -97,13 +97,7 @@ defmodule KlaxonWeb.Router do
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
     patch "/posts/:id", PostController, :update
-    get "/posts/:post_id/attachments", AttachmentController, :index
-    post "/posts/:post_id/attachments", AttachmentController, :create
-    get "/posts/:post_id/attachments/new", AttachmentController, :new
-    get "/posts/:post_id/attachments/:id/edit", AttachmentController, :edit
-    get "/posts/:post_id/attachments/:id", AttachmentController, :show
-    put "/posts/:post_id/attachments/:id", AttachmentController, :update
-    patch "/posts/:post_id/attachments/:id", AttachmentController, :update
+    resources "/posts/:post_id/attachments", AttachmentController, except: [:delete]
     get "/posts/:post_id/attachments/:id/delete", AttachmentController, :delete?
     post "/posts/:post_id/attachments/:id/delete", AttachmentController, :delete
     # get "/posts/:post_id/traces", TraceController, :index
