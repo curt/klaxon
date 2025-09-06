@@ -82,7 +82,13 @@ Visit http://localhost:4000 — you should see a notice that no profile is confi
 
 6) Create the local profile (first-run only)
 
-Open IEx in the running app or start it in another terminal and run:
+Option A: use the Mix task:
+
+```
+mix klaxon.setup_profile --email you@example.com --name you --uri http://localhost:4000/
+```
+
+Option B: open IEx and create manually:
 
 ```
 iex -S mix
