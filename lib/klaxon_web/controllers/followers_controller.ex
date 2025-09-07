@@ -13,7 +13,9 @@ defmodule KlaxonWeb.FollowersController do
   def index(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, _params) do
     with {:ok, %{uri: profile_uri} = _profile} <- current_profile(conn),
          followers = Activities.get_follower_uris(profile_uri) do
-      render(conn, :index, followers: followers)
+      conn
+      |> put_view(KlaxonWeb.FollowersView)
+      |> render("index.activity+json", followers: followers)
     end
   end
 

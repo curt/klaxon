@@ -14,7 +14,9 @@ defmodule KlaxonWeb.InboxController do
   plug :activity_json_response
 
   def index(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, _params) do
-    render(conn, :index)
+    conn
+    |> put_view(KlaxonWeb.InboxView)
+    |> render("index.activity+json")
   end
 
   def index(_, _params) do
