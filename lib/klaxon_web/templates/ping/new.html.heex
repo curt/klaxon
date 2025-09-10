@@ -1,6 +1,6 @@
 <h1>Create Ping</h1>
 
-<.form let={f} for={@conn} action={Routes.ping_path(@conn, :create)} as={:ping}>
+<.form :let={f} for={@conn} action={Routes.ping_path(@conn, :create)} as={:ping}>
   <div class="my-4">
   <div class="my-2">
   <%= label f, :to, class: "mr-4" %>

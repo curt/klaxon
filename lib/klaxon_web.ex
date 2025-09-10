@@ -19,7 +19,12 @@ defmodule KlaxonWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: KlaxonWeb
+      use Phoenix.Controller,
+        formats: [
+          html: "View",
+          json: "View",
+          "activity+json": "View"
+        ]
 
       import Plug.Conn
       import KlaxonWeb.Gettext
@@ -68,6 +73,28 @@ defmodule KlaxonWeb do
     end
   end
 
+  def html do
+    quote do
+      use Phoenix.Component
+      use Phoenix.HTML
+      import KlaxonWeb.ErrorHelpers
+      import KlaxonWeb.Gettext
+      import KlaxonWeb.Helpers
+      alias KlaxonWeb.Router.Helpers, as: Routes
+
+      # Allow calling render "partial.html", assigns inside templates
+      def render(template, assigns) when is_binary(template) and is_map(assigns) do
+        Phoenix.View.render(__MODULE__, template, assigns)
+      end
+
+      # Allow calling render SomeView, "template.html", assigns
+      def render(module, template, assigns)
+          when is_atom(module) and is_binary(template) and is_map(assigns) do
+        Phoenix.View.render(module, template, assigns)
+      end
+    end
+  end
+
   def router do
     quote do
       use Phoenix.Router
@@ -90,8 +117,9 @@ defmodule KlaxonWeb do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
-      # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
+      # Import LiveView and HEEx helpers/components
       import Phoenix.LiveView.Helpers
+      import Phoenix.Component
 
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View

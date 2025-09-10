@@ -20,5 +20,5 @@ defmodule KlaxonWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :klaxon
+  use Gettext.Backend, otp_app: :klaxon
 end

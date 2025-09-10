@@ -14,7 +14,9 @@ defmodule KlaxonWeb.OutboxController do
     with {:ok, profile} <- current_profile(conn),
          {:ok, posts} <-
            Contents.get_posts(profile.uri, nil, limit: 10) do
-      render(conn, :index, posts: posts)
+      conn
+      |> put_view(KlaxonWeb.OutboxView)
+      |> render("index.activity+json", posts: posts)
     end
   end
 

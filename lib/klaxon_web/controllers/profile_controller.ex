@@ -14,7 +14,9 @@ defmodule KlaxonWeb.ProfileController do
 
   def index(%Plug.Conn{private: %{:phoenix_format => "activity+json"}} = conn, _params) do
     with {:ok, profile} <- get_profile(conn) do
-      render(conn, :index, profile: profile, avatar: get_avatar(profile))
+      conn
+      |> put_view(KlaxonWeb.ProfileView)
+      |> render("index.activity+json", profile: profile, avatar: get_avatar(profile))
     end
   end
 

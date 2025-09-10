@@ -61,15 +61,13 @@ defmodule KlaxonWeb.SubscriptionControllerTest do
     end
 
     test "unsubscribe with get, bad response", %{conn: conn, subscription: subscription} do
-      assert_raise(
-        Phoenix.Router.NoRouteError,
-        fn ->
-          get(
-            conn,
-            Routes.subscription_path(conn, :unsubscribe, subscription.id, subscription.key)
-          )
-        end
-      )
+      conn =
+        get(
+          conn,
+          Routes.subscription_path(conn, :unsubscribe, subscription.id, subscription.key)
+        )
+
+      assert response(conn, 404)
     end
   end
 end

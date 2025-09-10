@@ -38,12 +38,16 @@ config :ex_aws,
   secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role],
   region: [{:system, "AWS_REGION"}, :instance_role]
 
+# Ensure service config includes json codec for early auth refresh paths
+config :ex_aws, :s3,
+  json_codec: Jason
+
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.14.29",
+  version: "0.21.5",
   default: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
@@ -88,7 +92,7 @@ config :klaxon, Oban,
 config :tesla, adapter: Tesla.Adapter.Hackney
 
 config :tailwind,
-  version: "3.2.7",
+  version: "3.4.10",
   default: [
     args: ~w(
     --config=tailwind.config.js
